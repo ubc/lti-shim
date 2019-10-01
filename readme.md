@@ -6,7 +6,7 @@
 ```
 git clone https://github.com/Laradock/laradock.git
 git clone https://github.com/ubc-lthub/lti-shim.git
-echo 'APP_KEY=' > .env # This is the Laravel environment
+echo 'APP_KEY=' > lti-shim/.env # This is the Laravel environment
 cd laradock
 cp env-example .env
 vi .env # This is the Laradock environment
