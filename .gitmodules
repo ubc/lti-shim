@@ -1,0 +1,4 @@
+[submodule "laradock-lti-shim"]
+	path = laradock-lti-shim
+	url = https://github.com/ubc/laradock.git
+	branch = lti-shim

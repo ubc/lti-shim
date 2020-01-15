@@ -3,22 +3,42 @@
 ## Development
 
 ### Develop in Docker
+
+Initial setup:
+
 ```
-git clone https://github.com/Laradock/laradock.git
-git clone https://github.com/ubc-lthub/lti-shim.git
-echo 'APP_KEY=' > lti-shim/.env # This is the Laravel environment
-cd laradock
-cp env-example .env
-vi .env # This is the Laradock environment
-  # change APP_CODE_PATH_HOST to "../lti-shim/"
-  # if your uid/gid is not 1000/1000, change WORKSPACE_PUID, WORKSPACE_PGID, PHP_FPM_PUID, and PHP_FPM_PGID
-docker-compose up -d nginx mysql phpmyadmin redis workspace
+git clone --recurse-submodules https://github.com/ubc-lthub/lti-shim.git
+cd lti-shim/
+cp .env-example .env
+cd laradock-lti-shim/
+docker-compose up -d nginx postgres workspace adminer
 docker-compose exec -u laradock workspace bash
   workspace$ composer install
   workspace$ artisan key:generate
-  workspace$ artisan config:cache
 ```
-The app is accessible from http://localhost
+
+* The main app is accessible from http://localhost
+  * App log is located in `storage/logs/`, they are named by date. Note that the containers seems to be on UTC though.
+* Workspace is a container for executing composer/artisan commands on your project. This means you don't need to have composer/artisan installed locally.
+* Adminer provides a simple front-end to the database and is accessible at http://localhost:8080/
+  * Database Type: postgres
+  * Database Name: default
+  * Username: default
+  * Password: secret
+
+After the initial setup, you can bring up the containers and access the workspace with just the docker-compose commands.
+
+#### Troubleshooting
+
+* If you're not the first user in the system (i.e.: uid/gid is not 1000/1000). You will have to edit `laradock-lti-shim/.env` and  change WORKSPACE_PUID, WORKSPACE_PGID, PHP_FPM_PUID, and PHP_FPM_PGID to your uid/gid. This is to avoid permission issues with the files created inside docker containers. E.g.: if you `composer install` a library while in the workspace container, the files downloaded by composer will be corrected own by you and not some other user.
+
+## Deployment
+
+It would be advisable to run `artisan key:generate` to generate a different `APP_KEY` from development.
+
+Run `artisan config:cache` to combine all configuration files into a single file for faster loading. This shouldn't be used during development as configuration files can change.
+
+Database credentials in `.env` should be replaced with production values.
 
 ## Contributing
 
