@@ -1,5 +1,7 @@
 <?php
 
+use UBC\LTI\Core\Launch\ToolLaunch;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,3 +18,7 @@ Route::get('/', function () {
 });
 
 Route::get('/launch', 'LtiController@launch');
+Route::get('/test', function() {
+	$launch = new ToolLaunch();
+	return $launch->test();
+});
