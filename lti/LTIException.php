@@ -1,6 +1,6 @@
 <?php
 namespace UBC\LTI;
 
-class LTIException extends Exception
+class LTIException extends \Exception
 {
 }

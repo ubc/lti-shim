@@ -20,4 +20,5 @@ Route::get('/', function () {
 Route::get('/launch', 'LtiController@launch');
 Route::namespace('LTI\Launch')->group(function() {
 	Route::get('/lti/launch/tool/login', 'ToolLaunchController@login');
+	Route::post('/lti/launch/tool/login', 'ToolLaunchController@login');
 });
