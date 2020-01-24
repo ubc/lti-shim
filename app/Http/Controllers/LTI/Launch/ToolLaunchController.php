@@ -13,21 +13,23 @@ use UBC\LTI\Specs\Launch\ToolLaunch;
 class ToolLaunchController extends Controller
 {
     /**
-     * Handles LTI launch request
+     * Handles LTI launch request's first stage, OIDC login
      *
      * @param Request $request
      */
-	public function login(Request $request)
-	{
-		$toolLaunch = new ToolLaunch($request);
-		try
-		{
-			$toolLaunch->checkLogin();
-		}
-		catch (LTIException $e)
-		{
-			abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
-		}
+    public function login(Request $request)
+    {
+        $response = [];
+        $toolLaunch = new ToolLaunch($request);
+        try {
+            $toolLaunch->checkLogin();
+            $response = $toolLaunch->getLoginResponse();
+        } catch (LTIException $e) {
+            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
+        }
+
+        return view('lti/launch/login_response',
+            ['login' => $request->all(), 'response' => $response]);
     }
 }
 
