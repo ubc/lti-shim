@@ -21,4 +21,6 @@ Route::get('/launch', 'LtiController@launch');
 Route::namespace('LTI\Launch')->group(function() {
     Route::get('/lti/launch/tool/login', 'ToolLaunchController@login');
     Route::post('/lti/launch/tool/login', 'ToolLaunchController@login');
+    // unlike login, only POST requests are allowed for the auth response
+    Route::post('/lti/launch/tool/auth', 'ToolLaunchController@auth');
 });

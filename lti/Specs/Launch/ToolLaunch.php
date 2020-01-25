@@ -64,7 +64,13 @@ class ToolLaunch
             $resp['lti_message_hint'] = $this->request->input('lti_message_hint');
         }
 
-        // TODO: redirect_uri
+        // TODO: real redirect_uri
+        $resp['redirect_uri'] = 'http://localhost/lti/launch/tool/auth';
+
+        // TODO: state is only recommended in auth request but required in auth
+        // response, so we should fill in something here, need clarification
+        // from spec people
+        $resp['state'] = 'blah';
 
         // TODO: real nonce
         $resp['nonce'] = 'fakenonce';
@@ -76,11 +82,6 @@ class ToolLaunch
     // authentication response sent back by the platform
     public function checkAuth()
     {
-        // unlike login, only POST requests are allowed for the auth response
-        if (!$this->isMethod('post')) {
-            throw new LTIException(
-                'Authentication response must be a POST request');
-        }
         $requiredParams = [
             'state',
             'id_token'

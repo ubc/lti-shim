@@ -31,5 +31,22 @@ class ToolLaunchController extends Controller
         return view('lti/launch/login_response',
             ['login' => $request->all(), 'response' => $response]);
     }
+
+    /**
+     * Handles LTI launch request's third stage, authentication response
+     *
+     * @param Request $request
+     *
+     */
+    public function auth(Request $request)
+    {
+        $toolLaunch = new ToolLaunch($request);
+        try {
+            $toolLaunch->checkAuth();
+        } catch (LTIException $e) {
+            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
+        }
+        return view('lti/launch/auth_response');
+    }
 }
 
