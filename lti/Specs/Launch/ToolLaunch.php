@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 use UBC\LTI\LTIException;
+use UBC\LTI\Specs\RequestChecker;
 
 
 // the main idea is that we supply this object with the params that we receive
@@ -12,12 +13,14 @@ use UBC\LTI\LTIException;
 class ToolLaunch
 {
     private Request $request; // laravel request object
+    private RequestChecker $checker;
 
     private bool $hasLogin = false; // true if checkLogin() passed
 
     public function __construct(Request $request)
     {
         $this->request = $request;
+        $this->checker = new RequestChecker($request);
     }
 
     // first stage of the LTI launch on the tool side, we need to check that
@@ -29,7 +32,7 @@ class ToolLaunch
             'login_hint',
             'target_link_uri'
         ];
-        $this->checkRequiredParameters($requiredParams);
+        $this->checker->requireParams($requiredParams);
         // TODO: check that iss is a known platform
         // TODO: check that target_link_uri points to itself
         // TODO: if client_id exists, check that it is known is under the iss
@@ -42,7 +45,7 @@ class ToolLaunch
     // second stage of LTI launch on the tool side, we need to send an auth
     // request back to the platform, this function returns the params that
     // should be sent
-    public function getLoginResponse()
+    public function getLoginResponse(): array
     {
         // cannot generate the login response if we don't have a valid login
         if (!$this->hasLogin) $this->checkLogin();
@@ -86,20 +89,8 @@ class ToolLaunch
             'state',
             'id_token'
         ];
-        $this->checkRequiredParameters($requiredParams);
+        $this->checker->requireParams($requiredParams);
         // TODO: validate id_token
         // TODO: return the url to redirect to?
-    }
-
-    // given a list of required parameters, make sure that the request has those
-    // params
-    private function checkRequiredParameters(array $requiredParams)
-    {
-        foreach ($requiredParams as $requiredParam) {
-            if (!$this->request->filled($requiredParam)) {
-                throw new LTIException(
-                    "Missing required parameter '$requiredParam'");
-            }
-        }
     }
 }
