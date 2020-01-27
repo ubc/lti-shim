@@ -12,7 +12,9 @@
         "facade/ignition": "^1.16",
         "fideloper/proxy": "^4.0",
         "laravel/framework": "^6.0",
-        "laravel/tinker": "^1.0"
+        "laravel/tinker": "^1.0",
+        "web-token/jwt-easy": "^2.1",
+        "web-token/jwt-key-mgmt": "^2.1"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master"
