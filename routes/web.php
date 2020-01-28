@@ -21,9 +21,17 @@ Route::namespace('LTI')->group(function() {
     Route::get('/lti/jwks', 'JWKSController@jwks');
     Route::get('/lti/keygen', 'JWKSController@keygen'); // TODO dev only, rm later
     Route::namespace('Launch')->group(function() {
+        // TOOL
         Route::get('/lti/launch/tool/login', 'ToolLaunchController@login');
         Route::post('/lti/launch/tool/login', 'ToolLaunchController@login');
         // unlike login, only POST requests are allowed for the auth response
         Route::post('/lti/launch/tool/auth', 'ToolLaunchController@auth');
+        // PLATFORM
+        Route::get('/lti/launch/platform/login',
+            'PlatformLaunchController@login');
+        Route::post('/lti/launch/platform/login',
+            'PlatformLaunchController@login');
+        Route::get('/lti/launch/platform/auth', 'PlatformLaunchController@auth');
+        Route::post('/lti/launch/platform/auth', 'PlatformLaunchController@auth');
     });
 });

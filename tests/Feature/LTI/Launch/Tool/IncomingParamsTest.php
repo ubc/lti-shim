@@ -1,6 +1,5 @@
 <?php
-
-namespace Tests\Feature;
+namespace Tests\Feature\LTI\Launch\Tool;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -8,7 +7,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Tests\TestCase;
 
-class ToolLaunchControllerTest extends TestCase
+// only checks incoming requests, for tool, this is the login and the auth resp
+class IncomingParamsTest extends TestCase
 {
     /**
      * If required LTI params are missing from the login, throw a 400 error.

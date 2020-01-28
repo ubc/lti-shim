@@ -28,7 +28,7 @@ class ToolLaunchController extends Controller
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
 
-        return view('lti/launch/login_response',
+        return view('lti/launch/tool/login_response',
             ['login' => $request->all(), 'response' => $response]);
     }
 
@@ -46,7 +46,7 @@ class ToolLaunchController extends Controller
         } catch (LTIException $e) {
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
-        return view('lti/launch/auth_response');
+        return view('lti/launch/tool/auth_response');
     }
 }
 
