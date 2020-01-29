@@ -4,7 +4,7 @@
 
 ### Develop in Docker
 
-Initial setup:
+#### Initial setup:
 
 ```
 git clone --recurse-submodules https://github.com/ubc-lthub/lti-shim.git
@@ -27,6 +27,22 @@ docker-compose exec -u laradock workspace bash
   * Password: secret
 
 After the initial setup, you can bring up the containers and access the workspace with just the docker-compose commands.
+
+#### Database Setup
+
+Database migration needs to be run manually whenever new migrations are added or when starting a fresh instance. These migrations needs to be run in the workspace container.
+
+```
+docker-compose exec -u laradock workspace bash
+  workspace$ artisan migrate
+```
+
+Migrations can be rolled back in bulk (`artisan migrate:rollback`) or with the addition of the `--step=N` option for finer control, rolling back N number of migration files.
+
+The database can be completely blown away and rebuilt from scratch using `artisan migrate:refresh`.
+
+Test data for development use can be seeded using `artisan db:seed`. This can be combined with rebuilding the database from scratch as `artisan migrate:refresh --seed`.
+
 
 #### Troubleshooting
 
