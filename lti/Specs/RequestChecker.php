@@ -37,7 +37,7 @@ class RequestChecker
                 throw new LTIException(
                     "Missing required parameter '$key'");
             }
-            if (!$this->request->input($key) == $val) {
+            if ($this->request->input($key) != $val) {
                 throw new LTIException(
                     "Required parameter '$key' must be set to '$val'");
             }

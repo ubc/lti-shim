@@ -4,8 +4,11 @@ namespace UBC\LTI\Specs\Launch;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
+use Jose\Easy\Build;
+
 use UBC\LTI\LTIException;
 use UBC\LTI\Specs\RequestChecker;
+use UBC\LTI\KeyStorage;
 
 
 // the main idea is that we supply this object with the params that we receive
@@ -28,10 +31,10 @@ class PlatformLaunch
     public function getLoginParams(): array
     {
         $params = [
-            'iss' => 'http://localhost/',
+            'iss' => 'http://localhost',
             'login_hint' => 'testuser',
-            'target_link_uri' => 'https://lti-ri.imsglobal.org/lti/tools/654/launches',
-            'client_id' => 'prototype1',
+            'target_link_uri' => 'http://localhost:9001/game.php',
+            'client_id' => 'StrawberryCat',
             'lti_deployment_id' => 'prototype1'
         ];
         return $params;
@@ -47,10 +50,8 @@ class PlatformLaunch
             'response_type' => 'id_token',
             'response_mode' => 'form_post',
             'prompt' => 'none',
-            // dynamic values
-            'login_hint' => 'testuser',
-            'client_id' => 'prototype1',
         ];
+        // TODO: validate login_hint and client_id
         // TODO: lti_message_hint needs to be a dynamic value
         // TODO: validate redirect_uri
         // TODO: nonce validation will probably needs to be tied to client_id
@@ -66,10 +67,43 @@ class PlatformLaunch
     // to generate the id_token JWT
     public function getAuthResponse()
     {
+        // cannot generate the auth response without an auth request
         if (!$this->hasAuthRequest) $this->checkAuthRequest();
         $resp = [
             'state' => $this->request->input('state')
         ];
 
+        $time = time();
+        $key = KeyStorage::getMyPrivateKey();
+        $token = Build::jws()
+            ->typ('JWT')
+            ->alg('RS256')
+            ->iss('http://localhost')
+            ->sub('testuser') // user id, same as login_hint
+            ->aud('StrawberryCat') // same as client_id previously
+            ->claim('azp', 'StrawberryCat')
+            ->exp($time + 86400) // expires in 1 hour
+            ->iat($time) // issued at
+            ->header('kid', 'MyDummyKey')
+            ->claim('nonce', $this->request->input('nonce'))
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
+                'LtiResourceLinkRequest')
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/roles', [])
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
+                '1.3.0')
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/deployment_id',
+                'prototype1')
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/target_link_uri',
+                'https://lti-ri.imsglobal.org/lti/tools/654/launches')
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/resource_link',
+               ['id' => 'fake_resource_link_id'])
+            ->sign($key);
+        Log::debug("--- Raw Token ---");
+        Log::debug(print_r($token, true));
+        Log::debug("--- State ---");
+        Log::debug(print_r($resp, true));
+        $resp['id_token'] = $token;
+
+        return $resp;
     }
 }

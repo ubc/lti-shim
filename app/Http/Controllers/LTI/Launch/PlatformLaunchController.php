@@ -29,5 +29,23 @@ class PlatformLaunchController extends Controller
 
         return view('lti/launch/platform/send_login', ['response' => $response]);
     }
+
+    /**
+     * LTI launch request's second stage, receive the authorization request
+     *
+     * @param Request $request
+     */
+    public function auth(Request $request)
+    {
+        $response = [];
+        $launch = new PlatformLaunch($request);
+        try {
+            $launch->checkAuthRequest();
+            $response = $launch->getAuthResponse();
+        } catch (LTIException $e) {
+            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
+        }
+        return view('lti/launch/platform/send_token', ['response' => $response]);
+    }
 }
 

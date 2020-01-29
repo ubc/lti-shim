@@ -1,10 +1,11 @@
 @extends('layouts.basic')
 
-@section('title', 'OIDC Login - Send to Tool')
+@section('title', 'Authorization Response')
 
 @section('content')
-  <h3>Login Parameters</h3>
-  <form action='http://localhost:9001/web/login.php' method='get'>
+  <h3>Authorization Response</h3>
+  <form action='http://localhost:9001/web/game.php'
+      method='post'>
     @foreach ($response as $key => $val)
       <div class='form-group'>
         <label for='{{ $key }}'>{{ $key }}</label>
@@ -14,7 +15,7 @@
     @endforeach
 
     <button type='submit' class='btn btn-primary'>
-      Send Login
+      Send Authorization Response
     </button>
   </form>
 @endsection
