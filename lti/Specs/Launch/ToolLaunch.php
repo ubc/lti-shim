@@ -36,13 +36,17 @@ class ToolLaunch
             'target_link_uri'
         ];
         $this->checker->requireParams($requiredParams);
-        // TODO: check that target_link_uri points to itself
 
         // check that the request is coming from a platform we know
         $iss = $this->request->input('iss');
         $platform = Platform::where('iss', $iss)->first();
         if (!$platform) throw new LTIException("Unknown platform iss: $iss");
         $this->platform = $platform;
+        // make sure that target_link_uri is pointing to us
+        $target = $this->request->input('target_link_uri');
+        if (strpos(config('config.url'), $target) !== 0)
+            throw new LTIException("target_link_uri is some other site: $target");
+
         // TODO: store login_hint for checking against the id_token
         // TODO: store lti_deployment_id for checking against the id_token
 
@@ -80,8 +84,7 @@ class ToolLaunch
             $resp['lti_message_hint'] = $this->request->input('lti_message_hint');
         }
 
-        // TODO: real redirect_uri
-        $resp['redirect_uri'] = 'http://localhost/lti/launch/tool/auth';
+        $resp['redirect_uri'] = config('lti.auth_resp_url');
 
         // TODO: state is only recommended in auth request but required in auth
         // response, so we should fill in something here, need clarification
