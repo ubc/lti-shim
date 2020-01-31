@@ -98,10 +98,6 @@ class PlatformLaunch
             ->claim('https://purl.imsglobal.org/spec/lti/claim/resource_link',
                ['id' => 'fake_resource_link_id'])
             ->sign($key);
-        Log::debug("--- Raw Token ---");
-        Log::debug(print_r($token, true));
-        Log::debug("--- State ---");
-        Log::debug(print_r($resp, true));
         $resp['id_token'] = $token;
 
         return $resp;

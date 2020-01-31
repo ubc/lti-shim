@@ -19,7 +19,11 @@ class CreatePlatformClientsTable extends Migration
             $table->foreign('platform_id')->references('id')->on('platforms')
                 ->onDelete('cascade');
             $table->string('client_id');
-            $table->timestampsTz();
+
+            // using just the standard timestampsTz() to create these pair of
+            // timestamps doesn't give them database defaults
+            $table->timestampTz('created_at')->useCurrent();
+            $table->timestampTz('updated_at')->useCurrent();
         });
     }
 

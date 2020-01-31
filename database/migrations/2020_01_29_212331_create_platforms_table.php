@@ -19,7 +19,11 @@ class CreatePlatformsTable extends Migration
             // urls technically can be very long, so using text instead of string
             $table->text('iss')->unique()->comment("OAuth issuer, usually just the platform's URL.");
             $table->text('auth_req_url')->comment('Platform URL where we send authentication requests.');
-            $table->timestampsTz();
+
+            // using just the standard timestampsTz() to create these pair of
+            // timestamps doesn't give them database defaults
+            $table->timestampTz('created_at')->useCurrent();
+            $table->timestampTz('updated_at')->useCurrent();
         });
     }
 

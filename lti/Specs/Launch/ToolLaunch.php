@@ -44,7 +44,7 @@ class ToolLaunch
         $this->platform = $platform;
         // make sure that target_link_uri is pointing to us
         $target = $this->request->input('target_link_uri');
-        if (strpos(config('config.url'), $target) !== 0)
+        if (strpos($target, config('app.url')) !== 0)
             throw new LTIException("target_link_uri is some other site: $target");
 
         // TODO: store login_hint for checking against the id_token
