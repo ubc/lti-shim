@@ -25,6 +25,7 @@ class ToolLaunchController extends Controller
             $toolLaunch->checkLogin();
             $response = $toolLaunch->getLoginResponse();
         } catch (LTIException $e) {
+            report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
 
@@ -44,6 +45,7 @@ class ToolLaunchController extends Controller
         try {
             $toolLaunch->checkAuth();
         } catch (LTIException $e) {
+            report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
         return view('lti/launch/tool/auth_response');

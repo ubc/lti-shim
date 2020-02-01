@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Jose\Easy\Build;
 
 use UBC\LTI\LTIException;
-use UBC\LTI\Specs\RequestChecker;
+use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\KeyStorage;
 
 
@@ -16,14 +16,14 @@ use UBC\LTI\KeyStorage;
 class PlatformLaunch
 {
     private Request $request; // laravel request object
-    private RequestChecker $checker;
+    private ParamChecker $checker;
 
     private bool $hasAuthRequest = false; // true if checkAuthRequest() passed
 
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->checker = new RequestChecker($request);
+        $this->checker = new ParamChecker($request->input());
     }
 
     // first stage of the LTI launch on the platform side, we need to send the

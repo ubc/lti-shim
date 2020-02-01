@@ -24,6 +24,7 @@ class PlatformLaunchController extends Controller
         try {
             $response = $launch->getloginParams();
         } catch (LTIException $e) {
+            report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
 
@@ -43,6 +44,7 @@ class PlatformLaunchController extends Controller
             $launch->checkAuthRequest();
             $response = $launch->getAuthResponse();
         } catch (LTIException $e) {
+            report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
         return view('lti/launch/platform/send_token', ['response' => $response]);

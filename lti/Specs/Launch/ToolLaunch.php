@@ -4,21 +4,24 @@ namespace UBC\LTI\Specs\Launch;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
+use Jose\Component\Checker\InvalidClaimException;
 use Jose\Easy\Build;
+use Jose\Easy\JWT;
+use Jose\Easy\Load;
 
 use App\Models\Platform;
 use App\Models\PlatformClient;
 
 use UBC\LTI\KeyStorage;
 use UBC\LTI\LTIException;
-use UBC\LTI\Specs\RequestChecker;
+use UBC\LTI\Specs\ParamChecker;
 
 // the main idea is that we supply this object with the params that we receive
 // and get the appropriate response params back
 class ToolLaunch
 {
     private Request $request; // laravel request object
-    private RequestChecker $checker;
+    private ParamChecker $checker;
 
     private bool $hasLogin = false; // true if checkLogin() passed
     private Platform $platform;
@@ -26,7 +29,7 @@ class ToolLaunch
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->checker = new RequestChecker($request);
+        $this->checker = new ParamChecker($request->input());
     }
 
     // first stage of the LTI launch on the tool side, we need to check that
@@ -106,11 +109,61 @@ class ToolLaunch
             'id_token'
         ];
         $this->checker->requireParams($requiredParams);
-        // TODO: validate state
-        // TODO: validate id_token
+        $state = $this->checkState($this->request->input('state'));
+        $idToken = $this->checkIdToken($this->request->input('id_token'), $state);
         // TODO: return the url to redirect to?
     }
 
+    // verify the signature & params in the id_token
+    private function checkIdToken(string $token, JWT $state): JWT
+    {
+        $jwk = KeyStorage::getPlatformPublicKey();
+        $jwt = Load::jws($token)
+            ->algs(['RS256']) // The algorithms allowed to be used
+            ->exp() // We check the "exp" claim
+            ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
+            ->aud($state->claims->get('client_id')) // Allowed audience
+            ->iss($state->claims->get('expected_iss')) // Allowed issuer
+            ->key($jwk); // Key used to verify the signature
+        try {
+            $jwt = $jwt->run();
+        } catch(InvalidClaimException $e) {
+            throw new LTIException('Invalid id_token: ' . $e->getMessage(),0, $e);
+        }
+
+        $requiredValues = [
+            'https://purl.imsglobal.org/spec/lti/claim/message_type' => 
+                'LtiResourceLinkRequest',
+            'https://purl.imsglobal.org/spec/lti/claim/version' => '1.3.0',
+            'https://purl.imsglobal.org/spec/lti/claim/deployment_id' => 
+                $state->claims->get('lti_deployment_id')
+        ];
+        $checker = new ParamChecker($jwt->claims->all());
+        $checker->requireValues($requiredValues);
+
+        return $jwt;
+    }
+
+    // verify the signature on state and return the JWT, throws LTIException if
+    // signature could not be verified
+    private function checkState(string $token): JWT
+    {
+        $jwk = KeyStorage::getMyPublicKey();
+        $jwt = Load::jws($token)
+            ->algs(['RS256']) // The algorithms allowed to be used
+            ->exp() // We check the "exp" claim
+            ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
+            ->iss(config('lti.iss'))
+            ->key($jwk);
+        try {
+            $jwt = $jwt->run();
+        } catch(InvalidClaimException $e) {
+            throw new LTIException('Invalid state in auth response.', 0, $e);
+        }
+        return $jwt;
+    }
+
+    // create a JWT storing params that we expect to also see in id_token
     private function createState(): string
     {
         $jwk = KeyStorage::getMyPrivateKey();
@@ -122,6 +175,8 @@ class ToolLaunch
             ->iat($time)
             ->alg('RS256')
             ->iss(config('lti.iss'))
+            ->claim('expected_iss', $this->request->input('iss'))
+            ->claim('client_id', $this->request->input('client_id'))
             ->claim('login_hint', $this->request->input('login_hint'))
             ->claim('lti_deployment_id',
                     $this->request->input('lti_deployment_id'))

@@ -2,25 +2,24 @@
 namespace UBC\LTI\Specs;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
 
 use UBC\LTI\LTIException;
 
-class RequestChecker
+class ParamChecker
 {
-    private Request $request;
+    private array $params;
 
-    public function __construct(Request $request)
+    public function __construct(array $params)
     {
-        $this->request = $request;
+        $this->params = $params;
     }
 
-    // check that the required params are in the request, if a param
-    // is missing, throw LTIException
+    // check that the required params are in the request and is not empty
+    // throw LTIException if params missing
     public function requireParams(array $requiredParams)
     {
         foreach ($requiredParams as $requiredParam) {
-            if (!$this->request->filled($requiredParam)) {
+            if (!$this->hasParam($requiredParam)) {
                 throw new LTIException(
                     "Missing required parameter '$requiredParam'");
             }
@@ -33,14 +32,23 @@ class RequestChecker
     public function requireValues(array $requiredValues)
     {
         foreach ($requiredValues as $key => $val) {
-            if (!$this->request->filled($key)) {
+            if (!$this->hasParam($key)) {
                 throw new LTIException(
                     "Missing required parameter '$key'");
             }
-            if ($this->request->input($key) != $val) {
+            if ($this->params[$key] != $val) {
                 throw new LTIException(
                     "Required parameter '$key' must be set to '$val'");
             }
         }
+    }
+
+    private function hasParam(string $param): bool
+    {
+        if (array_key_exists($param, $this->params) &&
+            !empty($this->params[$param])) {
+            return true;
+        }
+        return false;
     }
 }
