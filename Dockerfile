@@ -1,13 +1,14 @@
 FROM composer AS composer
 WORKDIR /var/www
 COPY . /var/www/
-RUN composer install --no-dev
+RUN composer install --no-dev --ignore-platform-reqs
 
 
 FROM php:7.3-fpm
 WORKDIR /var/www
 
-RUN apt-get update && apt-get -y install git && apt-get -y install zip
+RUN apt-get update && apt-get -y install git && apt-get -y install zip libgmp-dev \
+        && docker-php-ext-install -j$(nproc) gmp
 
 COPY . /var/www
 COPY --from=composer /var/www/vendor /var/www/vendor
