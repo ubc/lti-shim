@@ -48,7 +48,7 @@ class ToolLaunchController extends Controller
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
-        return view('lti/launch/tool/auth_response');
+        return redirect()->action('LTI\Launch\PlatformLaunchController@login');
     }
 }
 

@@ -4,7 +4,11 @@ namespace UBC\LTI\Specs\Launch;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
+use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\Build;
+
+use App\Models\Deployment;
+use App\Models\Platform;
 
 use UBC\LTI\LTIException;
 use UBC\LTI\Specs\ParamChecker;
@@ -30,12 +34,26 @@ class PlatformLaunch
     // login params to the tool.
     public function getLoginParams(): array
     {
+        if (!$this->request->session()->has('original_iss')) {
+            throw new LTIException('No LTI launch to forward.');
+        }
+        $platform = Platform::where('iss', session('original_iss'))->first();
+        // TODO: can probably deserialize in the constructor
+        $idToken = (new CompactSerializer())->unserialize(session('id_token'));
+        $idToken = json_decode($idToken->getPayload(), true);
+        $deploymentId = $idToken[
+            'https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+        $deployment = Deployment::where([
+            ['deployment_id', $deploymentId],
+            ['platform_id', $platform->id]
+        ])->first();
+        $tool = $deployment->tool;
         $params = [
-            'iss' => 'http://localhost',
-            'login_hint' => 'testuser',
-            'target_link_uri' => 'http://localhost:9001/game.php',
-            'client_id' => 'StrawberryCat',
-            'lti_deployment_id' => 'prototype1'
+            'iss' => config('lti.iss'),
+            'login_hint' => session('login_hint'), // TODO: filter param
+            'target_link_uri' => $tool->target_link_uri,
+            'client_id' => $tool->client_id,
+            'lti_deployment_id' => $deploymentId
         ];
         return $params;
     }

@@ -111,7 +111,17 @@ class ToolLaunch
         $this->checker->requireParams($requiredParams);
         $state = $this->checkState($this->request->input('state'));
         $idToken = $this->checkIdToken($this->request->input('id_token'), $state);
-        // TODO: return the url to redirect to?
+
+        // pass data over to the PlatformLaunch using sessions
+        // Laravel session automatically split on periods to create a
+        // multi-dimensional array, so the lti uri keys in id_token gets split
+        // into subarrays. This makes it hard to look up by uri keys, so
+        // instead we're storing the id_token in the original serialized form.
+        session([
+            'original_iss' => $state->claims->get('expected_iss'),
+            'login_hint' => $state->claims->get('login_hint'),
+            'id_token' => $this->request->input('id_token')
+        ]);
     }
 
     // verify the signature & params in the id_token
@@ -132,12 +142,13 @@ class ToolLaunch
         }
 
         $requiredValues = [
-            'https://purl.imsglobal.org/spec/lti/claim/message_type' => 
+            'https://purl.imsglobal.org/spec/lti/claim/message_type' =>
                 'LtiResourceLinkRequest',
-            'https://purl.imsglobal.org/spec/lti/claim/version' => '1.3.0',
-            'https://purl.imsglobal.org/spec/lti/claim/deployment_id' => 
-                $state->claims->get('lti_deployment_id')
+            'https://purl.imsglobal.org/spec/lti/claim/version' => '1.3.0'
         ];
+        if ($state->claims->get('lti_deployment_id')) {
+            $requireValues['https://purl.imsglobal.org/spec/lti/claim/deployment_id'] = $state->claims->get('lti_deployment_id');
+        }
         $checker = new ParamChecker($jwt->claims->all());
         $checker->requireValues($requiredValues);
 
@@ -177,10 +188,12 @@ class ToolLaunch
             ->iss(config('lti.iss'))
             ->claim('expected_iss', $this->request->input('iss'))
             ->claim('client_id', $this->request->input('client_id'))
-            ->claim('login_hint', $this->request->input('login_hint'))
-            ->claim('lti_deployment_id',
-                    $this->request->input('lti_deployment_id'))
-            ->sign($jwk);
+            ->claim('login_hint', $this->request->input('login_hint'));
+        if ($this->request->has('lti_deployment_id')) {
+            $jws = $jws->claim('lti_deployment_id',
+                                $this->request->input('lti_deployment_id'));
+        }
+        $jws = $jws->sign($jwk);
         return $jws;
     }
 }
