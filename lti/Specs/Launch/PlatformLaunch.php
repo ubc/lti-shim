@@ -11,8 +11,9 @@ use App\Models\Deployment;
 use App\Models\Platform;
 
 use UBC\LTI\LTIException;
-use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\KeyStorage;
+use UBC\LTI\Param;
+use UBC\LTI\Specs\ParamChecker;
 
 
 // the main idea is that we supply this object with the params that we receive
@@ -37,23 +38,23 @@ class PlatformLaunch
         if (!$this->request->session()->has('original_iss')) {
             throw new LTIException('No LTI launch to forward.');
         }
-        $platform = Platform::where('iss', session('original_iss'))->first();
+        $platform = Platform::where(Param::ISS, session('original_iss'))->first();
         // TODO: can probably deserialize in the constructor
-        $idToken = (new CompactSerializer())->unserialize(session('id_token'));
+        $idToken = (new CompactSerializer())
+            ->unserialize(session(Param::ID_TOKEN));
         $idToken = json_decode($idToken->getPayload(), true);
-        $deploymentId = $idToken[
-            'https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+        $deploymentId = $idToken[Param::DEPLOYMENT_ID_URI];
         $deployment = Deployment::where([
             ['deployment_id', $deploymentId],
             ['platform_id', $platform->id]
         ])->first();
         $tool = $deployment->tool;
         $params = [
-            'iss' => config('lti.iss'),
-            'login_hint' => session('login_hint'), // TODO: filter param
-            'target_link_uri' => $tool->target_link_uri,
-            'client_id' => $tool->client_id,
-            'lti_deployment_id' => $deploymentId
+            Param::ISS => config('lti.iss'),
+            Param::LOGIN_HINT => session(Param::LOGIN_HINT), // TODO: filter param
+            Param::TARGET_LINK_URI => $tool->target_link_uri,
+            Param::CLIENT_ID => $tool->client_id,
+            Param::LTI_DEPLOYMENT_ID => $deploymentId
         ];
         return $params;
     }
@@ -63,11 +64,13 @@ class PlatformLaunch
     public function checkAuthRequest()
     {
         $requiredValues = [
-            // hardcoded values
-            'scope' => 'openid',
-            'response_type' => 'id_token',
-            'response_mode' => 'form_post',
-            'prompt' => 'none',
+            // static values
+            Param::SCOPE => Param::OPENID,
+            Param::RESPONSE_TYPE => Param::ID_TOKEN,
+            Param::RESPONSE_MODE => Param::FORM_POST,
+            Param::PROMPT => Param::NONE,
+            // dynamic values
+            Param::LOGIN_HINT => session(Param::LOGIN_HINT)
         ];
         // TODO: validate login_hint and client_id
         // TODO: lti_message_hint needs to be a dynamic value
