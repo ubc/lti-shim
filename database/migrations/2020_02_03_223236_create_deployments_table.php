@@ -19,8 +19,10 @@ class CreateDeploymentsTable extends Migration
             $table->unsignedBigInteger('tool_id');
             $table->unsignedBigInteger('platform_id');
 
-            $table->foreign('tool_id')->references('id')->on('tools');
-            $table->foreign('platform_id')->references('id')->on('platforms');
+            $table->foreign('tool_id')->references('id')->on('tools')
+                  ->onDelete('cascade');
+            $table->foreign('platform_id')->references('id')->on('platforms')
+                  ->onDelete('cascade');
             // we can't make deployment_id by itself unique, specs say it is
             // only unique within each iss, so needs to be a multicolumn index
             $table->index(['deployment_id', 'platform_id']);
