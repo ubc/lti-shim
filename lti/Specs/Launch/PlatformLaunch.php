@@ -9,6 +9,7 @@ use Jose\Easy\Build;
 
 use App\Models\Deployment;
 use App\Models\Platform;
+use App\Models\Tool;
 
 use UBC\LTI\LTIException;
 use UBC\LTI\KeyStorage;
@@ -23,12 +24,24 @@ class PlatformLaunch
     private Request $request; // laravel request object
     private ParamChecker $checker;
 
+    private Deployment $deployment;
+    private Tool $tool;
+
     private bool $hasAuthRequest = false; // true if checkAuthRequest() passed
+
+    private const TOOL_ID = 'toolId';
+    private const DEPLOYMENT_ID = 'deploymentId';
 
     public function __construct(Request $request)
     {
         $this->request = $request;
         $this->checker = new ParamChecker($request->input());
+        if (session(self::TOOL_ID)) {
+            $this->tool = Tool::find(session(self::TOOL_ID));
+        }
+        if (session(self::DEPLOYMENT_ID)) {
+            $this->deployment = Deployment::find(session(self::DEPLOYMENT_ID));
+        }
     }
 
     // first stage of the LTI launch on the platform side, we need to send the
@@ -49,6 +62,11 @@ class PlatformLaunch
             ['platform_id', $platform->id]
         ])->first();
         $tool = $deployment->tool;
+        // store database id so we can use it later
+        session([
+            self::TOOL_ID => $tool->id,
+            self::DEPLOYMENT_ID => $deployment->id
+        ]);
         $params = [
             Param::ISS => config('lti.iss'),
             Param::LOGIN_HINT => session(Param::LOGIN_HINT), // TODO: filter param
@@ -70,11 +88,11 @@ class PlatformLaunch
             Param::RESPONSE_MODE => Param::FORM_POST,
             Param::PROMPT => Param::NONE,
             // dynamic values
-            Param::LOGIN_HINT => session(Param::LOGIN_HINT)
+            Param::LOGIN_HINT => session(Param::LOGIN_HINT),
+            Param::CLIENT_ID => session(Param::CLIENT_ID)
         ];
-        // TODO: validate login_hint and client_id
-        // TODO: lti_message_hint needs to be a dynamic value
-        // TODO: validate redirect_uri
+        // TODO: validate redirect_uri, valid redirect_uri is supposed to be
+        // pre-registered and we need to make sure it matches what we have
         // TODO: nonce validation will probably needs to be tied to client_id
         // and other such dynamic values somehow, so we can be sure that the
         // original login request came from us
@@ -86,7 +104,7 @@ class PlatformLaunch
 
     // third and final stage of the LTI launch on the platform side, we need
     // to generate the id_token JWT
-    public function getAuthResponse()
+    public function getAuthResponse(): array
     {
         // cannot generate the auth response without an auth request
         if (!$this->hasAuthRequest) $this->checkAuthRequest();
@@ -98,26 +116,22 @@ class PlatformLaunch
         $key = KeyStorage::getMyPrivateKey();
         $token = Build::jws()
             ->typ('JWT')
-            ->alg('RS256')
-            ->iss('http://localhost')
-            ->sub('testuser') // user id, same as login_hint
-            ->aud('StrawberryCat') // same as client_id previously
-            ->claim('azp', 'StrawberryCat')
+            ->alg(Param::RS256)
+            ->iss(config('lti.iss'))
+            ->sub(session(Param::LOGIN_HINT)) // user id
+            ->aud(session(Param::CLIENT_ID)) // same as client_id previously
             ->exp($time + 86400) // expires in 1 hour
             ->iat($time) // issued at
-            ->header('kid', 'MyDummyKey')
-            ->claim('nonce', $this->request->input('nonce'))
-            ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
-                'LtiResourceLinkRequest')
-            ->claim('https://purl.imsglobal.org/spec/lti/claim/roles', [])
-            ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
-                '1.3.0')
-            ->claim('https://purl.imsglobal.org/spec/lti/claim/deployment_id',
-                'prototype1')
-            ->claim('https://purl.imsglobal.org/spec/lti/claim/target_link_uri',
-                'https://lti-ri.imsglobal.org/lti/tools/654/launches')
-            ->claim('https://purl.imsglobal.org/spec/lti/claim/resource_link',
-               ['id' => 'fake_resource_link_id'])
+            // TODO real kid
+            ->header(Param::KID, 'MyDummyKey')
+            ->claim(Param::NONCE, $this->request->input('nonce'))
+            ->claim(Param::MESSAGE_TYPE_URI, 'LtiResourceLinkRequest')
+            ->claim(Param::ROLES_URI, [])
+            ->claim(Param::VERSION_URI, '1.3.0')
+            ->claim(Param::DEPLOYMENT_ID_URI, session(Param::LTI_DEPLOYMENT_ID))
+            ->claim(Param::TARGET_LINK_URI_URI, $this->tool->target_link_uri)
+            // TODO real resource link
+            ->claim(Param::RESOURCE_LINK_URI, ['id' => 'fake_resource_link_id'])
             ->sign($key);
         $resp['id_token'] = $token;
 
