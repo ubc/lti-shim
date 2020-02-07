@@ -4,6 +4,7 @@ use Faker\Generator as Faker;
 use Illuminate\Support\Str;
 
 use App\Models\Platform;
+use App\Models\PlatformClient;
 
 
 $factory->define(Platform::class, function (Faker $faker) {
@@ -14,3 +15,14 @@ $factory->define(Platform::class, function (Faker $faker) {
         'auth_req_url' => 'https://' . $domain . '/lti/auth'
     ];
 });
+$factory->afterCreating(
+    Platform::class,
+    function($platform, Faker $faker) {
+        // each platform also needs a registered client
+        $platform->clients()
+                 ->save(
+                     factory(PlatformClient::class)
+                         ->create(['platform_id' => $platform->id])
+                 );
+    }
+);
