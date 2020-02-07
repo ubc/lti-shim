@@ -15,4 +15,9 @@ class Platform extends Model
     {
         return $this->hasMany('App\Models\Deployment');
     }
+
+    public function keys()
+    {
+        return $this->hasMany('App\Models\PlatformKey');
+    }
 }

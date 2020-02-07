@@ -5,6 +5,7 @@ use Illuminate\Support\Str;
 
 use App\Models\Platform;
 use App\Models\PlatformClient;
+use App\Models\PlatformKey;
 
 
 $factory->define(Platform::class, function (Faker $faker) {
@@ -22,6 +23,12 @@ $factory->afterCreating(
         $platform->clients()
                  ->save(
                      factory(PlatformClient::class)
+                         ->create(['platform_id' => $platform->id])
+                 );
+        // each platform also needs a public key
+        $platform->keys()
+                 ->save(
+                     factory(PlatformKey::class)
                          ->create(['platform_id' => $platform->id])
                  );
     }
