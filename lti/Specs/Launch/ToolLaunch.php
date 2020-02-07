@@ -131,17 +131,22 @@ class ToolLaunch
     private function checkIdToken(string $token, JWT $state): JWT
     {
         $jwk = KeyStorage::getPlatformPublicKey();
-        $jwt = Load::jws($token)
-            ->algs([Param::RS256]) // The algorithms allowed to be used
-            ->exp() // We check the "exp" claim
-            ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
-            ->aud($state->claims->get(Param::CLIENT_ID)) // Allowed audience
-            ->iss($state->claims->get('original_iss')) // Allowed issuer
-            ->key($jwk); // Key used to verify the signature
+        $jwt;
+        try {
+            $jwt = Load::jws($token);
+        } catch(InvalidArgumentException $e) {
+            throw new LTIException('Invalid JWT in auth response.', 0, $e);
+        }
+        $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
+                   ->exp() // We check the "exp" claim
+                   ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
+                   ->aud($state->claims->get(Param::CLIENT_ID))
+                   ->iss($state->claims->get('original_iss'))
+                   ->key($jwk); // Key used to verify the signature
         try {
             $jwt = $jwt->run();
         } catch(InvalidClaimException $e) {
-            throw new LTIException('Invalid id_token: ' . $e->getMessage(),0, $e);
+            throw new LTIException('Rejected id_token: '.$e->getMessage(),0,$e);
         }
 
         $requiredValues = [
@@ -163,16 +168,21 @@ class ToolLaunch
     private function checkState(string $token): JWT
     {
         $jwk = KeyStorage::getMyPublicKey();
-        $jwt = Load::jws($token)
-            ->algs([Param::RS256]) // The algorithms allowed to be used
-            ->exp() // We check the "exp" claim
-            ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
-            ->iss(config('lti.iss'))
-            ->key($jwk);
+        $jwt;
+        try {
+            $jwt = Load::jws($token);
+        } catch(InvalidArgumentException $e) {
+            throw new LTIException('Unrecognized state in auth response.', 0, $e);
+        }
+        $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
+                   ->exp() // We check the "exp" claim
+                   ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
+                   ->iss(config('lti.iss'))
+                   ->key($jwk);
         try {
             $jwt = $jwt->run();
         } catch(InvalidClaimException $e) {
-            throw new LTIException('Invalid state in auth response.', 0, $e);
+            throw new LTIException('Rejected state in auth response.', 0, $e);
         }
         return $jwt;
     }
