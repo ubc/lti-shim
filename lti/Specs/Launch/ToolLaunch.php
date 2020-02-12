@@ -130,12 +130,14 @@ class ToolLaunch
     // verify the signature & params in the id_token
     private function checkIdToken(string $token, JWT $state): JWT
     {
-        $jwk = KeyStorage::getPlatformPublicKey();
+        $platform = Platform::firstWhere(Param::ISS,
+                                         $state->claims->get('original_iss'));
+        $jwk = $platform->keys()->first()->public_key;
         $jwt;
         try {
             $jwt = Load::jws($token);
         } catch(InvalidArgumentException $e) {
-            throw new LTIException('Invalid JWT in auth response.', 0, $e);
+            throw new LTIException('id_token not base64 encoded.', 0, $e);
         }
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
                    ->exp() // We check the "exp" claim
@@ -144,21 +146,22 @@ class ToolLaunch
                    ->iss($state->claims->get('original_iss'))
                    ->key($jwk); // Key used to verify the signature
         try {
+            // check signature
             $jwt = $jwt->run();
-        } catch(InvalidClaimException $e) {
-            throw new LTIException('Rejected id_token: '.$e->getMessage(),0,$e);
+            // check required claims
+            $requiredValues = [
+                Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
+                Param::VERSION_URI => '1.3.0'
+            ];
+            if ($state->claims->has(Param::LTI_DEPLOYMENT_ID)) {
+                $requireValues[Param::DEPLOYMENT_ID_URI] =
+                    $state->claims->get(Param::LTI_DEPLOYMENT_ID);
+            }
+            $checker = new ParamChecker($jwt->claims->all());
+            $checker->requireValues($requiredValues);
+        } catch(\Exception $e) { // invalid signature throws a bare Exception
+            throw new LTIException('Invalid id_token: '.$e->getMessage(),0,$e);
         }
-
-        $requiredValues = [
-            Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
-            Param::VERSION_URI => '1.3.0'
-        ];
-        if ($state->claims->get(Param::LTI_DEPLOYMENT_ID)) {
-            $requireValues[Param::DEPLOYMENT_ID_URI] =
-                $state->claims->get(Param::LTI_DEPLOYMENT_ID);
-        }
-        $checker = new ParamChecker($jwt->claims->all());
-        $checker->requireValues($requiredValues);
 
         return $jwt;
     }
@@ -181,8 +184,13 @@ class ToolLaunch
                    ->key($jwk);
         try {
             $jwt = $jwt->run();
-        } catch(InvalidClaimException $e) {
-            throw new LTIException('Rejected state in auth response.', 0, $e);
+            $requiredParams = ['original_iss', Param::CLIENT_ID,
+                               Param::LOGIN_HINT];
+            $checker = new ParamChecker($jwt->claims->all());
+            $checker->requireParams($requiredParams);
+        } catch(\Exception $e) {
+            throw new LTIException('Invalid state in auth response: ' .
+                $e->getMessage(), 0, $e);
         }
         return $jwt;
     }
