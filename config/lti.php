@@ -23,4 +23,9 @@ return [
             "dq": "ITxO5DHiCxQuKKJ0KU1zxjK2rI1tA_NaxGWoWGKnYdAPiPvIgpcWzEzLfStCix6-iv6TjhNXTXarGoD0bu5RNNkTcdDVM4-t7xefBD6YnhK8L6k0wRGuO92s5F1_xBxI-EX0aWa8RSmP6l27turCcP39SOUcSPsybWHy6bJTLz1zbqRAQBM6jIbdfuCYCBkiViJy6iTn3a4HXE--3I_8oWKNsGj5_8k2olC7EQv7jWqzw2-ACL_cpoC_QYjBTXtIfGiUiOjEHJv2xKB5kkVTU2LErMQ1Rd-7RE5DXGIlG-vVEyZWIbLERQ7UTLxINY7IiS83xAv8wV820FHYB1qCdw",
             "qi": "LDCsUcj5gb_j1O4gVjAm1jbrkwlwebODWtIxjx3Bbk9RtsQmVMVmLnoyuyMXjkH3IOQen4cFHZIb1B0JdkwHagw8HEGkWZ1PpX_CzgA4FdaNso_dDAw94vkWVCY0iSCcgXaSLseWBpulwJr2L8CJDucBY7sCQ_KYcUKADZV0pptGqxQ4BnGHJQHfuhfX_2LSzbZmh8PKzFnKS5bZkG1uL0RlbcR9IJVwcRoRXlIyK39WyRnQ0eQwmdmO7m0jnUUJmMtgQcCbnGiiy_jjQabwv_WsXGv0cWZqLy8F5j-s1Rjrp-Xo4Gn_399tkEvn5dGlVQ8lcQ2reN8nIv0N6QKwbA"
             }'
+    
+    // shim's platform information is stored in the database, so we need the id
+    'own_platform_id' => 1,
+    // shim's tool information is stored in the database, so we need the id
+    'own_tool_id' => 1
 ];

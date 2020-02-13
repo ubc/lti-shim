@@ -15,7 +15,8 @@ class CreateDeploymentsTable extends Migration
     {
         Schema::create('deployments', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('deployment_id', 1024);
+            $table->string('deployment_id', 1024)
+                  ->comment('Not a foreign key, this is the LTI deployment ID.');
             $table->unsignedBigInteger('tool_id');
             $table->unsignedBigInteger('platform_id');
 
