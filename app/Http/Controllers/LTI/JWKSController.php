@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Jose\Component\KeyManagement\JWKFactory;
 
 use App\Http\Controllers\Controller;
-
-use UBC\LTI\KeyStorage;
+use App\Models\Platform;
 
 class JWKSController extends Controller
 {
@@ -20,9 +19,24 @@ class JWKSController extends Controller
      *
      * @param Request $request
      */
-    public function jwks(Request $request)
+    public function platformPublicKeys(Request $request)
     {
-        return array('keys' => array(KeyStorage::getMyPublicKey()->all()));
+        $platform = Platform::getOwnPlatform();
+        $keys = array();
+        foreach($platform->keys as $key) {
+            $keys[] = $key->public_key->all();
+        }
+        return array('keys' => $keys);
+    }
+
+    public function toolPublicKeys(Request $request)
+    {
+        $platform = Tool::getOwnTool();
+        $keys = array();
+        foreach($platform->keys as $key) {
+            $keys[] = $key->public_key->all();
+        }
+        return array('keys' => $keys);
     }
 
     /**

@@ -18,7 +18,8 @@
 Route::get('/launch', 'LtiController@launch');
 Route::namespace('LTI')->group(function() {
     // a list of public keys that can be used to verify our signed JWTs
-    Route::get('/lti/jwks', 'JWKSController@jwks');
+    Route::get('/lti/platform/jwks', 'JWKSController@platformPublicKeys');
+    Route::get('/lti/tool/jwks', 'JWKSController@toolPublicKeys');
     Route::get('/lti/keygen', 'JWKSController@keygen'); // TODO dev only, rm later
     Route::namespace('Launch')->group(function() {
         // TOOL
