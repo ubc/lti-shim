@@ -10,8 +10,10 @@ class Tool extends Model
     {
         return $this->hasMany('App\Models\Deployment');
     }
+
     public function keys()
     {
-        return $this->hasMany('App\Models\ToolKeys');
+        return $this->hasMany('App\Models\ToolKey');
+    }
     }
 }

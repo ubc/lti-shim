@@ -21,11 +21,13 @@ class CreateKeysTable extends Migration
 
             $table->string('kid', 1024)
                   ->comment('Identifies the key in a JWK set.');
-            $table->json('public_key')->comment('JWK with the public key.')
-                  ->nullable();
+            $table->json('key')
+                  ->comment('JWK of the RSA key, can include private key.');
             $table->unsignedBigInteger('platform_id');
             $table->foreign('platform_id')->references('id')->on('platforms')
                   ->onDelete('cascade');
+
+            $table->index(['kid', 'platform_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
@@ -36,11 +38,13 @@ class CreateKeysTable extends Migration
 
             $table->string('kid', 1024)
                   ->comment('Identifies the key in a JWK set.');
-            $table->json('public_key')->comment('JWK with the public key.')
-                  ->nullable();
+            $table->json('key')
+                  ->comment('JWK of the RSA key, can include private key.');
             $table->unsignedBigInteger('tool_id');
             $table->foreign('tool_id')->references('id')->on('tools')
                   ->onDelete('cascade');
+
+            $table->index(['kid', 'tool_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
