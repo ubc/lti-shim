@@ -24,4 +24,3 @@ $factory->define(ToolKey::class, function (Faker $faker) {
         'key' =>json_encode($key)
     ];
 });
-
