@@ -12,11 +12,11 @@ use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\LTIException;
-use UBC\LTI\KeyStorage;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 
 
+// we're acting as the Platform
 // the main idea is that we supply this object with the params that we receive
 // and get the appropriate response params back
 class PlatformLaunch
@@ -52,6 +52,7 @@ class PlatformLaunch
             throw new LTIException('No LTI launch to forward.');
         }
         $platform = Platform::where(Param::ISS, session('original_iss'))->first();
+        if (!$platform) throw new LTIException('Could not find platform!');
         // TODO: can probably deserialize in the constructor
         $idToken = (new CompactSerializer())
             ->unserialize(session(Param::ID_TOKEN));
@@ -61,6 +62,8 @@ class PlatformLaunch
             ['deployment_id', $deploymentId],
             ['platform_id', $platform->id]
         ])->first();
+        // TODO: create deployment on the fly if it doesn't exist?
+        if (!$deployment) throw new LTIException('No deployment found!');
         $tool = $deployment->tool;
         // store database id so we can use it later
         session([
@@ -81,6 +84,7 @@ class PlatformLaunch
     // the authentication request sent by the tool.
     public function checkAuthRequest()
     {
+        $tool = Tool::find(session(self::TOOL_ID));
         $requiredValues = [
             // static values
             Param::SCOPE => Param::OPENID,
@@ -89,7 +93,7 @@ class PlatformLaunch
             Param::PROMPT => Param::NONE,
             // dynamic values
             Param::LOGIN_HINT => session(Param::LOGIN_HINT),
-            Param::CLIENT_ID => session(Param::CLIENT_ID)
+            Param::CLIENT_ID => $tool->client_id
         ];
         // TODO: validate redirect_uri, valid redirect_uri is supposed to be
         // pre-registered and we need to make sure it matches what we have
@@ -106,6 +110,8 @@ class PlatformLaunch
     // to generate the id_token JWT
     public function getAuthResponse(): array
     {
+        $tool = Tool::find(session(self::TOOL_ID));
+        $deployment = Deployment::find(session(self::DEPLOYMENT_ID));
         // cannot generate the auth response without an auth request
         if (!$this->hasAuthRequest) $this->checkAuthRequest();
         $resp = [
@@ -113,26 +119,25 @@ class PlatformLaunch
         ];
 
         $time = time();
-        $key = KeyStorage::getMyPrivateKey();
+        $key = Platform::getOwnPlatform()->keys()->first();
         $token = Build::jws()
             ->typ('JWT')
             ->alg(Param::RS256)
             ->iss(config('lti.iss'))
             ->sub(session(Param::LOGIN_HINT)) // user id
-            ->aud(session(Param::CLIENT_ID)) // same as client_id previously
+            ->aud($tool->client_id) // same as client_id previously
             ->exp($time + 86400) // expires in 1 hour
             ->iat($time) // issued at
-            // TODO real kid
-            ->header(Param::KID, 'MyDummyKey')
+            ->header(Param::KID, $key->kid)
             ->claim(Param::NONCE, $this->request->input('nonce'))
             ->claim(Param::MESSAGE_TYPE_URI, 'LtiResourceLinkRequest')
             ->claim(Param::ROLES_URI, [])
             ->claim(Param::VERSION_URI, '1.3.0')
-            ->claim(Param::DEPLOYMENT_ID_URI, session(Param::LTI_DEPLOYMENT_ID))
+            ->claim(Param::DEPLOYMENT_ID_URI, $deployment->deployment_id)
             ->claim(Param::TARGET_LINK_URI_URI, $this->tool->target_link_uri)
             // TODO real resource link
             ->claim(Param::RESOURCE_LINK_URI, ['id' => 'fake_resource_link_id'])
-            ->sign($key);
+            ->sign($key->key);
         $resp['id_token'] = $token;
 
         return $resp;

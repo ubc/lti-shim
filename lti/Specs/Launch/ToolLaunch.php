@@ -11,12 +11,13 @@ use Jose\Easy\Load;
 
 use App\Models\Platform;
 use App\Models\PlatformClient;
+use App\Models\Tool;
 
-use UBC\LTI\KeyStorage;
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 
+// we're acting as the Tool
 // the main idea is that we supply this object with the params that we receive
 // and get the appropriate response params back
 class ToolLaunch
@@ -62,6 +63,7 @@ class ToolLaunch
     // should be sent
     public function getLoginResponse(): array
     {
+        $ownTool = Tool::getOwnTool();
         // cannot generate the login response if we don't have a valid login
         if (!$this->hasLogin) $this->checkLogin();
         $resp = [
@@ -170,7 +172,7 @@ class ToolLaunch
     // signature could not be verified
     private function checkState(string $token): JWT
     {
-        $jwk = KeyStorage::getMyPublicKey();
+        $myPublicKey = Tool::getOwnTool()->keys()->first()->public_key;
         $jwt;
         try {
             $jwt = Load::jws($token);
@@ -181,7 +183,7 @@ class ToolLaunch
                    ->exp() // We check the "exp" claim
                    ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
                    ->iss(config('lti.iss'))
-                   ->key($jwk);
+                   ->key($myPublicKey);
         try {
             $jwt = $jwt->run();
             $requiredParams = ['original_iss', Param::CLIENT_ID,
@@ -198,7 +200,7 @@ class ToolLaunch
     // create a JWT storing params that we expect to also see in id_token
     private function createState(): string
     {
-        $jwk = KeyStorage::getMyPrivateKey();
+        $myPrivateKey = Tool::getOwnTool()->keys()->first()->key;
         $time = time();
         // TODO: store login_hint for checking against the id_token
         // TODO: store lti_deployment_id for checking against the id_token
@@ -214,7 +216,7 @@ class ToolLaunch
             $jws = $jws->claim(Param::LTI_DEPLOYMENT_ID,
                                $this->request->input(Param::LTI_DEPLOYMENT_ID));
         }
-        $jws = $jws->sign($jwk);
+        $jws = $jws->sign($myPrivateKey);
         return $jws;
     }
 }
