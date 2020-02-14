@@ -31,6 +31,7 @@ class IncomingParamsTest extends TestCase
         // unrecongized platforms throw an exception, so we need to add one to
         // the database
         $platform = factory(Platform::class)->create();
+        $myTool = factory(Tool::class)->create(['id' => 1]);
         $goodParams = [
             'iss' => $platform->iss,
             'login_hint' => 1,
@@ -69,29 +70,30 @@ class IncomingParamsTest extends TestCase
     {
         $baseUrl = '/lti/launch/tool/auth';
         // known good request
-        $platform = factory(Platform::class)->create();
-        $client = $platform->clients()->first();
+        $myTool = factory(Tool::class)->create(['id' => 1]);
+        $targetPlatform = factory(Platform::class)->create();
+        $client = $targetPlatform->clients()->first();
         $time = time();
         $idToken = Build::jws()
             ->alg('RS256')
             ->iat($time)
             ->exp($time + 3600)
-            ->iss($platform->iss)
+            ->iss($targetPlatform->iss)
             ->aud($client->client_id)
             ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
                     'LtiResourceLinkRequest')
             ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
                     '1.3.0')
-            ->sign($platform->keys()->first()->public_key);
+            ->sign($targetPlatform->keys()->first()->key);
         $state = Build::jws()
             ->alg('RS256')
             ->iat($time)
             ->exp($time + 3600)
             ->iss(config('lti.iss'))
-            ->claim('original_iss', $platform->iss)
+            ->claim('original_iss', $targetPlatform->iss)
             ->claim('client_id', $client->client_id)
             ->claim('login_hint', 'blah')
-            ->sign(JWK::createFromJson(config('lti.key')));
+            ->sign($myTool->keys()->first()->key);
         $resp = $this->post($baseUrl, ['state'=>$state, 'id_token'=>$idToken]);
         // success should give us a 302 redirect
         $resp->assertStatus(Response::HTTP_FOUND);

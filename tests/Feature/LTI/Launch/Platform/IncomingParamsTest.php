@@ -6,6 +6,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Symfony\Component\HttpFoundation\Response;
 
+use App\Models\Deployment;
+use App\Models\Platform;
 use App\Models\Tool;
 
 use Tests\TestCase;
@@ -23,12 +25,18 @@ class IncomingParamsTest extends TestCase
 		$baseUrl = '/lti/launch/platform/auth';
         // known good request
         $tool = factory(Tool::class)->create();
-        $clientId = 'someClient';
+        $myPlatform = factory(Platform::class)->create(['id' => 1]);
+        $deployment = factory(Deployment::class)->create([
+            'tool_id' => $tool->id,
+            'platform_id' => $myPlatform->id
+        ]);
+
         $loginHint = 'someUser';
         $session = [
-            'client_id' => $clientId,
+            'client_id' => $tool->client_id,
             'login_hint' => $loginHint,
-            'toolId' => $tool->id
+            'toolId' => $tool->id,
+            'deploymentId' => $deployment->id
         ];
         // check the static values first
         $goodValues = [
@@ -36,7 +44,7 @@ class IncomingParamsTest extends TestCase
             'response_type' => 'id_token',
             'response_mode' => 'form_post',
             'login_hint' => $loginHint,
-            'client_id' => $clientId,
+            'client_id' => $tool->client_id,
             'prompt' => 'none'
         ];
         $response = $this->withSession($session)

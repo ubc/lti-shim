@@ -16,6 +16,8 @@ class ToolSeeder extends Seeder
             'id' => 1,
             'name' => 'LTI Shim Tool Side',
             'client_id' => 'Not used for shim, look up in platform_client',
+            'oidc_login_url' => config('app.url') . '/lti/launch/tool/login',
+            'auth_resp_url' => config('app.url') . '/lti/launch/tool/auth',
             'target_link_uri' => config('app.url') . '/lti/target.php'
         ]);
         DB::table('tool_keys')->insert([
@@ -46,6 +48,8 @@ class ToolSeeder extends Seeder
             'id' => 2,
             'name' => 'LTI 1.3 PHP Example Tool',
             'client_id' => 'StrawberryCat',
+            'oidc_login_url' => 'http://localhost:9001/login.php',
+            'auth_resp_url' => 'http://localhost:9001/game.php',
             'target_link_uri' => 'http://localhost:9001/game.php',
         ]);
         // make sure the tool has a deployment

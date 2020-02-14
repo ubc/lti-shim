@@ -12,6 +12,8 @@ $factory->define(Tool::class, function (Faker $faker) {
     return [
         'name' => $domain,
         'client_id' => $faker->uuid,
+        'oidc_login_url' => 'https://' . $domain . '/lti/login',
+        'auth_resp_url' => 'https://' . $domain . '/lti/resp',
         'target_link_uri' => 'https://' . $domain . '/target'
     ];
 });

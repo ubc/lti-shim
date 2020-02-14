@@ -17,9 +17,14 @@ class CreateToolsTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('client_id', 1024);
+            $table->text('oidc_login_url')
+                  ->comment('URL for the first request to start LTI launch.');
+            $table->text('auth_resp_url')
+                  ->comment('URL for the final request to finish LTI launch.');
             // target_link_uri might differ based on deployment instead of by
             // tool, but putting it in tool for now until we know more
-            $table->text('target_link_uri');
+            $table->text('target_link_uri')
+                  ->comment('If launch success, user redirected to this URL.');
 
             // using just the standard timestampsTz() to create these pair of
             // timestamps doesn't give them database defaults

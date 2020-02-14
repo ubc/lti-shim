@@ -72,7 +72,7 @@ class ToolLaunch
             Param::LOGIN_HINT => $this->request->input(Param::LOGIN_HINT),
             Param::RESPONSE_TYPE => Param::FORM_POST,
             Param::PROMPT => Param::NONE,
-            Param::REDIRECT_URI => config('lti.auth_resp_url')
+            Param::REDIRECT_URI => $ownTool->auth_resp_url
         ];
         // client_id is either given in the request or stored in the database
         if ($this->request->filled(Param::CLIENT_ID)) {
