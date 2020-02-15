@@ -10,6 +10,7 @@ use Jose\Easy\Build;
 
 use Tests\TestCase;
 
+use App\Models\EncryptionKey;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -32,6 +33,7 @@ class IncomingParamsTest extends TestCase
         // the database
         $platform = factory(Platform::class)->create();
         $myTool = factory(Tool::class)->create(['id' => 1]);
+        $encryptionKey = factory(EncryptionKey::class)->create();
         $goodParams = [
             'iss' => $platform->iss,
             'login_hint' => 1,
@@ -73,6 +75,7 @@ class IncomingParamsTest extends TestCase
         $myTool = factory(Tool::class)->create(['id' => 1]);
         $targetPlatform = factory(Platform::class)->create();
         $client = $targetPlatform->clients()->first();
+        $encryptionKey = factory(EncryptionKey::class)->create();
         $time = time();
         $idToken = Build::jws()
             ->alg('RS256')
@@ -85,15 +88,16 @@ class IncomingParamsTest extends TestCase
             ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
                     '1.3.0')
             ->sign($targetPlatform->keys()->first()->key);
-        $state = Build::jws()
-            ->alg('RS256')
+        $state = Build::jwe()
+            ->alg('RSA-OAEP-256') // key encryption algo
+            ->enc('A256GCM') // content encryption algo
+            ->nbf($time)
             ->iat($time)
             ->exp($time + 3600)
-            ->iss(config('lti.iss'))
             ->claim('original_iss', $targetPlatform->iss)
             ->claim('client_id', $client->client_id)
             ->claim('login_hint', 'blah')
-            ->sign($myTool->keys()->first()->key);
+            ->encrypt($encryptionKey->public_key);
         $resp = $this->post($baseUrl, ['state'=>$state, 'id_token'=>$idToken]);
         // success should give us a 302 redirect
         $resp->assertStatus(Response::HTTP_FOUND);

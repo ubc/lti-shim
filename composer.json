@@ -14,6 +14,8 @@
         "laravel/framework": "^6.0",
         "laravel/tinker": "^1.0",
         "web-token/jwt-easy": "^2.1",
+        "web-token/jwt-encryption-algorithm-aesgcm": "^2.1",
+        "web-token/jwt-encryption-algorithm-rsa": "^2.1",
         "web-token/jwt-key-mgmt": "^2.1",
         "web-token/jwt-signature-algorithm-rsa": "^2.1"
     },
