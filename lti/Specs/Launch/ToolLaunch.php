@@ -10,6 +10,7 @@ use Jose\Easy\JWT;
 use Jose\Easy\Load;
 
 use App\Models\Deployment;
+use App\Models\LtiSession;
 use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\Tool;
@@ -120,17 +121,25 @@ class ToolLaunch
         $idToken = $this->checkIdToken($this->request->input(Param::ID_TOKEN),
                                        $state,
                                        $platform);
-
-        // pass data over to the PlatformLaunch using sessions
-        // Laravel session automatically split on periods to create a
-        // multi-dimensional array, so the lti uri keys in id_token gets split
-        // into subarrays. This makes it hard to look up by uri keys, so
-        // instead we're storing the id_token in the original serialized form.
-        session([
-            'original_iss' => $state->claims->get('original_iss'),
-            Param::LOGIN_HINT => $state->claims->get(Param::LOGIN_HINT),
-            Param::ID_TOKEN => $this->request->input(Param::ID_TOKEN)
+        // TODO: deployment_id is confusing, is it the id of the deployment table
+        // or does it refer to the deployment_id column? Need to fix
+        $deployment = Deployment::firstWhere([
+            'deployment_id' => $idToken->claims->get(Param::DEPLOYMENT_ID_URI),
+            'platform_id' => $platform->id
         ]);
+        $sessionData = $idToken->claims->all();
+        $sessionData['deployment_id'] = $deployment->id;
+        $sessionData[Param::LOGIN_HINT] = $state->claims->get(Param::LOGIN_HINT);
+
+        $ltiSession = new LtiSession();
+        $ltiSession->session = $sessionData;
+        $ltiSession->save();
+
+        $state = EncryptedState::encrypt([
+            'lti_session' => $ltiSession->id
+        ]);
+
+        return $state;
     }
 
     // verify the signature & params in the id_token

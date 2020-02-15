@@ -23,7 +23,8 @@ class EncryptedState
             ->nbf($time)
             ->alg('RSA-OAEP-256') // key encryption alg
             ->enc('A256GCM') // content encryption alg
-            ->zip('DEF') // compress the data, DEFLATE is the only supported alg
+            // compression not necessary for our current use case, small data
+            //->zip('DEF') // compress the data, DEFLATE alg
             ->crit(['alg', 'enc']); // We mark some header parameters as critical
         foreach ($claims as $key => $val) {
             $jwe = $jwe->claim($key, $val);
