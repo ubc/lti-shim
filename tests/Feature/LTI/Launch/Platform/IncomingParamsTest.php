@@ -6,7 +6,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Symfony\Component\HttpFoundation\Response;
 
+use Jose\Easy\Build;
+
 use App\Models\Deployment;
+use App\Models\EncryptionKey;
+use App\Models\LtiSession;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -26,18 +30,31 @@ class IncomingParamsTest extends TestCase
         // known good request
         $tool = factory(Tool::class)->create();
         $myPlatform = factory(Platform::class)->create(['id' => 1]);
+        $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
             'tool_id' => $tool->id,
             'platform_id' => $myPlatform->id
         ]);
-
         $loginHint = 'someUser';
+        // prepare session
         $session = [
-            'client_id' => $tool->client_id,
             'login_hint' => $loginHint,
-            'toolId' => $tool->id,
-            'deploymentId' => $deployment->id
+            'tool_id' => $tool->id,
+            'deployment_id' => $deployment->id
         ];
+        $ltiSession = factory(LtiSession::class)->create([
+            'session' => $session
+        ]);
+        $time = time();
+        $encryptedSession = Build::jwe()
+            ->exp($time + 3600)
+            ->iat($time)
+            ->nbf($time)
+            ->alg('RSA-OAEP-256')
+            ->enc('A256GCM')
+            ->claim('lti_session', $ltiSession->id)
+            ->encrypt($encryptionKey->public_key);
+
         // check the static values first
         $goodValues = [
             'scope' => 'openid',
@@ -45,27 +62,25 @@ class IncomingParamsTest extends TestCase
             'response_mode' => 'form_post',
             'login_hint' => $loginHint,
             'client_id' => $tool->client_id,
-            'prompt' => 'none'
+            'prompt' => 'none',
+            'lti_message_hint' => $encryptedSession
         ];
-        $response = $this->withSession($session)
-                         ->call('get', $baseUrl, $goodValues);
+        $response = $this->call('get', $baseUrl, $goodValues);
         $response->assertStatus(Response::HTTP_OK);
         // no params
-        $response = $this->withSession($session)->get($baseUrl);
+        $response = $this->get($baseUrl);
         $response->assertStatus(Response::HTTP_BAD_REQUEST);
         // missing values
         foreach ($goodValues as $key => $val) {
             // param has a bad value
             $badValues = $goodValues;
             $badValues[$key] = $val . 'bad';
-            $response = $this->withSession($session)
-                             ->call('get', $baseUrl, $badValues);
+            $response = $this->call('get', $baseUrl, $badValues);
             $response->assertStatus(Response::HTTP_BAD_REQUEST);
             // param is completely missing
             $badValues = $goodValues;
             unset($badValues[$key]);
-            $response = $this->withSession($session)
-                             ->call('get', $baseUrl, $badValues);
+            $response = $this->call('get', $baseUrl, $badValues);
             $response->assertStatus(Response::HTTP_BAD_REQUEST);
         }
     }

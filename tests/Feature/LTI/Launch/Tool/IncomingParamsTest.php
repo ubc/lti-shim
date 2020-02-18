@@ -10,6 +10,7 @@ use Jose\Easy\Build;
 
 use Tests\TestCase;
 
+use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\Platform;
 use App\Models\Tool;
@@ -73,9 +74,14 @@ class IncomingParamsTest extends TestCase
         $baseUrl = '/lti/launch/tool/auth';
         // known good request
         $myTool = factory(Tool::class)->create(['id' => 1]);
+        $targetTool = factory(Tool::class)->create(['id' => 2]);
         $targetPlatform = factory(Platform::class)->create();
         $client = $targetPlatform->clients()->first();
         $encryptionKey = factory(EncryptionKey::class)->create();
+        $deployment = factory(Deployment::class)->create([
+            'platform_id' => $targetPlatform->id,
+            'tool_id' => $targetTool->id
+        ]);
         $time = time();
         $idToken = Build::jws()
             ->alg('RS256')
@@ -87,6 +93,8 @@ class IncomingParamsTest extends TestCase
                     'LtiResourceLinkRequest')
             ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
                     '1.3.0')
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/deployment_id',
+                    $deployment->deployment_id)
             ->sign($targetPlatform->keys()->first()->key);
         $state = Build::jwe()
             ->alg('RSA-OAEP-256') // key encryption algo

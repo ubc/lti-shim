@@ -36,15 +36,21 @@ class EncryptedState
 
     public static function decrypt(string $token): JWT
     {
-        $jwt = Load::jwe($token) // We want to load and decrypt the token in the variable $token
-            ->algs(['RSA-OAEP-256']) // key encryption algo
-            ->encs(['A256GCM']) // content encryption algo
-            ->exp()
-            ->iat()
-            ->nbf()
-            ->key(self::getKey()->key) // decrypt using private key
-            ->run();
-        return $jwt;
+        try {
+            $jwt = Load::jwe($token) // deserialize the token
+                ->algs(['RSA-OAEP-256']) // key encryption algo
+                ->encs(['A256GCM']) // content encryption algo
+                ->exp()
+                ->iat()
+                ->nbf()
+                ->key(self::getKey()->key) // decrypt using private key
+                ->run();
+            return $jwt;
+        }
+        catch(\Exception $e)
+        {
+            throw new LTIException('Unable to decrypt encrypted state.', 0, $e);
+        }
     }
 
     private static function getKey()
