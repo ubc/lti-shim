@@ -13,6 +13,7 @@ use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
+use UBC\LTI\Filters\WhitelistFilter;
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
@@ -25,6 +26,7 @@ class PlatformLaunch
 {
     private Request $request; // laravel request object
     private ParamChecker $checker;
+    private array $filters;
 
     private bool $hasAuthRequest = false; // true if checkAuthRequest() passed
 
@@ -32,6 +34,9 @@ class PlatformLaunch
     {
         $this->request = $request;
         $this->checker = new ParamChecker($request->input());
+        $this->filters = [
+            new WhitelistFilter()
+        ];
     }
 
     // first stage of the LTI launch on the platform side, we need to send the
@@ -53,6 +58,7 @@ class PlatformLaunch
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT)
         ];
+        $params = $this->applyFilters($params);
         return $params;
     }
 
@@ -103,27 +109,55 @@ class PlatformLaunch
 
         $time = time();
         $key = Platform::getOwnPlatform()->keys()->first();
-        $token = Build::jws()
-            ->typ('JWT')
-            ->alg(Param::RS256)
-            ->iss(config('lti.iss'))
-            ->sub($ltiSession->session[Param::LOGIN_HINT]) // user id
-            ->aud($tool->client_id) // same as client_id previously
-            ->exp($time + 86400) // expires in 1 hour
-            ->iat($time) // issued at
-            ->header(Param::KID, $key->kid)
-            ->claim(Param::NONCE, $this->request->input('nonce'))
-            ->claim(Param::MESSAGE_TYPE_URI, 'LtiResourceLinkRequest')
-            ->claim(Param::ROLES_URI, [])
-            ->claim(Param::VERSION_URI, '1.3.0')
-            ->claim(Param::DEPLOYMENT_ID_URI, $deployment->deployment_id)
-            ->claim(Param::TARGET_LINK_URI_URI, $tool->target_link_uri)
+        $params = [
+            Param::TYP => 'JWT',
+            Param::ALG => Param::RS256,
+            Param::ISS => config('lti.iss'),
+            Param::SUB => $ltiSession->session[Param::LOGIN_HINT], // user id
+            Param::AUD => $tool->client_id,
+            Param::EXP => $time + 3600, // expires 1 hour, might want to tighten
+            Param::IAT => $time, // issued at
+            Param::KID => $key->kid,
+            Param::NONCE => $this->request->input('nonce'),
+            Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
+            Param::ROLES_URI => [],
+            Param::VERSION_URI => '1.3.0',
+            Param::DEPLOYMENT_ID_URI => $deployment->deployment_id,
+            Param::TARGET_LINK_URI_URI => $tool->target_link_uri,
             // TODO real resource link
-            ->claim(Param::RESOURCE_LINK_URI, ['id' => 'fake_resource_link_id'])
+            Param::RESOURCE_LINK_URI => ['id' => 'fake_resource_link_id']
+        ];
+        $params = $this->applyFilters($params);
+        $token = Build::jws()
+            ->typ($params[Param::TYP])
+            ->alg($params[Param::ALG])
+            ->iss($params[Param::ISS])
+            ->sub($params[Param::SUB])
+            ->aud($params[Param::AUD])
+            ->exp($params[Param::EXP])
+            ->iat($params[Param::IAT])
+            ->header(Param::KID, $params[Param::KID])
+            ->claim(Param::NONCE, $params[Param::NONCE])
+            ->claim(Param::MESSAGE_TYPE_URI, $params[Param::MESSAGE_TYPE_URI])
+            ->claim(Param::ROLES_URI, $params[Param::ROLES_URI])
+            ->claim(Param::VERSION_URI, $params[Param::VERSION_URI])
+            ->claim(Param::DEPLOYMENT_ID_URI, $params[Param::DEPLOYMENT_ID_URI])
+            ->claim(Param::TARGET_LINK_URI_URI,
+                    $params[Param::TARGET_LINK_URI_URI])
+            ->claim(Param::RESOURCE_LINK_URI, $params[Param::RESOURCE_LINK_URI])
             ->sign($key->key);
         $resp['id_token'] = $token;
+        $resp = $this->applyFilters($resp);
 
         return $resp;
+    }
+
+    private function applyFilters(array $params): array
+    {
+        foreach($this->filters as $filter) {
+            $params = $filter->filter($params);
+        }
+        return $params;
     }
 
     private function getLtiSession(): LtiSession

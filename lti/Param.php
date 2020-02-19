@@ -27,16 +27,17 @@ class Param
     public const TYP = 'typ';
     public const ALG = 'alg';
     public const RS256 = 'RS256';
-    public const KID = 'kid';
+    public const KID = 'kid'; // key id
     public const SUB = 'sub';
     public const AUD = 'aud';
-    public const EXP = 'exp';
-    public const IAT = 'iat';
+    public const EXP = 'exp'; // timestamp, expires on
+    public const IAT = 'iat'; // timestamp, issued at
     public const AZP = 'azp';
+    public const NBF = 'nbf'; // timestamp, not before
     // LTI defined URIs
     public const MESSAGE_TYPE_URI =
         'https://purl.imsglobal.org/spec/lti/claim/message_type';
-    public const VERSION_URI = 
+    public const VERSION_URI =
         'https://purl.imsglobal.org/spec/lti/claim/version';
     public const DEPLOYMENT_ID_URI =
         'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
