@@ -54,7 +54,7 @@ class ToolSeeder extends Seeder
         ]);
         // make sure the tool has a deployment
         DB::table('deployments')->insert([
-            'deployment_id' => '1',
+            'lti_deployment_id' => '1',
             'tool_id' => 2,
             'platform_id' => 2
         ]);

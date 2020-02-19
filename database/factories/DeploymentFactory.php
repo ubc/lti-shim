@@ -5,7 +5,7 @@ use App\Models\Deployment;
 
 $factory->define(Deployment::class, function (Faker $faker) {
     return [
-        'deployment_id' => $faker->uuid
+        'lti_deployment_id' => $faker->uuid
     ];
 });
 

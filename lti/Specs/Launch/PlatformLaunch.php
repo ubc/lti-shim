@@ -54,7 +54,7 @@ class PlatformLaunch
             Param::LOGIN_HINT => $ltiSession->session[Param::LOGIN_HINT],
             Param::TARGET_LINK_URI => $tool->target_link_uri,
             Param::CLIENT_ID => $tool->client_id,
-            Param::LTI_DEPLOYMENT_ID => $deployment->deployment_id,
+            Param::LTI_DEPLOYMENT_ID => $deployment->lti_deployment_id,
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT)
         ];
@@ -122,7 +122,7 @@ class PlatformLaunch
             Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
             Param::ROLES_URI => [],
             Param::VERSION_URI => '1.3.0',
-            Param::DEPLOYMENT_ID_URI => $deployment->deployment_id,
+            Param::DEPLOYMENT_ID_URI => $deployment->lti_deployment_id,
             Param::TARGET_LINK_URI_URI => $tool->target_link_uri,
             // TODO real resource link
             Param::RESOURCE_LINK_URI => ['id' => 'fake_resource_link_id']

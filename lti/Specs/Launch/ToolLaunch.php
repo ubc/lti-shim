@@ -121,10 +121,9 @@ class ToolLaunch
         $idToken = $this->checkIdToken($this->request->input(Param::ID_TOKEN),
                                        $state,
                                        $platform);
-        // TODO: deployment_id is confusing, is it the id of the deployment table
-        // or does it refer to the deployment_id column? Need to fix
         $deployment = Deployment::firstWhere([
-            'deployment_id' => $idToken->claims->get(Param::DEPLOYMENT_ID_URI),
+            'lti_deployment_id' => $idToken->claims
+                                           ->get(Param::DEPLOYMENT_ID_URI),
             'platform_id' => $platform->id
         ]);
         $sessionData = $idToken->claims->all();

@@ -94,7 +94,7 @@ class IncomingParamsTest extends TestCase
             ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
                     '1.3.0')
             ->claim('https://purl.imsglobal.org/spec/lti/claim/deployment_id',
-                    $deployment->deployment_id)
+                    $deployment->lti_deployment_id)
             ->sign($targetPlatform->keys()->first()->key);
         $state = Build::jwe()
             ->alg('RSA-OAEP-256') // key encryption algo

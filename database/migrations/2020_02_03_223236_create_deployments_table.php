@@ -15,7 +15,7 @@ class CreateDeploymentsTable extends Migration
     {
         Schema::create('deployments', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('deployment_id', 1024)
+            $table->string('lti_deployment_id', 1024)
                   ->comment('Not a foreign key, this is the LTI deployment ID.');
             $table->unsignedBigInteger('tool_id');
             $table->unsignedBigInteger('platform_id');
@@ -24,9 +24,9 @@ class CreateDeploymentsTable extends Migration
                   ->onDelete('cascade');
             $table->foreign('platform_id')->references('id')->on('platforms')
                   ->onDelete('cascade');
-            // we can't make deployment_id by itself unique, specs say it is
+            // we can't make lti_deployment_id by itself unique, specs say it is
             // only unique within each iss, so needs to be a multicolumn index
-            $table->index(['deployment_id', 'platform_id']);
+            $table->index(['lti_deployment_id', 'platform_id']);
 
             // using just the standard timestampsTz() to create these pair of
             // timestamps doesn't give them database defaults
