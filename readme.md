@@ -7,7 +7,7 @@
 #### Initial setup:
 
 ```
-git clone --recurse-submodules https://github.com/ubc-lthub/lti-shim.git
+git clone --recurse-submodules -b prototype1 git@github.com:/ubc/lti-shim.git
 cd lti-shim/
 cp .env-example .env
 cd laradock-lti-shim/
@@ -47,6 +47,8 @@ Test data for development use can be seeded using `artisan db:seed`. This can be
 #### Troubleshooting
 
 * If you're not the first user in the system (i.e.: uid/gid is not 1000/1000). You will have to edit `laradock-lti-shim/.env` and  change WORKSPACE_PUID, WORKSPACE_PGID, PHP_FPM_PUID, and PHP_FPM_PGID to your uid/gid. This is to avoid permission issues with the files created inside docker containers. E.g.: if you `composer install` a library while in the workspace container, the files downloaded by composer will be corrected own by you and not some other user.
+
+* If dependencies seem out of date, `docker-compose build --no-cache nginx postgres workspace adminer`
 
 ## Deployment
 
