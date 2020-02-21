@@ -11,6 +11,7 @@ use Jose\Easy\Build;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiSession;
+use App\Models\LtiUser;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -35,15 +36,18 @@ class IncomingParamsTest extends TestCase
             'tool_id' => $tool->id,
             'platform_id' => $myPlatform->id
         ]);
-        $loginHint = 'someUser';
-        // prepare session
-        $session = [
-            'login_hint' => $loginHint,
-            'tool_id' => $tool->id,
+        $ltiUser = factory(LtiUser::class)->create([
             'deployment_id' => $deployment->id
-        ];
+        ]);
+        // prepare session
         $ltiSession = factory(LtiSession::class)->create([
-            'session' => $session
+            'session' => [
+                'login_hint' => $ltiUser->real_login_hint,
+                'tool_id' => $tool->id,
+                'deployment_id' => $deployment->id,
+                'sub' => $ltiUser->sub,
+                'https://purl.imsglobal.org/spec/lti/claim/roles' => []
+            ]
         ]);
         $time = time();
         $encryptedSession = Build::jwe()
@@ -60,7 +64,7 @@ class IncomingParamsTest extends TestCase
             'scope' => 'openid',
             'response_type' => 'id_token',
             'response_mode' => 'form_post',
-            'login_hint' => $loginHint,
+            'login_hint' => $ltiUser->fake_login_hint,
             'client_id' => $tool->client_id,
             'prompt' => 'none',
             'lti_message_hint' => $encryptedSession

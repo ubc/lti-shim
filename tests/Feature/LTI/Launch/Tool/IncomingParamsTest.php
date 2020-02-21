@@ -83,12 +83,14 @@ class IncomingParamsTest extends TestCase
             'tool_id' => $targetTool->id
         ]);
         $time = time();
+        $loginHint = 'someLoginHint';
         $idToken = Build::jws()
             ->alg('RS256')
             ->iat($time)
             ->exp($time + 3600)
             ->iss($targetPlatform->iss)
             ->aud($client->client_id)
+            ->sub($loginHint)
             ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
                     'LtiResourceLinkRequest')
             ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
@@ -104,7 +106,7 @@ class IncomingParamsTest extends TestCase
             ->exp($time + 3600)
             ->claim('original_iss', $targetPlatform->iss)
             ->claim('client_id', $client->client_id)
-            ->claim('login_hint', 'blah')
+            ->claim('login_hint', $loginHint)
             ->encrypt($encryptionKey->public_key);
         $resp = $this->post($baseUrl, ['state'=>$state, 'id_token'=>$idToken]);
         // success should give us a 302 redirect
