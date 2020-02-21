@@ -108,17 +108,17 @@ class ToolLaunch
 
     // third stage of the LTI launch on the tool side, we need to check the
     // authentication response sent back by the platform
-    public function checkAuth()
+    public function processAuth()
     {
         $requiredParams = [
             Param::STATE,
             Param::ID_TOKEN
         ];
         $this->checker->requireParams($requiredParams);
-        $state = $this->checkState($this->request->input(Param::STATE));
+        $state = $this->processState($this->request->input(Param::STATE));
         $platform = Platform::firstWhere('iss',
                                          $state->claims->get('original_iss'));
-        $idToken = $this->checkIdToken($this->request->input(Param::ID_TOKEN),
+        $idToken = $this->processIdToken($this->request->input(Param::ID_TOKEN),
                                        $state,
                                        $platform);
         $deployment = Deployment::firstWhere([
@@ -126,6 +126,7 @@ class ToolLaunch
                                            ->get(Param::DEPLOYMENT_ID_URI),
             'platform_id' => $platform->id
         ]);
+        // persist the session in the database
         $sessionData = $idToken->claims->all();
         $sessionData['deployment_id'] = $deployment->id;
         $sessionData[Param::LOGIN_HINT] = $state->claims->get(Param::LOGIN_HINT);
@@ -142,7 +143,7 @@ class ToolLaunch
     }
 
     // verify the signature & params in the id_token
-    private function checkIdToken(
+    private function processIdToken(
         string $token,
         JWT $state,
         Platform $platform
@@ -183,7 +184,7 @@ class ToolLaunch
     }
 
     // decrypt the state and return the JWT, throws LTIException if state invalid
-    private function checkState(string $token): JWT
+    private function processState(string $token): JWT
     {
         try {
             $jwt = EncryptedState::decrypt($token);
