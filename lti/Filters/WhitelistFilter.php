@@ -2,6 +2,8 @@
 
 namespace UBC\LTI\Filters;
 
+use App\Models\LtiSession;
+
 use UBC\LTI\Filters\FilterInterface;
 use UBC\LTI\Param;
 
@@ -56,10 +58,12 @@ class WhitelistFilter implements FilterInterface
         Param::DEPLOYMENT_ID_URI => 14,
         Param::TARGET_LINK_URI_URI => 15,
         Param::RESOURCE_LINK_URI => 16,
-        Param::ROLES_URI => 17
+        Param::ROLES_URI => 17,
+        Param::NAME => 18,
+        Param::EMAIL => 19
     ];
     
-    public function filter(array $params): array
+    public function filter(array $params, LtiSession $session): array
     {
         foreach ($params as $key => $val) {
             if (

@@ -14,6 +14,7 @@ use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
 use UBC\LTI\Filters\WhitelistFilter;
+use UBC\LTI\Filters\UserFilter;
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
@@ -35,7 +36,8 @@ class PlatformLaunch
         $this->request = $request;
         $this->checker = new ParamChecker($request->input());
         $this->filters = [
-            new WhitelistFilter()
+            new WhitelistFilter(),
+            new UserFilter()
         ];
     }
 
@@ -50,7 +52,6 @@ class PlatformLaunch
 
         $params = [
             Param::ISS => config('lti.iss'),
-            // TODO: filter param
             Param::LOGIN_HINT => $ltiSession->session[Param::LOGIN_HINT],
             Param::TARGET_LINK_URI => $tool->target_link_uri,
             Param::CLIENT_ID => $tool->client_id,
@@ -58,7 +59,7 @@ class PlatformLaunch
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT)
         ];
-        $params = $this->applyFilters($params);
+        $params = $this->applyFilters($params, $ltiSession);
         return $params;
     }
 
@@ -81,6 +82,7 @@ class PlatformLaunch
             Param::LOGIN_HINT => $ltiSession->session[Param::LOGIN_HINT],
             Param::CLIENT_ID => $tool->client_id
         ];
+        $requiredValues = $this->applyFilters($requiredValues, $ltiSession);
         // TODO: validate redirect_uri, valid redirect_uri is supposed to be
         // pre-registered and we need to make sure it matches what we have
         // TODO: nonce validation will probably needs to be tied to client_id
@@ -109,53 +111,46 @@ class PlatformLaunch
 
         $time = time();
         $key = Platform::getOwnPlatform()->keys()->first();
-        $params = [
-            Param::TYP => 'JWT',
-            Param::ALG => Param::RS256,
+        $payload = [
             Param::ISS => config('lti.iss'),
-            Param::SUB => $ltiSession->session[Param::LOGIN_HINT], // user id
+            Param::SUB => $ltiSession->session[Param::SUB], // user id
             Param::AUD => $tool->client_id,
             Param::EXP => $time + 3600, // expires 1 hour, might want to tighten
             Param::IAT => $time, // issued at
-            Param::KID => $key->kid,
             Param::NONCE => $this->request->input('nonce'),
             Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
-            Param::ROLES_URI => [],
+            Param::ROLES_URI => $ltiSession->session[Param::ROLES_URI],
             Param::VERSION_URI => '1.3.0',
             Param::DEPLOYMENT_ID_URI => $deployment->lti_deployment_id,
             Param::TARGET_LINK_URI_URI => $tool->target_link_uri,
             // TODO real resource link
             Param::RESOURCE_LINK_URI => ['id' => 'fake_resource_link_id']
         ];
-        $params = $this->applyFilters($params);
+        // optional params that might not be set
+        if (isset($ltiSession->session[Param::NAME])) {
+            $payload[Param::NAME] = $ltiSession->session[Param::NAME];
+        }
+        if (isset($ltiSession->session[Param::EMAIL])) {
+            $payload[Param::EMAIL] = $ltiSession->session[Param::EMAIL];
+        }
+        // header params (typ, alg, kid) cannot be loaded using the payload()
+        // function so has to be specified separately (and won't be filtered)
         $token = Build::jws()
-            ->typ($params[Param::TYP])
-            ->alg($params[Param::ALG])
-            ->iss($params[Param::ISS])
-            ->sub($params[Param::SUB])
-            ->aud($params[Param::AUD])
-            ->exp($params[Param::EXP])
-            ->iat($params[Param::IAT])
-            ->header(Param::KID, $params[Param::KID])
-            ->claim(Param::NONCE, $params[Param::NONCE])
-            ->claim(Param::MESSAGE_TYPE_URI, $params[Param::MESSAGE_TYPE_URI])
-            ->claim(Param::ROLES_URI, $params[Param::ROLES_URI])
-            ->claim(Param::VERSION_URI, $params[Param::VERSION_URI])
-            ->claim(Param::DEPLOYMENT_ID_URI, $params[Param::DEPLOYMENT_ID_URI])
-            ->claim(Param::TARGET_LINK_URI_URI,
-                    $params[Param::TARGET_LINK_URI_URI])
-            ->claim(Param::RESOURCE_LINK_URI, $params[Param::RESOURCE_LINK_URI])
+            ->typ(Param::JWT)
+            ->alg(Param::RS256)
+            ->header(Param::KID, $key->kid)
+            ->payload($payload)
             ->sign($key->key);
         $resp['id_token'] = $token;
-        $resp = $this->applyFilters($resp);
+        $resp = $this->applyFilters($resp, $ltiSession);
 
         return $resp;
     }
 
-    private function applyFilters(array $params): array
+    private function applyFilters(array $params, LtiSession $session): array
     {
         foreach($this->filters as $filter) {
-            $params = $filter->filter($params);
+            $params = $filter->filter($params, $session);
         }
         return $params;
     }

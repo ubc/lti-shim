@@ -2,7 +2,9 @@
 
 namespace UBC\LTI\Filters;
 
+use App\Models\LtiSession;
+
 interface FilterInterface
 {
-    public function filter(array $params): array;
+    public function filter(array $params, LtiSession $session): array;
 }

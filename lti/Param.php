@@ -25,6 +25,7 @@ class Param
     public const ID_TOKEN = 'id_token';
     // id_token jwt
     public const TYP = 'typ';
+    public const JWT = 'JWT';
     public const ALG = 'alg';
     public const RS256 = 'RS256';
     public const KID = 'kid'; // key id
@@ -34,6 +35,12 @@ class Param
     public const IAT = 'iat'; // timestamp, issued at
     public const AZP = 'azp';
     public const NBF = 'nbf'; // timestamp, not before
+    // non-URI claims
+    public const PICTURE = 'picture'; // avatar link
+    public const GIVEN_NAME = 'given_name';
+    public const FAMILY_NAME = 'family_name';
+    public const NAME = 'name';
+    public const EMAIL = 'email';
     // LTI defined URIs
     public const MESSAGE_TYPE_URI =
         'https://purl.imsglobal.org/spec/lti/claim/message_type';
