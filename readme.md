@@ -18,13 +18,15 @@ docker-compose exec -u laradock workspace bash
 ```
 
 * The main app is accessible from http://localhost
+  * See routes/web.php for valid locations
   * App log is located in `storage/logs/`, they are named by date. Note that the containers seems to be on UTC though.
 * Workspace is a container for executing composer/artisan commands on your project. This means you don't need to have composer/artisan installed locally.
 * Adminer provides a simple front-end to the database and is accessible at http://localhost:8080/
-  * Database Type: postgres
-  * Database Name: default
+  * System: PostgreSQL
+  * Server: postgres
   * Username: default
   * Password: secret
+  * Database: default
 
 After the initial setup, you can bring up the containers and access the workspace with just the docker-compose commands.
 
