@@ -1,4 +1,4 @@
-## LTI Shim 
+## LTI Shim
 
 ## Development
 
@@ -11,7 +11,7 @@ git clone --recurse-submodules -b prototype1 git@github.com:/ubc/lti-shim.git
 cd lti-shim/
 cp .env-example .env
 cd laradock-lti-shim/
-docker-compose up -d nginx postgres workspace adminer
+docker-compose up -d nginx postgres workspace adminer lti-example-tool
 docker-compose exec -u laradock workspace bash
   workspace$ composer install
   workspace$ artisan key:generate
@@ -27,6 +27,9 @@ docker-compose exec -u laradock workspace bash
   * Username: default
   * Password: secret
   * Database: default
+* LTI 1.3 PHP Example Tool is used for development testing as a target tool.
+  * OIDC login URL: http://localhost:9001/login.php
+  * LTI launch target (target_link_uri): http://localhost:9001/game.php
 
 After the initial setup, you can bring up the containers and access the workspace with just the docker-compose commands.
 
@@ -45,6 +48,49 @@ The database can be completely blown away and rebuilt from scratch using `artisa
 
 Test data for development use can be seeded using `artisan db:seed`. This can be combined with rebuilding the database from scratch as `artisan migrate:refresh --seed`.
 
+##### Seeded Data
+
+The current seeded data works with this Reference Implemention platform: https://lti-ri.imsglobal.org/platforms/643
+
+It should direct a launch from that RI platform to the LTI example tool brought up locally with docker-compose.
+
+#### LTI Module
+
+LTI processing code is located in `lti/`. Different LTI functionalities are split into different specs, so we've organized them in the same way in `lti/Specs/`. The core spec is in `lti/Specs/Launch/`. Taking the launch as an example, it's been divided up into the Tool side and the Platform side in the form of `ToolLaunch` and `PlatformLaunch`.
+
+The initial launch we receive from Canvas is processed by `ToolLaunch` since we're acting as a tool. When we pass the launch to the target tool, it is processed by `PlatformLaunch` since we're acting as a platform.
+
+##### Configuration
+
+Some LTI configuration is not stored in the database but uses Laravel's built in configuration system located at `config/lti.php`.
+
+* *iss* - the iss parameter can just be the app's url
+* *platform_id* - the shim's own platform information is stored in the `platforms` table, we need the id to that row.
+* *tool_id* - the shim's own tool information is stored in the `tools` table, we need the id to that row.
+
+##### RSA Key Storage
+
+The JSON Web Token (JWT) spec uses RSA public/private keys. Keys are all stored as in the JSON Web Key (JWK) format. There are two types of keys, one used for signatures and one used for encryption.
+
+Signed JWT (JWS) are used on both platform and tool side for the `id_token` parameter. As such, our platform and tool sides each have their own set of public/private keys. This is stored in the `platform_keys` and `tool_keys` table.
+
+Encrypted JWT (JWE) is used for session state (see below). The keys are stored in the `encryption_keys` table.
+
+Note that the Reference Implementation uses PEM formatted keys, so you'll have to use a JWK/PEM converter.
+
+Visiting [http://localhost/lti/keygen](http://localhost/lti/keygen) will output a public/private keypair in JWK format in the logs as debug messages.
+
+##### Session State
+
+Due to SameSite cookie enforcement coming into effect, we're trying to avoid using cookies for the LTI requests. This means we can't use stock Laravel sessions, as those use cookies to store session IDs. The alternative is to the various state parameters specified by LTI to store the session ID. When acting as a Tool, this is the `state` param. When acting as a Platform, this is the `lti_message_hint` param.
+
+To preserve privacy and to protect against CSRF, the state string is an encrypted JWT (JWE). This does result in a rather long string, about 1000 characters. We will need to be careful that it doesn't get too long that it doesn't fit into a GET request. Not an issue for the POST only `state` param, but the spec does require that `lti_message_hint` be both GET and POST compatible.
+
+##### Data Filters
+
+Filters need to implement the `FilterInterface` in `lti/Filters/`. The `filter()` method takes an array and a `LtiSession` model. The array needs is filtered, removing/renaming key/values as necessary, and then returned.
+
+To apply the new filter, add it to the `$filters` list in `PlatformLaunch`.
 
 #### Troubleshooting
 

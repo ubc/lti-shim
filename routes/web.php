@@ -11,11 +11,8 @@
 |
 */
 
-#Route::get('/', function () {
-#    return view('welcome');
-#});
+Route::get('/', 'HomeController@home');
 
-Route::get('/launch', 'LtiController@launch');
 Route::namespace('LTI')->group(function() {
     // a list of public keys that can be used to verify our signed JWTs
     Route::get('/lti/platform/jwks', 'JWKSController@platformPublicKeys');
