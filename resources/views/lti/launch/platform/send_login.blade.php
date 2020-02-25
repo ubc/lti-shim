@@ -4,7 +4,7 @@
 
 @section('content')
   <h3>Login Parameters</h3>
-  <form action='http://localhost:9001/web/login.php' method='get'>
+  <form action='{{ $oidc_login_url }}' method='get'>
     @foreach ($response as $key => $val)
       <div class='form-group'>
         <label for='{{ $key }}'>{{ $key }}</label>

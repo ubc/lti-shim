@@ -28,7 +28,7 @@ class PlatformLaunchController extends Controller
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
 
-        return view('lti/launch/platform/send_login', ['response' => $response]);
+        return view('lti/launch/platform/send_login', $response);
     }
 
     /**
@@ -47,7 +47,7 @@ class PlatformLaunchController extends Controller
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
-        return view('lti/launch/platform/send_token', ['response' => $response]);
+        return view('lti/launch/platform/send_token', $response);
     }
 }
 

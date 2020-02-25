@@ -60,7 +60,10 @@ class PlatformLaunch
                 $this->request->input(Param::LTI_MESSAGE_HINT)
         ];
         $params = $this->applyFilters($params, $ltiSession);
-        return $params;
+        return [
+            'response' => $params,
+            'oidc_login_url' => $tool->oidc_login_url
+        ];
     }
 
     // second stage of LTI launch on the platform side, we need to check
@@ -144,7 +147,10 @@ class PlatformLaunch
         $resp['id_token'] = $token;
         $resp = $this->applyFilters($resp, $ltiSession);
 
-        return $resp;
+        return [
+            'response' => $resp,
+            'auth_resp_url' => $tool->auth_resp_url
+        ];
     }
 
     private function applyFilters(array $params, LtiSession $session): array

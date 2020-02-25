@@ -4,7 +4,7 @@
 
 @section('content')
   <h3>Authorization Response</h3>
-  <form action='http://localhost:9001/web/game.php'
+  <form action='{{ $auth_resp_url }}'
       method='post'>
     @foreach ($response as $key => $val)
       <div class='form-group'>
