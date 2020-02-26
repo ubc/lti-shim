@@ -135,8 +135,6 @@ class ToolLaunch
         $ltiSession = new LtiSession();
         $ltiSession->session = $sessionData;
         $ltiSession->save();
-        // need to generate the lti user for use by UserFilter later
-        $this->createLtiUser($ltiSession);
         // generate the session token to be passed on to the shim's tool side
         $state = EncryptedState::encrypt([
             'lti_session' => $ltiSession->id
@@ -212,27 +210,4 @@ class ToolLaunch
         }
         return EncryptedState::encrypt($claims);
     }
-
-    private function createLtiUser(LtiSession $session)
-    {
-        $user = LtiUser::firstWhere([
-            'real_login_hint' => $session->session[Param::LOGIN_HINT],
-            'deployment_id' => $session->session['deployment_id']
-        ]);
-        if ($user) return; // user already exists
-
-        $user = new LtiUser();
-        $user->real_login_hint = $session->session[Param::LOGIN_HINT];
-        $user->sub = $session->session[Param::SUB];
-        $user->deployment_id = $session->session['deployment_id'];
-        if (isset($session->session[Param::NAME])) {
-            $user->real_name = $session->session[Param::NAME];
-        }
-        if (isset($session->session[Param::EMAIL])) {
-            $user->real_email = $session->session[Param::EMAIL];
-        }
-        $user->fillFakeFields();
-        $user->save();
-    }
-
 }
