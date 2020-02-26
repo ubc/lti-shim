@@ -108,18 +108,22 @@ class PlatformLaunch
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
         $tool = $deployment->tool;
 
-        $resp = [
-            'state' => $this->request->input('state')
-        ];
+        $resp = [];
+        if ($this->request->has('state')) {
+            $resp['state'] = $this->request->input('state');
+        }
 
         $time = time();
         $key = Platform::getOwnPlatform()->keys()->first();
         $payload = [
+            Param::TYP => Param::JWT,
+            Param::KID => $key->kid,
             Param::ISS => config('lti.iss'),
             Param::SUB => $ltiSession->session[Param::SUB], // user id
             Param::AUD => $tool->client_id,
             Param::EXP => $time + 3600, // expires 1 hour, might want to tighten
             Param::IAT => $time, // issued at
+            Param::NBF => $time, // not before
             Param::NONCE => $this->request->input('nonce'),
             Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
             Param::ROLES_URI => $ltiSession->session[Param::ROLES_URI],
@@ -136,6 +140,7 @@ class PlatformLaunch
         if (isset($ltiSession->session[Param::EMAIL])) {
             $payload[Param::EMAIL] = $ltiSession->session[Param::EMAIL];
         }
+        $payload = $this->applyFilters($payload, $ltiSession);
         // header params (typ, alg, kid) cannot be loaded using the payload()
         // function so has to be specified separately (and won't be filtered)
         $token = Build::jws()

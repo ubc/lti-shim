@@ -54,6 +54,15 @@ The current seeded data works with this Reference Implemention platform: https:/
 
 It should direct a launch from that RI platform to the LTI example tool brought up locally with docker-compose.
 
+#### Run Tests
+
+Make sure you're in workspace, run `phpunit` to run all the tests.
+
+```
+docker-compose exec -u laradock workspace bash
+  workspace$ phpunit
+```
+
 #### LTI Module
 
 LTI processing code is located in `lti/`. Different LTI functionalities are split into different specs, so we've organized them in the same way in `lti/Specs/`. The core spec is in `lti/Specs/Launch/`. Taking the launch as an example, it's been divided up into the Tool side and the Platform side in the form of `ToolLaunch` and `PlatformLaunch`.
