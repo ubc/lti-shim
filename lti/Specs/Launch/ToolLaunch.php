@@ -72,7 +72,7 @@ class ToolLaunch
             Param::SCOPE => Param::OPENID,
             Param::RESPONSE_TYPE => Param::ID_TOKEN,
             Param::LOGIN_HINT => $this->request->input(Param::LOGIN_HINT),
-            Param::RESPONSE_TYPE => Param::FORM_POST,
+            Param::RESPONSE_MODE => Param::FORM_POST,
             Param::PROMPT => Param::NONE,
             Param::REDIRECT_URI => $ownTool->auth_resp_url
         ];

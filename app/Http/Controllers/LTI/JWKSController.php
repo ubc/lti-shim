@@ -9,6 +9,7 @@ use Jose\Component\KeyManagement\JWKFactory;
 
 use App\Http\Controllers\Controller;
 use App\Models\Platform;
+use App\Models\Tool;
 
 class JWKSController extends Controller
 {
