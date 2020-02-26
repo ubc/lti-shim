@@ -10,7 +10,7 @@
     @endforeach
   </ul>
 
-  <form action='https://lti-ri.imsglobal.org/platforms/643/authorizations/new' method='get'>
+  <form action='{{ $auth_req_url }}' method='get'>
     @foreach ($response as $key => $val)
       <div class='form-group'>
         <label for='{{ $key }}'>{{ $key }}</label>

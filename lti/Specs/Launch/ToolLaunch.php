@@ -77,6 +77,8 @@ class ToolLaunch
             Param::REDIRECT_URI => $ownTool->auth_resp_url
         ];
         // client_id is either given in the request or stored in the database
+        $iss = $this->request->input(Param::ISS);
+        $platform = Platform::firstWhere('iss', $iss);
         if ($this->request->filled(Param::CLIENT_ID)) {
             // client_id is in request, just forward it
             $resp[Param::CLIENT_ID] = $this->request->input(Param::CLIENT_ID);
@@ -84,8 +86,6 @@ class ToolLaunch
             // list of known client_id?
         } else {
             // client_id not in request, so retrieve from database
-            $iss = $this->request->input(Param::ISS);
-            $platform = Platform::firstWhere('iss', $iss);
             $client = PlatformClient::firstWhere('platform_id', $platform->id);
             if (!$client) throw new LTIException("No client_id found for $iss");
             $resp[Param::CLIENT_ID] = $client->client_id;
@@ -104,7 +104,7 @@ class ToolLaunch
         // TODO: real nonce security
         $resp[Param::NONCE] = 'fakenonce';
 
-        return $resp;
+        return ['response' => $resp, 'auth_req_url' => $platform->auth_req_url];
     }
 
     // third stage of the LTI launch on the tool side, we need to check the
