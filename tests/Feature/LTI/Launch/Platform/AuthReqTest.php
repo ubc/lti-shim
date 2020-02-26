@@ -18,8 +18,10 @@ use App\Models\Tool;
 use Tests\TestCase;
 
 // only tests the incoming requests for the platform, this is just the auth req
-class IncomingParamsTest extends TestCase
+class AuthReqTest extends TestCase
 {
+    use RefreshDatabase; // reset database after each test
+
     /**
      * If required LTI params are missing from the login, throw a 400 error.
      *
