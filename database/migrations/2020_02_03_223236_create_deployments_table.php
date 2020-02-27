@@ -17,6 +17,8 @@ class CreateDeploymentsTable extends Migration
             $table->bigIncrements('id');
             $table->string('lti_deployment_id', 1024)
                   ->comment('Not a foreign key, this is the LTI deployment ID.');
+            $table->string('fake_lti_deployment_id', 1024)->nullable()
+                  ->comment('Filtered LTI deployment ID we give to tools.');
             $table->unsignedBigInteger('tool_id');
             $table->unsignedBigInteger('platform_id');
 
@@ -27,6 +29,7 @@ class CreateDeploymentsTable extends Migration
             // we can't make lti_deployment_id by itself unique, specs say it is
             // only unique within each iss, so needs to be a multicolumn index
             $table->index(['lti_deployment_id', 'platform_id']);
+            $table->index(['fake_lti_deployment_id', 'platform_id']);
 
             // using just the standard timestampsTz() to create these pair of
             // timestamps doesn't give them database defaults

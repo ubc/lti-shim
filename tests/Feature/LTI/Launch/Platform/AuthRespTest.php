@@ -113,8 +113,9 @@ class AuthRespTest extends TestCase
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/version')
         );
+        $deployment = $deployment->fresh(); // reload fake_lti_deployment_id value
         $this->assertEquals(
-            $deployment->lti_deployment_id,
+            $deployment->fake_lti_deployment_id,
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/deployment_id')
         );

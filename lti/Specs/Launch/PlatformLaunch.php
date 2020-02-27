@@ -13,6 +13,7 @@ use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
+use UBC\LTI\Filters\DeploymentFilter;
 use UBC\LTI\Filters\WhitelistFilter;
 use UBC\LTI\Filters\UserFilter;
 use UBC\LTI\LTIException;
@@ -36,6 +37,7 @@ class PlatformLaunch
         $this->request = $request;
         $this->checker = new ParamChecker($request->input());
         $this->filters = [
+            new DeploymentFilter(),
             new WhitelistFilter(),
             new UserFilter()
         ];

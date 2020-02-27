@@ -73,8 +73,10 @@ class OidcLoginTest extends TestCase
         $response->assertViewHas('response.target_link_uri',
                                  $tool->target_link_uri);
         $response->assertViewHas('response.client_id', $tool->client_id);
+        $deployment = $deployment->fresh(); // need to reload the model since
+                                            // it was modified by the call
         $response->assertViewHas('response.lti_deployment_id',
-                                 $deployment->lti_deployment_id);
+                                 $deployment->fake_lti_deployment_id);
         $response->assertViewHas('response.lti_message_hint', $encryptedSession);
     }
 }
