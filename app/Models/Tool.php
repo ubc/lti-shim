@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Tool extends Model
+use App\Models\AbstractLtiService;
+
+class Tool extends AbstractLtiService
 {
     public function deployments()
     {

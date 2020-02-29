@@ -76,5 +76,21 @@ class PlatformSeeder extends Seeder
                 "qi": "CTT0sIjA_O5L45FXiv0Hw_i2j1uK_QmjEer7uUp9wvLxwvpq8OFT5LKHCpL8XvU8cRaT4uwj4McWDvF51U8TH3GMFclG0bP--_tCix1R1oyCD7TVe-s41jQpxpYIPxT92e29Yw5yNjfTDh26laeSq3IGLledDolisqFZYE11cLXmcjT3cw0xtWRItsOjlAjGRleuTg8iBMTIVsjlcblt6wHj5dItrSRB1_aki9ndrdgRIUC4_kJnak99dKfTK39l6cSSUA4rvuOA1bf6VUyJS_ZFzhvo0nEuXeSyxvPt07h8QIdV87P-anFSm0iCYs63xpNLA9HZ3e8nLZCGBbWXSA"
                 }'
         ]);
+
+
+        // insert test canvas
+        DB::table('platforms')->insert([
+            'id' => 3,
+            'name' => 'UBC Test Canvas',
+            'iss' => 'https://canvas.test.instructure.com',
+            'auth_req_url' =>
+                'https://ubc.test.instructure.com/api/lti/authorize',
+            'jwks_url' => 'https://ubc.test.instructure.com/api/lti/security/jwks'
+        ]);
+        // this is the shim's client_id on test canvas
+        DB::table('platform_clients')->insert([
+            'platform_id' => 3,
+            'client_id' => '112240000000000076'
+        ]);
     }
 }

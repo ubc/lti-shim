@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 use Jose\Component\Checker\InvalidClaimException;
+use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\Build;
 use Jose\Easy\JWT;
 use Jose\Easy\Load;
@@ -149,13 +150,21 @@ class ToolLaunch
         JWT $state,
         Platform $platform
     ): JWT {
-        $jwk = $platform->keys()->first()->public_key;
         $jwt;
+        $kid = '';
         try {
             $jwt = Load::jws($token);
+            // can't access the claims with only Load::jws, but we need to know
+            // if the id_token provided a key id, so need to separately
+            // deserialize it and check for the kid
+            $payload = (new CompactSerializer())->unserialize($token);
+            if (isset($payload->getSignature(0)->getProtectedHeader()['kid'])) {
+                $kid = $payload->getSignature(0)->getProtectedHeader()['kid'];
+            }
         } catch(InvalidArgumentException $e) {
             throw new LTIException('id_token not base64 encoded.', 0, $e);
         }
+        $jwk = $platform->getKey($kid)->public_key;
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
                    ->exp() // We check the "exp" claim
                    ->iat(5000) // We check the "iat" claim. Leeway is 5000ms

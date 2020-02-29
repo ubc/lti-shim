@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
-class Platform extends Model
+use App\Models\AbstractLtiService;
+
+class Platform extends AbstractLtiService
 {
     public function clients()
     {

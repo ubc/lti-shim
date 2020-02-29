@@ -25,6 +25,8 @@ class CreateToolsTable extends Migration
             // tool, but putting it in tool for now until we know more
             $table->text('target_link_uri')
                   ->comment('If launch success, user redirected to this URL.');
+            $table->text('jwks_url')->nullable()
+                  ->comment("Where to get the tool's public keys.");
 
             // using just the standard timestampsTz() to create these pair of
             // timestamps doesn't give them database defaults
