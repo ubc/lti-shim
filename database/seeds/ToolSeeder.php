@@ -18,7 +18,7 @@ class ToolSeeder extends Seeder
             'client_id' => 'Not used for shim, look up in platform_client',
             'oidc_login_url' => config('app.url') . '/lti/launch/tool/login',
             'auth_resp_url' => config('app.url') . '/lti/launch/tool/auth',
-            'target_link_uri' => config('app.url') . '/lti/target.php'
+            'target_link_uri' => config('app.url') . '/lti/launch/platform/login'
         ]);
         DB::table('tool_keys')->insert([
             'kid' => 'MyDummyKey',

@@ -48,7 +48,6 @@ class UserFilter implements FilterInterface
             $user->real_email = $session->session[Param::EMAIL];
         }
         $user->fillFakeFields();
-        $user->save();
         return $user;
     }
 }

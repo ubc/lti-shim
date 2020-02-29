@@ -47,8 +47,7 @@ class EncryptedState
                 ->run();
             return $jwt;
         }
-        catch(\Exception $e)
-        {
+        catch(\Exception $e) {
             throw new LTIException('Unable to decrypt encrypted state.', 0, $e);
         }
     }

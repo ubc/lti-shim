@@ -27,7 +27,7 @@ class CreateKeysTable extends Migration
             $table->foreign('platform_id')->references('id')->on('platforms')
                   ->onDelete('cascade');
 
-            $table->index(['kid', 'platform_id']);
+            $table->unique(['kid', 'platform_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
@@ -44,7 +44,7 @@ class CreateKeysTable extends Migration
             $table->foreign('tool_id')->references('id')->on('tools')
                   ->onDelete('cascade');
 
-            $table->index(['kid', 'tool_id']);
+            $table->unique(['kid', 'tool_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();

@@ -18,5 +18,6 @@ class LtiUser extends Model
         $this->fake_login_hint = $faker->uuid;
         $this->fake_name = $faker->name;
         $this->fake_email = $faker->email;
+        $this->save();
     }
 }

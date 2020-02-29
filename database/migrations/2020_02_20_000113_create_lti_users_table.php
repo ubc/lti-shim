@@ -42,9 +42,9 @@ class CreateLtiUsersTable extends Migration
                   ->onDelete('cascade');
 
             // we're going to do a lot of lookups via login_hint and sub
-            $table->index(['real_login_hint', 'deployment_id']);
-            $table->index(['sub', 'deployment_id']);
-            $table->index(['fake_login_hint', 'deployment_id']);
+            $table->unique(['real_login_hint', 'deployment_id']);
+            $table->unique(['sub', 'deployment_id']);
+            $table->unique(['fake_login_hint', 'deployment_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();

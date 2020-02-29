@@ -28,8 +28,8 @@ class CreateDeploymentsTable extends Migration
                   ->onDelete('cascade');
             // we can't make lti_deployment_id by itself unique, specs say it is
             // only unique within each iss, so needs to be a multicolumn index
-            $table->index(['lti_deployment_id', 'platform_id']);
-            $table->index(['fake_lti_deployment_id', 'platform_id']);
+            $table->unique(['lti_deployment_id', 'platform_id']);
+            $table->unique(['fake_lti_deployment_id', 'platform_id']);
 
             // using just the standard timestampsTz() to create these pair of
             // timestamps doesn't give them database defaults
