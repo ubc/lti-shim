@@ -18,21 +18,25 @@ class JwksUpdater
         if (empty($service->jwks_url)) return; // no url to update with
 
         $jwks = file_get_contents($service->jwks_url);
-        if ($jwks === false) 
+        if ($jwks === false)
             throw new LTIException('Failed to get data from JWKS URL.');
 
         try {
             $jwks = JWKSet::createFromJson($jwks);
-            // save the keys into the database using mass assignment, this means
-            // we won't have to specify PlatformKey or ToolKey models
+            // save the keys into the database using mass assignment
             $keys = [];
+            // to make sure the key has a proper foreign key, we need to know
+            // if this service is a tool or platform, we can grab that from the
+            // table name of the key model
+            $tableName = strtok($service->keys()->getRelated()->getTable(), '_');
             foreach ($jwks as $jwk) {
                 $keys[] = [
+                    $tableName . '_id' => $service->id,
                     Param::KID => $jwk->get(Param::KID),
                     'key' => json_encode($jwk)
                 ];
             }
-            $service->keys()->createMany($keys);
+            $service->keys()->insertOrIgnore($keys);
         }
         catch(\InvalidArgumentException $e) {
             throw new LTIException(
