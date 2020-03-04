@@ -7,9 +7,9 @@
 #### Initial setup:
 
 ```
-git clone --recurse-submodules -b prototype1 git@github.com:/ubc/lti-shim.git
+git clone --recurse-submodules -b prototype1 https://github.com/ubc/lti-shim.git
 cd lti-shim/
-cp .env-example .env
+cp .env.example .env
 cd laradock-lti-shim/
 docker-compose up -d nginx postgres workspace adminer lti-example-tool
 docker-compose exec -u laradock workspace bash
@@ -46,9 +46,9 @@ Migrations can be rolled back in bulk (`artisan migrate:rollback`) or with the a
 
 The database can be completely blown away and rebuilt from scratch using `artisan migrate:refresh`.
 
-Test data for development use can be seeded using `artisan db:seed`. This can be combined with rebuilding the database from scratch as `artisan migrate:refresh --seed`.
-
 ##### Seeded Data
+
+Test data for development use can be seeded using `artisan db:seed`. This can be combined with rebuilding the database from scratch as `artisan migrate:refresh --seed`.
 
 The current seeded data works with this Reference Implemention platform: https://lti-ri.imsglobal.org/platforms/643
 

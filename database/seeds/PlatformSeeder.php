@@ -47,6 +47,7 @@ class PlatformSeeder extends Seeder
             'name' => 'Reference Implementation',
             'iss' => 'https://lti-ri.imsglobal.org',
             'auth_req_url' => 'https://lti-ri.imsglobal.org/platforms/643/authorizations/new',
+            'jwks_url' => 'https://lti-ri.imsglobal.org/platforms/643/platform_keys/656.json'
         ]);
         // this is the shim's client_id on the RI platform
         DB::table('platform_clients')->insert([
