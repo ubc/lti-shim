@@ -27,6 +27,7 @@
     </extensions>
     <php>
         <server name="APP_ENV" value="testing"/>
+        <server name="DB_CONNECTION" value="sqlite_testing"/>
         <server name="BCRYPT_ROUNDS" value="4"/>
         <server name="CACHE_DRIVER" value="array"/>
         <server name="MAIL_DRIVER" value="array"/>
