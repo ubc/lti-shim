@@ -47,7 +47,7 @@ class PlatformLaunch
     // login params to the tool.
     public function getLoginParams(): array
     {
-        $ltiSession = $this->getLtiSession();
+        $ltiSession = LtiSession::getSession($this->request);
 
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
         $tool = $deployment->tool;
@@ -72,7 +72,7 @@ class PlatformLaunch
     // the authentication request sent by the tool.
     public function checkAuthRequest()
     {
-        $ltiSession = $this->getLtiSession();
+        $ltiSession = LtiSession::getSession($this->request);
 
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
         $tool = $deployment->tool;
@@ -106,7 +106,7 @@ class PlatformLaunch
         // cannot generate the auth response without an auth request
         if (!$this->hasAuthRequest) $this->checkAuthRequest();
 
-        $ltiSession = $this->getLtiSession();
+        $ltiSession = LtiSession::getSession($this->request);
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
         $tool = $deployment->tool;
 
@@ -166,19 +166,5 @@ class PlatformLaunch
             $params = $filter->filter($params, $session);
         }
         return $params;
-    }
-
-    private function getLtiSession(): LtiSession
-    {
-        if (!$this->request->has(Param::LTI_MESSAGE_HINT)) {
-            throw new LTIException('No LTI session found.');
-        }
-        $state = EncryptedState::decrypt(
-            $this->request->input(Param::LTI_MESSAGE_HINT));
-        $ltiSession = LtiSession::find($state->claims->get('lti_session'));
-        if (!$ltiSession) {
-            throw new LTIException('Invalid LTI session, is it expired?');
-        }
-        return $ltiSession;
     }
 }
