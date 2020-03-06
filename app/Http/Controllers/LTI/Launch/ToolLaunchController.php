@@ -45,7 +45,7 @@ class ToolLaunchController extends Controller
         $toolLaunch = new ToolLaunch($request);
         try {
             $ltiSession = $toolLaunch->processAuth();
-            return redirect()->action('LTI\Launch\PlatformLaunchController@login',
+            return redirect()->action('LTI\Launch\MidwayController@arrival',
                                       [Param::LTI_MESSAGE_HINT => $ltiSession]);
         } catch (LTIException $e) {
             report($e);

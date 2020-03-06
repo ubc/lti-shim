@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Deployment extends Model
 {
     protected $dateFormat = 'Y-m-d H:i:sO';
+    protected $fillable = ['lti_deployment_id', 'platform_id', 'tool_id'];
 
     public function platform()
     {

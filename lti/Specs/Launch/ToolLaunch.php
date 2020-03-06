@@ -123,11 +123,15 @@ class ToolLaunch
         $idToken = $this->processIdToken($this->request->input(Param::ID_TOKEN),
                                        $state,
                                        $platform);
-        $deployment = Deployment::firstWhere([
-            'lti_deployment_id' => $idToken->claims
-                                           ->get(Param::DEPLOYMENT_ID_URI),
-            'platform_id' => $platform->id
-        ]);
+        // TODO: be able to pick tool to connect to
+        $deployment = Deployment::firstOrCreate(
+            [
+                'lti_deployment_id' => $idToken->claims
+                                               ->get(Param::DEPLOYMENT_ID_URI),
+                'platform_id'       => $platform->id
+            ],
+            ['tool_id' => 2]
+        );
         // persist the session in the database
         $sessionData = $idToken->claims->all();
         $sessionData['deployment_id'] = $deployment->id;

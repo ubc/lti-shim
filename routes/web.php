@@ -20,16 +20,17 @@ Route::namespace('LTI')->group(function() {
     Route::get('/lti/keygen', 'JWKSController@keygen'); // TODO dev only, rm later
     Route::namespace('Launch')->group(function() {
         // TOOL
-        Route::get('/lti/launch/tool/login', 'ToolLaunchController@login');
-        Route::post('/lti/launch/tool/login', 'ToolLaunchController@login');
+        Route::match(['get', 'post'], '/lti/launch/tool/login',
+            'ToolLaunchController@login');
         // unlike login, only POST requests are allowed for the auth response
         Route::post('/lti/launch/tool/auth', 'ToolLaunchController@auth');
+        // MIDWAY - transfer station from the tool side to the platform side
+        Route::get('/lti/launch/midway/arrival', 'MidwayController@arrival');
+        Route::post('/lti/launch/midway/departure', 'MidwayController@departure');
         // PLATFORM
-        Route::get('/lti/launch/platform/login',
+        Route::match(['get', 'post'], '/lti/launch/platform/login',
             'PlatformLaunchController@login');
-        Route::post('/lti/launch/platform/login',
-            'PlatformLaunchController@login');
-        Route::get('/lti/launch/platform/auth', 'PlatformLaunchController@auth');
-        Route::post('/lti/launch/platform/auth', 'PlatformLaunchController@auth');
+        Route::match(['get', 'post'], '/lti/launch/platform/auth',
+            'PlatformLaunchController@auth');
     });
 });
