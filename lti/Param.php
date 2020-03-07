@@ -54,4 +54,6 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/resource_link';
     public const ROLES_URI =
         'https://purl.imsglobal.org/spec/lti/claim/roles';
+    public const CUSTOM_URI =
+        'https://purl.imsglobal.org/spec/lti/claim/custom';
 }

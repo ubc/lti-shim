@@ -124,13 +124,16 @@ class ToolLaunch
                                        $state,
                                        $platform);
         // TODO: be able to pick tool to connect to
+        $targetToolId = $idToken->claims
+                                ->get(Param::CUSTOM_URI)['target_tool_id'];
+        $targetTool = Tool::findOrFail($targetToolId);
         $deployment = Deployment::firstOrCreate(
             [
                 'lti_deployment_id' => $idToken->claims
                                                ->get(Param::DEPLOYMENT_ID_URI),
                 'platform_id'       => $platform->id
             ],
-            ['tool_id' => 2]
+            ['tool_id' => $targetTool->id]
         );
         // persist the session in the database
         $sessionData = $idToken->claims->all();
