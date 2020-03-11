@@ -35,7 +35,6 @@ class AuthReqTest extends TestCase
         $myPlatform = factory(Platform::class)->create(['id' => 1]);
         $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
-            'tool_id' => $tool->id,
             'platform_id' => $myPlatform->id
         ]);
         $ltiUser = factory(LtiUser::class)->create([

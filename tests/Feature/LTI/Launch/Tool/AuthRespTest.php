@@ -35,8 +35,7 @@ class AuthRespTest extends TestCase
         $client = $targetPlatform->clients()->first();
         $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
-            'platform_id' => $targetPlatform->id,
-            'tool_id' => $targetTool->id
+            'platform_id' => $targetPlatform->id
         ]);
         $time = time();
         $loginHint = 'someLoginHint';
@@ -53,6 +52,8 @@ class AuthRespTest extends TestCase
                     '1.3.0')
             ->claim('https://purl.imsglobal.org/spec/lti/claim/deployment_id',
                     $deployment->lti_deployment_id)
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/custom',
+                    ['target_tool_id' => $targetTool->id])
             ->sign($targetPlatform->keys()->first()->key);
         $state = Build::jwe()
             ->alg('RSA-OAEP-256') // key encryption algo

@@ -19,11 +19,8 @@ class CreateDeploymentsTable extends Migration
                   ->comment('Not a foreign key, this is the LTI deployment ID.');
             $table->string('fake_lti_deployment_id', 1024)->nullable()
                   ->comment('Filtered LTI deployment ID we give to tools.');
-            $table->unsignedBigInteger('tool_id');
             $table->unsignedBigInteger('platform_id');
 
-            $table->foreign('tool_id')->references('id')->on('tools')
-                  ->onDelete('cascade');
             $table->foreign('platform_id')->references('id')->on('platforms')
                   ->onDelete('cascade');
             // we can't make lti_deployment_id by itself unique, specs say it is

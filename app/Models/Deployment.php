@@ -16,11 +16,6 @@ class Deployment extends Model
         return $this->belongsTo('App\Models\Platform');
     }
 
-    public function tool()
-    {
-        return $this->belongsTo('App\Models\Tool');
-    }
-
     // auto-populate fake_lti_deployment_id if it's not filled
     public function fillFakeFields()
     {

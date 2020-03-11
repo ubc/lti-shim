@@ -8,11 +8,6 @@ use App\Models\AbstractLtiService;
 
 class Tool extends AbstractLtiService
 {
-    public function deployments()
-    {
-        return $this->hasMany('App\Models\Deployment');
-    }
-
     public function keys()
     {
         return $this->hasMany('App\Models\ToolKey');

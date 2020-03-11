@@ -50,7 +50,7 @@ class PlatformLaunch
         $ltiSession = LtiSession::getSession($this->request);
 
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
-        $tool = $deployment->tool;
+        $tool = Tool::find($ltiSession->session['tool_id']);
 
         $params = [
             Param::ISS => config('lti.iss'),
@@ -75,7 +75,7 @@ class PlatformLaunch
         $ltiSession = LtiSession::getSession($this->request);
 
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
-        $tool = $deployment->tool;
+        $tool = Tool::find($ltiSession->session['tool_id']);
 
         $requiredValues = [
             // static values
@@ -108,7 +108,7 @@ class PlatformLaunch
 
         $ltiSession = LtiSession::getSession($this->request);
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
-        $tool = $deployment->tool;
+        $tool = Tool::find($ltiSession->session['tool_id']);
 
         $resp = [];
         if ($this->request->has('state')) {
