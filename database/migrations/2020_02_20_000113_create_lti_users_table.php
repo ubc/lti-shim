@@ -50,7 +50,7 @@ class CreateLtiUsersTable extends Migration
                   ->comment('Fake login_hint we should send to tools.');
             $table->string('name', 1024)
                   ->comment('Fake name we should send to tools.');
-            $table->string('email', 1024)
+            $table->string('email', 1024)->unique()
                   ->comment('Fake email we should send to tools.');
 
             // link to a real user
