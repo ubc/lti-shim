@@ -12,7 +12,7 @@ class DeploymentFilter implements FilterInterface
 {
     public function filter(array $params, LtiSession $session): array
     {
-        $deployment = Deployment::find($session->session['deployment_id']);
+        $deployment = $session->deployment;
         if (!$deployment->fake_lti_deployment_id) $deployment->fillFakeFields();
 
         if (isset($params[Param::LTI_DEPLOYMENT_ID])) {

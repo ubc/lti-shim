@@ -50,9 +50,9 @@ class PlatformLaunch
     {
         $ltiSession = LtiSession::getSession($this->request);
 
-        $deployment = Deployment::find($ltiSession->session['deployment_id']);
-        $tool = Tool::find($ltiSession->session['tool_id']);
-        $user = LtiRealUser::find($ltiSession->session['lti_real_user_id']);
+        $deployment = $ltiSession->deployment;
+        $tool = $ltiSession->tool;
+        $user = $ltiSession->lti_real_user;
 
 
         $params = [
@@ -77,9 +77,8 @@ class PlatformLaunch
     {
         $ltiSession = LtiSession::getSession($this->request);
 
-        $deployment = Deployment::find($ltiSession->session['deployment_id']);
-        $tool = Tool::find($ltiSession->session['tool_id']);
-        $user = LtiRealUser::find($ltiSession->session['lti_real_user_id']);
+        $tool = $ltiSession->tool;
+        $user = $ltiSession->lti_real_user;
 
         $requiredValues = [
             // static values
@@ -111,8 +110,8 @@ class PlatformLaunch
         if (!$this->hasAuthRequest) $this->checkAuthRequest();
 
         $ltiSession = LtiSession::getSession($this->request);
-        $deployment = Deployment::find($ltiSession->session['deployment_id']);
-        $tool = Tool::find($ltiSession->session['tool_id']);
+        $deployment = $ltiSession->deployment;
+        $tool = $ltiSession->tool;
 
         $resp = [];
         if ($this->request->has('state')) {
@@ -125,14 +124,14 @@ class PlatformLaunch
             Param::TYP => Param::JWT,
             Param::KID => $key->kid,
             Param::ISS => config('lti.iss'),
-            Param::SUB => $ltiSession->session[Param::SUB], // user id
+            Param::SUB => $ltiSession->token[Param::SUB], // user id
             Param::AUD => $tool->client_id,
             Param::EXP => $time + 3600, // expires 1 hour, might want to tighten
             Param::IAT => $time, // issued at
             Param::NBF => $time, // not before
             Param::NONCE => $this->request->input('nonce'),
             Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
-            Param::ROLES_URI => $ltiSession->session[Param::ROLES_URI],
+            Param::ROLES_URI => $ltiSession->token[Param::ROLES_URI],
             Param::VERSION_URI => '1.3.0',
             Param::DEPLOYMENT_ID_URI => $deployment->lti_deployment_id,
             Param::TARGET_LINK_URI_URI => $tool->target_link_uri,
@@ -140,11 +139,11 @@ class PlatformLaunch
             Param::RESOURCE_LINK_URI => ['id' => 'fake_resource_link_id']
         ];
         // optional params that might not be set
-        if (isset($ltiSession->session[Param::NAME])) {
-            $payload[Param::NAME] = $ltiSession->session[Param::NAME];
+        if (isset($ltiSession->token[Param::NAME])) {
+            $payload[Param::NAME] = $ltiSession->token[Param::NAME];
         }
-        if (isset($ltiSession->session[Param::EMAIL])) {
-            $payload[Param::EMAIL] = $ltiSession->session[Param::EMAIL];
+        if (isset($ltiSession->token[Param::EMAIL])) {
+            $payload[Param::EMAIL] = $ltiSession->token[Param::EMAIL];
         }
         $payload = $this->applyFilters($payload, $ltiSession);
         // header params (typ, alg, kid) cannot be loaded using the payload()

@@ -12,7 +12,7 @@ class LtiSession extends Model
 {
     // need to tell Laravel to auto decode our JSON column
     protected $casts = [
-        'session' => 'array'
+        'token' => 'array'
     ];
 
     public static function getSession($request): self
@@ -28,5 +28,18 @@ class LtiSession extends Model
             throw new LTIException('Invalid LTI session, is it expired?');
         }
         return $ltiSession;
+    }
+
+    public function deployment()
+    {
+        return $this->belongsTo('App\Models\Deployment');
+    }
+    public function lti_real_user()
+    {
+        return $this->belongsTo('App\Models\LtiRealUser');
+    }
+    public function tool()
+    {
+        return $this->belongsTo('App\Models\Tool');
     }
 }

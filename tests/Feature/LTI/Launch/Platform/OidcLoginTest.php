@@ -48,13 +48,13 @@ class OidcLoginTest extends TestCase
         ]);
         // prepare session
         $ltiSession = factory(LtiSession::class)->create([
-            'session' => [
-                'lti_real_user_id' => $realUser->id,
-                'tool_id' => $tool->id,
-                'deployment_id' => $deployment->id,
+            'token' => [
                 'sub' => $realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => []
-            ]
+            ],
+            'lti_real_user_id' => $realUser->id,
+            'tool_id' => $tool->id,
+            'deployment_id' => $deployment->id,
         ]);
         $time = time();
         $encryptedSession = Build::jwe()

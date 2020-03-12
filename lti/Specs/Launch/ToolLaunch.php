@@ -137,13 +137,11 @@ class ToolLaunch
             $idToken->claims->all()
         );
         // persist the session in the database
-        $sessionData = $idToken->claims->all();
-        $sessionData['deployment_id'] = $deployment->id;
-        $sessionData['tool_id'] = $tool->id;
-        $sessionData['lti_real_user_id'] = $user->id;
-
         $ltiSession = new LtiSession();
-        $ltiSession->session = $sessionData;
+        $ltiSession->deployment_id = $deployment->id;
+        $ltiSession->tool_id = $tool->id;
+        $ltiSession->lti_real_user_id = $user->id;
+        $ltiSession->token = $idToken->claims->all();
         $ltiSession->save();
         // generate the session token to be passed on to the shim's tool side
         $state = EncryptedState::encrypt([

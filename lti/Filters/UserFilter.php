@@ -32,14 +32,14 @@ class UserFilter implements FilterInterface
     private function getFakeUser(LtiSession $session): LtiFakeUser
     {
         $user = LtiFakeUser::firstWhere([
-            'lti_real_user_id' => $session->session['lti_real_user_id'],
-            'tool_id' => $session->session['tool_id']
+            'lti_real_user_id' => $session->lti_real_user_id,
+            'tool_id' => $session->tool_id
         ]);
         if ($user) return $user; // user already exists
         // new user, need to create
         $user = new LtiFakeUser();
-        $user->lti_real_user_id = $session->session['lti_real_user_id'];
-        $user->tool_id = $session->session['tool_id'];
+        $user->lti_real_user_id = $session->lti_real_user_id;
+        $user->tool_id = $session->tool_id;
         $user->fillFakeFields();
         return $user;
     }
