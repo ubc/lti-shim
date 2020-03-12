@@ -79,7 +79,7 @@ class CreateLtiUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('lti_real_users');
         Schema::dropIfExists('lti_fake_users');
+        Schema::dropIfExists('lti_real_users');
     }
 }
