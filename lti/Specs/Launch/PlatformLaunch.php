@@ -8,6 +8,7 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\Build;
 
 use App\Models\Deployment;
+use App\Models\LtiRealUser;
 use App\Models\LtiSession;
 use App\Models\Platform;
 use App\Models\Tool;
@@ -51,10 +52,12 @@ class PlatformLaunch
 
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
         $tool = Tool::find($ltiSession->session['tool_id']);
+        $user = LtiRealUser::find($ltiSession->session['lti_real_user_id']);
+
 
         $params = [
             Param::ISS => config('lti.iss'),
-            Param::LOGIN_HINT => $ltiSession->session[Param::LOGIN_HINT],
+            Param::LOGIN_HINT => $user->login_hint,
             Param::TARGET_LINK_URI => $tool->target_link_uri,
             Param::CLIENT_ID => $tool->client_id,
             Param::LTI_DEPLOYMENT_ID => $deployment->lti_deployment_id,
@@ -76,6 +79,7 @@ class PlatformLaunch
 
         $deployment = Deployment::find($ltiSession->session['deployment_id']);
         $tool = Tool::find($ltiSession->session['tool_id']);
+        $user = LtiRealUser::find($ltiSession->session['lti_real_user_id']);
 
         $requiredValues = [
             // static values
@@ -84,7 +88,7 @@ class PlatformLaunch
             Param::RESPONSE_MODE => Param::FORM_POST,
             Param::PROMPT => Param::NONE,
             // dynamic values
-            Param::LOGIN_HINT => $ltiSession->session[Param::LOGIN_HINT],
+            Param::LOGIN_HINT => $user->login_hint,
             Param::CLIENT_ID => $tool->client_id
         ];
         $requiredValues = $this->applyFilters($requiredValues, $ltiSession);

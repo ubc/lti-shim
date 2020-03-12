@@ -12,7 +12,7 @@ use Jose\Easy\Load;
 
 use App\Models\Deployment;
 use App\Models\LtiSession;
-use App\Models\LtiUser;
+use App\Models\LtiRealUser;
 use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\Tool;
@@ -121,8 +121,7 @@ class ToolLaunch
         $platform = Platform::firstWhere('iss',
                                          $state->claims->get('original_iss'));
         $idToken = $this->processIdToken($this->request->input(Param::ID_TOKEN),
-                                       $state,
-                                       $platform);
+                                         $state, $platform);
         $toolId = $idToken->claims ->get(Param::CUSTOM_URI)['target_tool_id'];
         $tool = Tool::findOrFail($toolId);
         $deployment = Deployment::firstOrCreate(
@@ -132,11 +131,16 @@ class ToolLaunch
                 'platform_id'       => $platform->id
             ]
         );
+        $user = LtiRealUser::getFromLaunch(
+            $platform->id,
+            $state->claims->get(Param::LOGIN_HINT),
+            $idToken->claims->all()
+        );
         // persist the session in the database
         $sessionData = $idToken->claims->all();
         $sessionData['deployment_id'] = $deployment->id;
         $sessionData['tool_id'] = $tool->id;
-        $sessionData[Param::LOGIN_HINT] = $state->claims->get(Param::LOGIN_HINT);
+        $sessionData['lti_real_user_id'] = $user->id;
 
         $ltiSession = new LtiSession();
         $ltiSession->session = $sessionData;

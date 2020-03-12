@@ -11,7 +11,8 @@ use Jose\Easy\Build;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiSession;
-use App\Models\LtiUser;
+use App\Models\LtiFakeUser;
+use App\Models\LtiRealUser;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -32,21 +33,26 @@ class AuthReqTest extends TestCase
 		$baseUrl = '/lti/launch/platform/auth';
         // known good request
         $tool = factory(Tool::class)->create();
-        $myPlatform = factory(Platform::class)->create(['id' => 1]);
+        $shimPlatform = factory(Platform::class)->create(['id' => 1]);
+        $platform = factory(Platform::class)->create(['id' => 2]);
         $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
-            'platform_id' => $myPlatform->id
+            'platform_id' => $shimPlatform->id
         ]);
-        $ltiUser = factory(LtiUser::class)->create([
-            'deployment_id' => $deployment->id
+        $realUser = factory(LtiRealUser::class)->create([
+            'platform_id' => $platform->id
+        ]);
+        $fakeUser = factory(LtiFakeUser::class)->create([
+            'lti_real_user_id' => $realUser->id,
+            'tool_id' => $tool->id
         ]);
         // prepare session
         $ltiSession = factory(LtiSession::class)->create([
             'session' => [
-                'login_hint' => $ltiUser->real_login_hint,
+                'lti_real_user_id' => $realUser->id,
                 'tool_id' => $tool->id,
                 'deployment_id' => $deployment->id,
-                'sub' => $ltiUser->sub,
+                'sub' => $realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => []
             ]
         ]);
@@ -65,7 +71,7 @@ class AuthReqTest extends TestCase
             'scope' => 'openid',
             'response_type' => 'id_token',
             'response_mode' => 'form_post',
-            'login_hint' => $ltiUser->fake_login_hint,
+            'login_hint' => $fakeUser->login_hint,
             'client_id' => $tool->client_id,
             'prompt' => 'none',
             'lti_message_hint' => $encryptedSession

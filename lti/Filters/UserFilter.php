@@ -3,7 +3,7 @@
 namespace UBC\LTI\Filters;
 
 use App\Models\LtiSession;
-use App\Models\LtiUser;
+use App\Models\LtiFakeUser;
 
 use UBC\LTI\Filters\FilterInterface;
 use UBC\LTI\Param;
@@ -12,41 +12,34 @@ class UserFilter implements FilterInterface
 {
     public function filter(array $params, LtiSession $session): array
     {
-        $user = $this->getUser($session);
+        $fakeUser = $this->getFakeUser($session);
         if (isset($params[Param::LOGIN_HINT])) {
-            $params[Param::LOGIN_HINT] = $user->fake_login_hint;
+            $params[Param::LOGIN_HINT] = $fakeUser->login_hint;
         }
         if (isset($params[Param::SUB])) {
-            $params[Param::SUB] = $user->fake_login_hint;
+            $params[Param::SUB] = $fakeUser->login_hint;
         }
         if (isset($params[Param::NAME])) {
-            $params[Param::NAME] = $user->fake_name;
+            $params[Param::NAME] = $fakeUser->name;
         }
         if (isset($params[Param::EMAIL])) {
-            $params[Param::EMAIL] = $user->fake_email;
+            $params[Param::EMAIL] = $fakeUser->email;
         }
 
         return $params;
     }
 
-    private function getUser(LtiSession $session): LtiUser
+    private function getFakeUser(LtiSession $session): LtiFakeUser
     {
-        $user = LtiUser::firstWhere([
-            'real_login_hint' => $session->session[Param::LOGIN_HINT],
-            'deployment_id' => $session->session['deployment_id']
+        $user = LtiFakeUser::firstWhere([
+            'lti_real_user_id' => $session->session['lti_real_user_id'],
+            'tool_id' => $session->session['tool_id']
         ]);
         if ($user) return $user; // user already exists
         // new user, need to create
-        $user = new LtiUser();
-        $user->real_login_hint = $session->session[Param::LOGIN_HINT];
-        $user->sub = $session->session[Param::SUB];
-        $user->deployment_id = $session->session['deployment_id'];
-        if (isset($session->session[Param::NAME])) {
-            $user->real_name = $session->session[Param::NAME];
-        }
-        if (isset($session->session[Param::EMAIL])) {
-            $user->real_email = $session->session[Param::EMAIL];
-        }
+        $user = new LtiFakeUser();
+        $user->lti_real_user_id = $session->session['lti_real_user_id'];
+        $user->tool_id = $session->session['tool_id'];
         $user->fillFakeFields();
         return $user;
     }

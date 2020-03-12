@@ -12,7 +12,8 @@ use Jose\Easy\Load;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiSession;
-use App\Models\LtiUser;
+use App\Models\LtiFakeUser;
+use App\Models\LtiRealUser;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -33,24 +34,29 @@ class AuthRespTest extends TestCase
         $baseUrl = '/lti/launch/platform/auth';
         // known good request
         $tool = factory(Tool::class)->create();
-        $myPlatform = factory(Platform::class)->create(['id' => 1]);
+        $shimPlatform = factory(Platform::class)->create(['id' => 1]);
+        $platform = factory(Platform::class)->create(['id' => 2]);
         $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
-            'platform_id' => $myPlatform->id
+            'platform_id' => $shimPlatform->id
         ]);
-        $ltiUser = factory(LtiUser::class)->create([
-            'deployment_id' => $deployment->id
+        $realUser = factory(LtiRealUser::class)->create([
+            'platform_id' => $platform->id
+        ]);
+        $fakeUser = factory(LtiFakeUser::class)->create([
+            'lti_real_user_id' => $realUser->id,
+            'tool_id' => $tool->id
         ]);
         // prepare session
         $ltiSession = factory(LtiSession::class)->create([
             'session' => [
-                'login_hint' => $ltiUser->real_login_hint,
+                'lti_real_user_id' => $realUser->id,
                 'tool_id' => $tool->id,
                 'deployment_id' => $deployment->id,
-                'sub' => $ltiUser->sub,
+                'sub' => $realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => [],
-                'name' => $ltiUser->real_name,
-                'email' => $ltiUser->real_email
+                'name' => $realUser->name,
+                'email' => $realUser->email
             ]
         ]);
         $time = time();
@@ -69,7 +75,7 @@ class AuthRespTest extends TestCase
             'scope' => 'openid',
             'response_type' => 'id_token',
             'response_mode' => 'form_post',
-            'login_hint' => $ltiUser->fake_login_hint,
+            'login_hint' => $fakeUser->login_hint,
             'client_id' => $tool->client_id,
             'prompt' => 'none',
             'nonce' => $nonce,
@@ -78,12 +84,12 @@ class AuthRespTest extends TestCase
         $response = $this->call('get', $baseUrl, $goodValues);
         $response->assertStatus(Response::HTTP_OK);
         // make sure where we send the response is right
-        $response->assertViewHas('auth_resp_url', $myPlatform->auth_resp_url);
+        $response->assertViewHas('auth_resp_url', $shimPlatform->auth_resp_url);
         // reconstructing the id_token is a bit difficult, so we'll decode it
         // and verify it that way instead
         $token = $response->getOriginalContent()
                           ->getData()['response']['id_token'];
-        $platformKey = $myPlatform->keys()->first();
+        $platformKey = $shimPlatform->keys()->first();
         $jwt = Load::jws($token)
             ->algs(['RS256'])
             ->exp()
@@ -91,13 +97,13 @@ class AuthRespTest extends TestCase
             ->nbf()
             ->aud($tool->client_id)
             ->iss(config('lti.iss'))
-            ->sub($ltiUser->fake_login_hint)
+            ->sub($fakeUser->login_hint)
             ->key($platformKey->public_key)
             ->run();
         $response->assertViewMissing('response.state');
         // test filters
-        $this->assertEquals($ltiUser->fake_name, $jwt->claims->get('name'));
-        $this->assertEquals($ltiUser->fake_email, $jwt->claims->get('email'));
+        $this->assertEquals($fakeUser->name, $jwt->claims->get('name'));
+        $this->assertEquals($fakeUser->email, $jwt->claims->get('email'));
         // test required params
         $this->assertEquals($nonce, $jwt->claims->get('nonce'));
         $this->assertEquals('JWT', $jwt->claims->get('typ'));

@@ -11,7 +11,8 @@ use Jose\Easy\Build;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiSession;
-use App\Models\LtiUser;
+use App\Models\LtiRealUser;
+use App\Models\LtiFakeUser;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -32,21 +33,26 @@ class OidcLoginTest extends TestCase
 		$baseUrl = '/lti/launch/platform/login';
         // known good request
         $tool = factory(Tool::class)->create();
-        $myPlatform = factory(Platform::class)->create(['id' => 1]);
+        $shimPlatform = factory(Platform::class)->create(['id' => 1]);
+        $platform = factory(Platform::class)->create(['id' => 2]);
         $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
-            'platform_id' => $myPlatform->id
+            'platform_id' => $shimPlatform->id
         ]);
-        $ltiUser = factory(LtiUser::class)->create([
-            'deployment_id' => $deployment->id
+        $realUser = factory(LtiRealUser::class)->create([
+            'platform_id' => $platform->id
+        ]);
+        $fakeUser = factory(LtiFakeUser::class)->create([
+            'lti_real_user_id' => $realUser->id,
+            'tool_id' => $tool->id
         ]);
         // prepare session
         $ltiSession = factory(LtiSession::class)->create([
             'session' => [
-                'login_hint' => $ltiUser->real_login_hint,
+                'lti_real_user_id' => $realUser->id,
                 'tool_id' => $tool->id,
                 'deployment_id' => $deployment->id,
-                'sub' => $ltiUser->sub,
+                'sub' => $realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => []
             ]
         ]);
@@ -68,7 +74,7 @@ class OidcLoginTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
         $response->assertViewHas('response.iss', config('lti.iss'));
         $response->assertViewHas('response.login_hint',
-                                 $ltiUser->fake_login_hint);
+                                 $fakeUser->login_hint);
         $response->assertViewHas('response.target_link_uri',
                                  $tool->target_link_uri);
         $response->assertViewHas('response.client_id', $tool->client_id);
