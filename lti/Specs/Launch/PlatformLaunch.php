@@ -14,13 +14,14 @@ use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
-use UBC\LTI\Filters\DeploymentFilter;
-use UBC\LTI\Filters\WhitelistFilter;
-use UBC\LTI\Filters\UserFilter;
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 
+use UBC\LTI\Filters\DeploymentFilter;
+use UBC\LTI\Filters\ResourceLinkFilter;
+use UBC\LTI\Filters\UserFilter;
+use UBC\LTI\Filters\WhitelistFilter;
 
 // we're acting as the Platform
 // the main idea is that we supply this object with the params that we receive
@@ -40,7 +41,8 @@ class PlatformLaunch
         $this->filters = [
             new DeploymentFilter(),
             new WhitelistFilter(),
-            new UserFilter()
+            new UserFilter(),
+            new ResourceLinkFilter()
         ];
     }
 
@@ -136,7 +138,8 @@ class PlatformLaunch
             Param::DEPLOYMENT_ID_URI => $deployment->lti_deployment_id,
             Param::TARGET_LINK_URI_URI => $tool->target_link_uri,
             // TODO real resource link
-            Param::RESOURCE_LINK_URI => ['id' => 'fake_resource_link_id']
+            Param::RESOURCE_LINK_URI =>
+                $ltiSession->token[Param::RESOURCE_LINK_URI]
         ];
         // optional params that might not be set
         if (isset($ltiSession->token[Param::NAME])) {
