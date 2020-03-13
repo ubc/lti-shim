@@ -19,6 +19,7 @@ use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 
 use UBC\LTI\Filters\DeploymentFilter;
+use UBC\LTI\Filters\LaunchPresentationFilter;
 use UBC\LTI\Filters\ResourceLinkFilter;
 use UBC\LTI\Filters\UserFilter;
 use UBC\LTI\Filters\WhitelistFilter;
@@ -42,7 +43,8 @@ class PlatformLaunch
             new DeploymentFilter(),
             new WhitelistFilter(),
             new UserFilter(),
-            new ResourceLinkFilter()
+            new ResourceLinkFilter(),
+            new LaunchPresentationFilter()
         ];
     }
 
@@ -147,6 +149,10 @@ class PlatformLaunch
         }
         if (isset($ltiSession->token[Param::EMAIL])) {
             $payload[Param::EMAIL] = $ltiSession->token[Param::EMAIL];
+        }
+        if (isset($ltiSession->token[Param::LAUNCH_PRESENTATION_URI])) {
+            $payload[Param::LAUNCH_PRESENTATION_URI] =
+                $ltiSession->token[Param::LAUNCH_PRESENTATION_URI];
         }
         $payload = $this->applyFilters($payload, $ltiSession);
         // header params (typ, alg, kid) cannot be loaded using the payload()

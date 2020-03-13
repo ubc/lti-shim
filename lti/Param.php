@@ -56,4 +56,6 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/roles';
     public const CUSTOM_URI =
         'https://purl.imsglobal.org/spec/lti/claim/custom';
+    public const LAUNCH_PRESENTATION_URI =
+        'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
 }
