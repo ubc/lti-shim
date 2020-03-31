@@ -50,7 +50,9 @@ class AuthReqTest extends TestCase
         $ltiSession = factory(LtiSession::class)->create([
             'token' => [
                 'sub' => $realUser->sub,
-                'https://purl.imsglobal.org/spec/lti/claim/roles' => []
+                'https://purl.imsglobal.org/spec/lti/claim/roles' => [],
+                'https://purl.imsglobal.org/spec/lti/claim/resource_link' =>
+                    ['id' => 'resourceLinkId']
             ],
             'lti_real_user_id' => $realUser->id,
             'tool_id' => $tool->id,
