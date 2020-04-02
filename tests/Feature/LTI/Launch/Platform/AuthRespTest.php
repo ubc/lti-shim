@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Jose\Easy\Build;
 use Jose\Easy\Load;
 
+use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiSession;
@@ -51,6 +52,9 @@ class AuthRespTest extends TestCase
         $resourceLink = factory(ResourceLink::class)->create([
             'deployment_id' => $deployment->id
         ]);
+        $courseContext = factory(CourseContext::class)->create([
+            'deployment_id' => $deployment->id
+        ]);
         // prepare session
         $ltiSession = factory(LtiSession::class)->create([
             'token' => [
@@ -58,6 +62,8 @@ class AuthRespTest extends TestCase
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => [],
                 'https://purl.imsglobal.org/spec/lti/claim/resource_link' =>
                     ['id' => $resourceLink->real_link_id],
+                'https://purl.imsglobal.org/spec/lti/claim/context' =>
+                    ['id' => $courseContext->real_context_id],
                 'name' => $realUser->name,
                 'email' => $realUser->email
             ],
@@ -135,7 +141,6 @@ class AuthRespTest extends TestCase
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/target_link_uri')
         );
-        // TODO: test resource link once implemented
         $this->assertEquals(
             $resourceLink->fake_link_id,
             $jwt->claims->get(
@@ -144,6 +149,12 @@ class AuthRespTest extends TestCase
         $this->assertNotNull(
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/roles')
+        );
+        // test optional params 
+        $this->assertEquals(
+            $courseContext->fake_context_id,
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/context')['id']
         );
         // check state is passed properly if included
         $state = 'someFakeState';

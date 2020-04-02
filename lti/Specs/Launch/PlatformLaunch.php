@@ -18,6 +18,7 @@ use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 
+use UBC\LTI\Filters\CourseContextFilter;
 use UBC\LTI\Filters\DeploymentFilter;
 use UBC\LTI\Filters\LaunchPresentationFilter;
 use UBC\LTI\Filters\ResourceLinkFilter;
@@ -44,7 +45,8 @@ class PlatformLaunch
             new WhitelistFilter(),
             new UserFilter(),
             new ResourceLinkFilter(),
-            new LaunchPresentationFilter()
+            new LaunchPresentationFilter(),
+            new CourseContextFilter()
         ];
     }
 
@@ -143,17 +145,19 @@ class PlatformLaunch
             Param::RESOURCE_LINK_URI =>
                 $ltiSession->token[Param::RESOURCE_LINK_URI]
         ];
-        // optional params that might not be set
-        if (isset($ltiSession->token[Param::NAME])) {
-            $payload[Param::NAME] = $ltiSession->token[Param::NAME];
+        // pass through optional params if they exist
+        $optionalParams = [
+            Param::NAME,
+            Param::EMAIL,
+            Param::LAUNCH_PRESENTATION_URI,
+            Param::CONTEXT_URI
+        ];
+        foreach ($optionalParams as $optionalParam) {
+            if (isset($ltiSession->token[$optionalParam])) {
+                $payload[$optionalParam] = $ltiSession->token[$optionalParam];
+            }
         }
-        if (isset($ltiSession->token[Param::EMAIL])) {
-            $payload[Param::EMAIL] = $ltiSession->token[Param::EMAIL];
-        }
-        if (isset($ltiSession->token[Param::LAUNCH_PRESENTATION_URI])) {
-            $payload[Param::LAUNCH_PRESENTATION_URI] =
-                $ltiSession->token[Param::LAUNCH_PRESENTATION_URI];
-        }
+        // filter all params
         $payload = $this->applyFilters($payload, $ltiSession);
         // header params (typ, alg, kid) cannot be loaded using the payload()
         // function so has to be specified separately (and won't be filtered)
@@ -174,7 +178,7 @@ class PlatformLaunch
 
     private function applyFilters(array $params, LtiSession $session): array
     {
-        foreach($this->filters as $filter) {
+        foreach ($this->filters as $filter) {
             $params = $filter->filter($params, $session);
         }
         return $params;

@@ -58,4 +58,6 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/custom';
     public const LAUNCH_PRESENTATION_URI =
         'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
+    public const CONTEXT_URI =
+        'https://purl.imsglobal.org/spec/lti/claim/context';
 }

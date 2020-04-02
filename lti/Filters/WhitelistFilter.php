@@ -61,7 +61,8 @@ class WhitelistFilter implements FilterInterface
         Param::ROLES_URI => 17,
         Param::NAME => 18,
         Param::EMAIL => 19,
-        Param::LAUNCH_PRESENTATION_URI => 20
+        Param::LAUNCH_PRESENTATION_URI => 20,
+        Param::CONTEXT_URI => 21
     ];
     
     public function filter(array $params, LtiSession $session): array
