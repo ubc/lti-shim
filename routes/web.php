@@ -11,8 +11,6 @@
 |
 */
 
-Route::get('/', 'HomeController@home');
-
 Route::namespace('LTI')->group(function() {
     // a list of public keys that can be used to verify our signed JWTs
     Route::get('/lti/platform/jwks', 'JWKSController@platformPublicKeys');
@@ -34,3 +32,9 @@ Route::namespace('LTI')->group(function() {
             'PlatformLaunchController@auth');
     });
 });
+
+// enable login system but disable the registration page
+Auth::routes(['register' => false]);
+
+Route::get('/', 'HomeController@splash');
+Route::get('/home', 'HomeController@index')->name('home');

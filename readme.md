@@ -15,11 +15,17 @@ docker-compose up -d nginx postgres workspace adminer lti-example-tool
 docker-compose exec -u laradock workspace bash
   workspace$ composer install
   workspace$ artisan key:generate
+  workspace$ artisan migrate:refresh --seed
+  workspace$ npm install
+  workspace$ npm run dev
 ```
 
 * The main app is accessible from http://localhost
   * See routes/web.php for valid locations
   * App log is located in `storage/logs/`, they are named by date. Note that the containers seems to be on UTC though.
+  * Development admin user login (added as part of seeded data):
+    * Email: admin@example.com
+    * Password: password
 * Workspace is a container for executing composer/artisan commands on your project. This means you don't need to have composer/artisan installed locally.
 * Adminer provides a simple front-end to the database and is accessible at http://localhost:8080/
   * System: PostgreSQL
@@ -53,6 +59,23 @@ Test data for development use can be seeded using `artisan db:seed`. This can be
 The current seeded data works with this Reference Implemention platform: https://lti-ri.imsglobal.org/platforms/643
 
 It should direct a launch from that RI platform to the LTI example tool brought up locally with docker-compose.
+
+#### UI Setup
+
+Laravel has its own configuration built on top of webpack, which means some setup is needed to start development. We need to install all the UI packages and then call webpack to compile all the new assets:
+
+```
+npm install
+npm run dev
+```
+
+Changes to UI files requires us to recompile assets. In order to do this automatically, leave this command running:
+
+```
+npm run watch
+```
+
+Laravel uses VueJS for JavaScript framework and Bootstrap 4 for CSS.
 
 #### Run Tests
 
@@ -114,6 +137,8 @@ It would be advisable to run `artisan key:generate` to generate a different `APP
 Run `artisan config:cache` to combine all configuration files into a single file for faster loading. This shouldn't be used during development as configuration files can change.
 
 Database credentials in `.env` should be replaced with production values.
+
+UI assets needs to be compiled and minified, this is done with: `npm run production`
 
 ## Contributing
 
