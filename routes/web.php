@@ -36,5 +36,5 @@ Route::namespace('LTI')->group(function() {
 // enable login system but disable the registration page
 Auth::routes(['register' => false]);
 
-Route::get('/', 'HomeController@splash');
+Route::get('/', 'WelcomeController@index');
 Route::get('/home', 'HomeController@index')->name('home');
