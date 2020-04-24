@@ -12,6 +12,7 @@
         "facade/ignition": "^2.0",
         "fideloper/proxy": "^4.0",
         "laravel/framework": "^7.0",
+        "laravel/passport": "^8.4",
         "laravel/tinker": "^2.0",
         "laravel/ui": "^2.0",
         "web-token/jwt-easy": "^2.1",
