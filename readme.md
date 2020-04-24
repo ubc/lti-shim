@@ -27,7 +27,7 @@ docker-compose exec -u laradock workspace bash
     * Email: admin@example.com
     * Password: password
 * Workspace is a container for executing composer/artisan commands on your project. This means you don't need to have composer/artisan installed locally.
-* Adminer provides a simple front-end to the database and is accessible at http://localhost:8080/
+* Adminer provides a simple front-end to the database and is accessible at http://localhost:8081/
   * System: PostgreSQL
   * Server: postgres
   * Username: default
