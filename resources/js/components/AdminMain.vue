@@ -2,7 +2,9 @@
 	<div>
     <h1>Admin</h1>
     <div v-if='isSignedIn'>
-      Signed In
+      <h2>Tools</h2>
+      <h2>Platforms</h2>
+      <UserAdmin></UserAdmin>
     </div>
     <div v-else>
       Loading, Please Wait...
@@ -11,10 +13,12 @@
 </template>
 
 <script>
+import UserAdmin from './user/UserAdmin'
 
 export default {
 	name: "AdminMain",
   components: {
+    UserAdmin
   },
   computed: {
 		isSignedIn() {
