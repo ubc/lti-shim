@@ -75,6 +75,12 @@ Changes to UI files requires us to recompile assets. In order to do this automat
 npm run watch
 ```
 
+The watch command still requires you to hit refresh in the browser. This can be a chore for vue development, so we can enable hot-module-replacement where assets are automatically updated without having to hit refresh. The command is:
+
+```
+npm run hot
+```
+
 Laravel uses VueJS for JavaScript framework and Bootstrap 4 for CSS.
 
 #### Run Tests
