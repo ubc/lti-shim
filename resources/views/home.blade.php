@@ -19,5 +19,6 @@
             </div>
         </div>
     </div>
+    <config-main></config-main>
 </div>
 @endsection
