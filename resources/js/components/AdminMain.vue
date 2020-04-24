@@ -1,5 +1,6 @@
 <template>
 	<div>
+    <h1>Admin</h1>
     <div v-if='isSignedIn'>
       Signed In
     </div>
@@ -10,8 +11,11 @@
 </template>
 
 <script>
+
 export default {
-	name: "ConfigMain",
+	name: "AdminMain",
+  components: {
+  },
   computed: {
 		isSignedIn() {
 			return this.$store.getters['auth/isSignedIn']

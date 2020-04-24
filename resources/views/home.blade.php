@@ -19,6 +19,6 @@
             </div>
         </div>
     </div>
-    <config-main></config-main>
+    <admin-main></admin-main>
 </div>
 @endsection
