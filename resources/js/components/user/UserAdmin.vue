@@ -5,7 +5,7 @@
     <div v-else>
       <button type='button' class='btn btn-outline-primary mb-3'
         @click='showUserForm = true'>
-        Add User
+        <AddIcon /> Add User
       </button>
       <UserList></UserList>
     </div>
@@ -13,12 +13,15 @@
 </template>
 
 <script>
+import AddIcon from 'icons/Plus'
+
 import UserList from './UserList'
 import UserForm from './UserForm'
 
 export default {
   name: "UserAdmin",
   components: {
+    AddIcon,
     UserForm,
     UserList
   },

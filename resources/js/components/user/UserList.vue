@@ -16,10 +16,10 @@
           <td>{{ user.email }}</td>
           <td class='d-flex justify-content-between'>
             <button type='button' class='btn btn-outline-secondary'>
-              Edit
+              <EditIcon /> Edit
             </button>
             <button type='button' class='btn btn-outline-danger'>
-              Delete
+              <DeleteIcon /> Delete
             </button>
           </td>
         </tr>
@@ -29,8 +29,15 @@
 </template>
 
 <script>
+import EditIcon from 'icons/Pencil'
+import DeleteIcon from 'icons/Delete'
+
 export default {
 	name: "UserList",
+  components: {
+    EditIcon,
+    DeleteIcon
+  },
   computed: {
     users() { return this.$store.state.user.users }
   },
