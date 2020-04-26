@@ -1,21 +1,25 @@
+import Vue from 'vue'
+
 const USER_API_URL = 'api/user'
 
 export const user = {
   namespaced: true,
 
   state: {
-    users: []
+    users: {}
   },
 
   getters: {
   },
 
   mutations: {
-    setUsers(state, data) {
-      state.users = data
+    setUsers(state, users) {
+      for (const user of users) {
+        Vue.set(state.users, user.id, user)
+      }
     },
     addUser(state, user) {
-      state.users.push(user)
+      Vue.set(state.users, user.id, user)
     }
   },
 
