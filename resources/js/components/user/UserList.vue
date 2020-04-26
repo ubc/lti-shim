@@ -18,9 +18,12 @@
             <button type='button' class='btn btn-outline-secondary'>
               <EditIcon /> Edit
             </button>
-            <button type='button' class='btn btn-outline-danger'>
-              <DeleteIcon /> Delete
-            </button>
+            <AreYouSureButton v-if='Object.keys(users).length > 1'
+              :css="'btn btn-outline-danger'"
+              :warning="'Delete user ' + user.name + '?'"
+              @yes='deleteUser(user.id)'>
+                <DeleteIcon /> Delete
+            </AreYouSureButton>
           </td>
         </tr>
       </tbody>
@@ -29,20 +32,28 @@
 </template>
 
 <script>
-import EditIcon from 'icons/Pencil'
 import DeleteIcon from 'icons/Delete'
+import EditIcon from 'icons/Pencil'
+
+import AreYouSureButton from '../util/AreYouSureButton'
 
 export default {
 	name: "UserList",
   components: {
+    AreYouSureButton,
+    DeleteIcon,
     EditIcon,
-    DeleteIcon
   },
   computed: {
     users() { return this.$store.state.user.users }
   },
+  methods: {
+    deleteUser(userId) {
+      this.$store.dispatch('user/delete', userId)
+    }
+  },
   mounted() {
-    this.$store.dispatch('user/getUsers')
+    this.$store.dispatch('user/getAll')
   }
 }
 </script>

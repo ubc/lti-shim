@@ -49,7 +49,7 @@ export default {
   }},
   methods: {
     save() {
-      this.$store.dispatch('user/createUser', this.user)
+      this.$store.dispatch('user/create', this.user)
       this.$emit('done')
     }
   }

@@ -16,4 +16,5 @@ use Illuminate\Http\Request;
 Route::namespace('API')->group(function() {
     Route::get('/user', 'UserController@index');
     Route::put('/user', 'UserController@store');
+    Route::delete('/user/{id}', 'UserController@destroy');
 });
