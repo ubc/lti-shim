@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -17,9 +18,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::latest()->get();
-
-        return response()->json(["users" => $users], 200);
+        return User::all();
     }
 
     /**
@@ -30,7 +29,13 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $newUser = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8'],
+        ]);
+        $newUser['password'] = Hash::make($newUser['password']);
+        return User::create($newUser);
     }
 
     /**
