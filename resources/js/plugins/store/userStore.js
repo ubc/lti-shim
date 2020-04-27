@@ -37,8 +37,7 @@ export const user = {
           context.commit('setUsers', response.data)
         })
         .catch(response => {
-          console.log("Unable to retrieve users.")
-          console.log(response.data)
+          Vue.notify({title: "Failed to get users", type: 'error'})
         })
     },
     // get a single user
@@ -48,46 +47,45 @@ export const user = {
           context.commit('addUser', response.data)
         })
         .catch(response => {
-          console.log("Unable to retrieve users.")
-          console.log(response.data)
+          Vue.notify({title: "Failed to get user " + userId, type: 'error'})
         })
     },
     // create a new user
     create(context, user) {
-      axios.put(USER_API_URL, user)
+      return axios.put(USER_API_URL, user)
         .then(response => {
           context.commit('addUser', response.data)
+          Vue.notify({title: "Added new user " + user.name, type: 'success'})
         })
         .catch(response => {
-          console.log("Unable to create new user.")
-          console.log(response.data)
+          Vue.notify({title: "Failed to add new user", type: 'error'})
         })
     },
     // update an existing user
     update(context, user) {
-      console.log("Update user " + user.id)
-      console.log(user)
-      axios.post(USER_API_URL + '/' + user.id, user)
+      return axios.post(USER_API_URL + '/' + user.id, user)
         .then(response => {
+          Vue.notify({title: "Edited user " + user.name, type: 'success'})
           context.commit('editUser', response.data)
         })
         .catch(response => {
-          console.log("Unable to retrieve users.")
-          console.log(response.data)
+          Vue.notify({title: "Failed to edit user " + user.id, type: 'error'})
         })
     },
     // delete an existing user
     delete(context, userId) {
       if (!(userId in context.state.users)) {
-        console.log('Trying to delete unknown user id ' + userId)
+        Vue.notify({title: "Can't delete unknown user "+user.id, type: 'error'})
+        return
       }
+      let name = context.state.users[userId].name
       axios.delete(USER_API_URL + '/' + userId)
         .then(response => {
+          Vue.notify({title: "Deleted user " + name, type: 'success'})
           context.commit('deleteUser', userId)
         })
         .catch(response => {
-          console.log('Unable to delete user id ' + userId)
-          console.log(response.data)
+          Vue.notify({title: "Failed to delete user " + user.id, type: 'error'})
         })
     }
   }

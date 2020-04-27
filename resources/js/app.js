@@ -11,6 +11,9 @@ window.Vue = require('vue');
 // vuex
 import store from './plugins/store/store'
 
+// vue-notification
+import notification from './plugins/notification/notification'
+
 // vue material design icons
 import 'vue-material-design-icons/styles.css';
 

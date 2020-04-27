@@ -1,5 +1,6 @@
 <template>
 	<div>
+    <Notification />
     <h1>Admin</h1>
     <div v-if='isSignedIn'>
       <h2>Tools</h2>
@@ -13,12 +14,14 @@
 </template>
 
 <script>
+import Notification from './util/Notification'
 import UserAdmin from './user/UserAdmin'
 
 export default {
 	name: "AdminMain",
   components: {
-    UserAdmin
+    Notification,
+    UserAdmin,
   },
   computed: {
 		isSignedIn() {
