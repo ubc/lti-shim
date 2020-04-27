@@ -1,13 +1,14 @@
 <template>
   <div>
     <h2>Users</h2>
-    <UserForm v-if='showUserForm' @done='showUserForm = false'></UserForm>
+    <UserForm v-if='showUserForm' :userId='editUser'
+      @done='showUserForm = false'></UserForm>
     <div v-else>
       <button type='button' class='btn btn-outline-primary mb-3'
-        @click='showUserForm = true'>
+        @click='add'>
         <AddIcon /> Add User
       </button>
-      <UserList></UserList>
+      <UserList @edit='edit'></UserList>
     </div>
   </div>
 </template>
@@ -28,9 +29,18 @@ export default {
   computed: {
   },
   data() { return {
-    showUserForm: false
+    showUserForm: false,
+    editUser: 0
   }},
   methods: {
+    add() {
+      this.editUser = 0
+      this.showUserForm = true
+    },
+    edit(userId) {
+      this.editUser = userId
+      this.showUserForm = true
+    }
   },
   mounted() {
   }

@@ -21,9 +21,12 @@ export const user = {
     addUser(state, user) {
       Vue.set(state.users, user.id, user)
     },
+    editUser(state, user) {
+      state.users[user.id] = user
+    },
     deleteUser(state, userId) {
       Vue.delete(state.users, userId)
-    }
+    },
   },
 
   actions: {
@@ -38,6 +41,17 @@ export const user = {
           console.log(response.data)
         })
     },
+    // get a single user
+    get(context, userId) {
+      axios.get(USER_API_URL + '/' + userId)
+        .then(response => {
+          context.commit('addUser', response.data)
+        })
+        .catch(response => {
+          console.log("Unable to retrieve users.")
+          console.log(response.data)
+        })
+    },
     // create a new user
     create(context, user) {
       axios.put(USER_API_URL, user)
@@ -46,6 +60,19 @@ export const user = {
         })
         .catch(response => {
           console.log("Unable to create new user.")
+          console.log(response.data)
+        })
+    },
+    // update an existing user
+    update(context, user) {
+      console.log("Update user " + user.id)
+      console.log(user)
+      axios.post(USER_API_URL + '/' + user.id, user)
+        .then(response => {
+          context.commit('editUser', response.data)
+        })
+        .catch(response => {
+          console.log("Unable to retrieve users.")
           console.log(response.data)
         })
     },
