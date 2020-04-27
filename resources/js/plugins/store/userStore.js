@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import helper from './helper'
 
 const USER_API_URL = 'api/user'
 
@@ -46,7 +47,7 @@ export const user = {
         .then(response => {
           context.commit('addUser', response.data)
         })
-        .catch(response => {
+        .catch(error => {
           Vue.notify({title: "Failed to get user " + userId, type: 'error'})
         })
     },
@@ -56,9 +57,11 @@ export const user = {
         .then(response => {
           context.commit('addUser', response.data)
           Vue.notify({title: "Added new user " + user.name, type: 'success'})
+          return response
         })
-        .catch(response => {
-          Vue.notify({title: "Failed to add new user", type: 'error'})
+        .catch(error => {
+          return helper.processError(error,
+            {title: "Failed to add new user", type: 'error'})
         })
     },
     // update an existing user
@@ -67,9 +70,11 @@ export const user = {
         .then(response => {
           Vue.notify({title: "Edited user " + user.name, type: 'success'})
           context.commit('editUser', response.data)
+          return response
         })
-        .catch(response => {
-          Vue.notify({title: "Failed to edit user " + user.id, type: 'error'})
+        .catch(error => {
+          return helper.processError(error,
+            {title: "Failed to edit user " + user.id, type: 'error'})
         })
     },
     // delete an existing user
@@ -84,7 +89,7 @@ export const user = {
           Vue.notify({title: "Deleted user " + name, type: 'success'})
           context.commit('deleteUser', userId)
         })
-        .catch(response => {
+        .catch(error => {
           Vue.notify({title: "Failed to delete user " + user.id, type: 'error'})
         })
     }

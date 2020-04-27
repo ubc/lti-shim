@@ -15,12 +15,15 @@
       </div>
       <PasswordField :isNewPassword='true' :isRequired='true' v-if='!isEdit'
         v-model='user.password'></PasswordField>
-      <button type='submit' class='btn btn-outline-primary'>
-        <SaveIcon />
+      <button type='submit' class='btn btn-outline-primary'
+        :disabled='isWaiting'>
+        <span class="spinner-border spinner-border-sm" role="status"
+          aria-hidden="true" v-if='isWaiting'></span>
+        <SaveIcon v-else />
         Save
       </button>
       <button type='button' class='btn btn-outline-secondary'
-        @click="$emit('done')">
+        @click="$emit('done')" :disabled='isWaiting'>
         <CancelIcon />
         Cancel
       </button>
@@ -55,15 +58,23 @@ export default {
       name: '',
       email: '',
       password: ''
-    }
+    },
+    isWaiting: false
   }},
   methods: {
     save() {
-      if (this.isEdit)
-        this.$store.dispatch('user/update', this.user)
-      else
-        this.$store.dispatch('user/create', this.user)
-      this.$emit('done')
+      let action = 'user/create'
+      if (this.isEdit) action = 'user/update'
+
+      this.isWaiting = true
+      this.$store.dispatch(action, this.user)
+        .then(() => {
+          this.$emit('done')
+          this.isWaiting = false
+        })
+        .catch(() => {
+          this.isWaiting = false
+        })
     }
   },
   mounted() {

@@ -1,5 +1,5 @@
 <template>
-  <notifications position="top center" :duration='5000'>
+  <notifications position="top center" :duration='5000' class='w-auto'>
     <template slot="body" slot-scope="props">
       <div class='alert mt-1'
            :class="{
@@ -8,6 +8,10 @@
              'alert-danger': props.item.type == 'error',
              'alert-warning': props.item.type == 'warn',
            }">
+        <button type="button" class="close" data-dismiss="alert" 
+          aria-label="Close" @click="props.close">
+          <CloseIcon />
+        </button>
         <h5 class='mb-0'>
           <InfoIcon v-if="!props.item.type" />
           <SuccessIcon v-if="props.item.type == 'success'" />
@@ -17,15 +21,15 @@
             {{ props.item.title }}
           </strong>
         </h5>
-        <p v-if='props.item.text' class='mb-0'>
-          {{ props.item.text }}
-        </p>
+        <div v-if='props.item.text' v-html='props.item.text'>
+        </div>
       </div>
     </template>
   </notifications>
 </template>
 
 <script>
+import CloseIcon from 'icons/CloseCircle'
 import ErrorIcon from 'icons/Alert'
 import InfoIcon from 'icons/InformationOutline'
 import SuccessIcon from 'icons/CheckCircle'
@@ -34,6 +38,7 @@ import WarnIcon from 'icons/Alert'
 export default {
 	name: "Notification",
   components: {
+    CloseIcon,
     ErrorIcon,
     InfoIcon,
     SuccessIcon,
