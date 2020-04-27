@@ -6,14 +6,17 @@
       <div class='form-group'>
         <label for='name'>Name</label>
         <input id='name' type='text' class='form-control' required
+          :disabled='!user.name'
           v-model='user.name' />
       </div>
       <div class='form-group'>
         <label for='email'>Email</label>
         <input id='email' type='email' class='form-control' required
+          :disabled='!user.email'
           v-model='user.email'/>
       </div>
-      <PasswordField :isNewPassword='true' :isRequired='true' v-if='!isEdit'
+      <PasswordField :isNewPassword='true' :isRequired='!isEdit && !isEditSelf' 
+        v-if='!isEdit || isEditSelf'
         v-model='user.password'></PasswordField>
       <button type='submit' class='btn btn-outline-primary'
         :disabled='isWaiting'>
@@ -48,6 +51,10 @@ export default {
     userId: {
       type: Number,
       default: 0
+    },
+    isEditSelf: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -83,6 +90,17 @@ export default {
       // user has pressed the save button. So we need to clone the user data to
       // a new object that's not managed by vuex.
       this.user = Object.assign({}, this.$store.state.user.users[this.userId])
+      // in case we don't have the user in the store, try to grab just
+      // that user id
+      if (!('id' in this.user)) {
+        this.isWaiting = true
+        this.$store.dispatch('user/get', this.userId)
+          .then(() => {
+            this.user =
+              Object.assign({}, this.$store.state.user.users[this.userId])
+            this.isWaiting = false
+          })
+      }
     }
   }
 }

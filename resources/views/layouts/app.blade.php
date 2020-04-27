@@ -29,7 +29,14 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
-
+                        @auth
+                        <li class="nav-item 
+                            {{ Request::is('admin') ? 'active' : '' }}">
+                            <a class='nav-link' href='{{ route('admin') }}'>
+                                {{ __('Admin') }}
+                            </a>
+                        </li>
+                        @endauth
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -50,10 +57,13 @@
                                     {{ Auth::user()->name }} <span class="caret"></span>
                                 </a>
 
-                                <log-out logout-path='{{ route('logout') }}'
-                                         logout-text='{{ __('Logout') }}'>
+                                <session-dropdown
+                                    name='{{ Auth::user()->name }}'
+                                    account-path='{{ route('account') }}'
+                                    logout-path='{{ route('logout') }}'
+                                    logout-text='{{ __('Logout') }}'>
                                     @csrf
-                                </log-out>
+                                </session-dropdown>
                             </li>
                         @endguest
                     </ul>

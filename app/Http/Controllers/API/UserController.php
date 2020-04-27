@@ -64,8 +64,14 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 
                 Rule::unique('users')->ignore($user)],
+            'password' => ['string', 'min:8'],
         ]);
         $user->name = $userInfo['name'];
+        $user->email = $userInfo['email'];
+        // allowed to change password
+        if ($request->user()->id == $id && !empty($userInfo['password'])) {
+            $user->password = Hash::make($userInfo['password']);
+        }
         $user->save();
         return $user;
     }

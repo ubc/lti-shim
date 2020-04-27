@@ -2,6 +2,7 @@
 
 @section('content')
 <div class="container">
-    <admin-main></admin-main>
+    <account user-id='{{ Auth::user()->id }}'>
+    </account>
 </div>
 @endsection

@@ -1,27 +1,21 @@
 <template>
 	<div>
     <Notification />
-    <h1>Admin</h1>
-    <div v-if='isSignedIn'>
-      <h2>Tools</h2>
-      <h2>Platforms</h2>
-      <UserAdmin></UserAdmin>
-    </div>
-    <div v-else>
-      Please Wait...
-    </div>
+    <UserForm :userId='Number(userId)' :isEditSelf='true' v-if='isSignedIn'>
+    </UserForm>
 	</div>
 </template>
 
 <script>
 import Notification from './util/Notification'
-import UserAdmin from './user/UserAdmin'
+import UserForm from './user/UserForm'
 
 export default {
-	name: "AdminMain",
+	name: "Account",
+  props: ['userId'],
   components: {
     Notification,
-    UserAdmin,
+    UserForm
   },
   computed: {
 		isSignedIn() {

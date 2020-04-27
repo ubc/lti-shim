@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import helper from './helper'
 
-const USER_API_URL = 'api/user'
+const USER_API_URL = '/api/user'
 
 export const user = {
   namespaced: true,
@@ -22,9 +22,6 @@ export const user = {
     addUser(state, user) {
       Vue.set(state.users, user.id, user)
     },
-    editUser(state, user) {
-      state.users[user.id] = user
-    },
     deleteUser(state, userId) {
       Vue.delete(state.users, userId)
     },
@@ -33,22 +30,25 @@ export const user = {
   actions: {
     // get a list of users
     getAll(context) {
-      axios.get(USER_API_URL)
+      return axios.get(USER_API_URL)
         .then(response => {
           context.commit('setUsers', response.data)
+          return response
         })
-        .catch(response => {
-          Vue.notify({title: "Failed to get users", type: 'error'})
+        .catch(error => {
+          return helper.processError(error, {title: "Failed to get users"})
         })
     },
     // get a single user
     get(context, userId) {
-      axios.get(USER_API_URL + '/' + userId)
+      return axios.get(USER_API_URL + '/' + userId)
         .then(response => {
           context.commit('addUser', response.data)
+          return response
         })
         .catch(error => {
-          Vue.notify({title: "Failed to get user " + userId, type: 'error'})
+          return helper.processError(error,
+            {title: "Failed to get user " + userId})
         })
     },
     // create a new user
@@ -61,7 +61,7 @@ export const user = {
         })
         .catch(error => {
           return helper.processError(error,
-            {title: "Failed to add new user", type: 'error'})
+            {title: "Failed to add new user"})
         })
     },
     // update an existing user
@@ -69,28 +69,30 @@ export const user = {
       return axios.post(USER_API_URL + '/' + user.id, user)
         .then(response => {
           Vue.notify({title: "Edited user " + user.name, type: 'success'})
-          context.commit('editUser', response.data)
+          context.commit('addUser', response.data)
           return response
         })
         .catch(error => {
           return helper.processError(error,
-            {title: "Failed to edit user " + user.id, type: 'error'})
+            {title: "Failed to edit user " + user.id})
         })
     },
     // delete an existing user
     delete(context, userId) {
       if (!(userId in context.state.users)) {
-        Vue.notify({title: "Can't delete unknown user "+user.id, type: 'error'})
-        return
+        Vue.notify({title: "Can't delete unknown user "+user.id})
+        return Promise.resolve(true)
       }
       let name = context.state.users[userId].name
-      axios.delete(USER_API_URL + '/' + userId)
+      return axios.delete(USER_API_URL + '/' + userId)
         .then(response => {
           Vue.notify({title: "Deleted user " + name, type: 'success'})
           context.commit('deleteUser', userId)
+          return response
         })
         .catch(error => {
-          Vue.notify({title: "Failed to delete user " + user.id, type: 'error'})
+          return helper.processError(error,
+            {title: "Failed to delete user " + user.id})
         })
     }
   }

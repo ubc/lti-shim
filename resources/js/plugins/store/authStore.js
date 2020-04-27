@@ -2,6 +2,7 @@
 
 // needs to be global axios in order to set common headers for all axios instances
 import axios from 'axios'
+import Vue from 'vue'
 
 export const TOKEN_KEY = 'LTI Shim Admin Site Token'
 
@@ -43,14 +44,17 @@ export const auth = {
           axios.defaults.headers.common['Authorization'] = "Bearer " + token
         })
         .catch (response => {
-          console.log("unable to create new token")
-          console.log(response.data)
+          Vue.notify({'title': 'Failed to create new API token',
+            'type': 'error'})
         });
     },
     // Technically revoking a token, not deleting it
     deleteToken(context, tokenId) {
       axios.delete(TOKEN_URL + '/' + tokenId)
-        .catch(response => { console.log('unable to delete old tokens') })
+        .catch(response => {
+          Vue.notify({'title': 'Failed to delete old API token',
+            'type': 'error'})
+        })
     },
     // REST calls needs to be authenticated by a token, this is NOT the session
     // cookie we obtained from logging in to the site, but we can use that 
@@ -59,11 +63,11 @@ export const auth = {
     // doing a lot of customization.
     signIn(context) {
       // don't need to do anything if we already have a token
-      if (context.getters['isSignedIn']) return
+      if (context.getters['isSignedIn']) return Promise.resolve(true)
       // there's no way to refresh tokens, we can only create new ones,
       // so to avoid having a bunch of old tokens laying around, we'll
       // need to clean up the old ones first
-      axios.get(TOKEN_URL)
+      return axios.get(TOKEN_URL)
         .then(response => {
           for (const token of response.data) {
             // delete old tokens used by us
@@ -73,17 +77,19 @@ export const auth = {
           }
           // now we can create a new token
           context.dispatch('createToken')
+          return response
         })
         .catch(response => {
-          console.log('unable to retrieve existing tokens')
-          console.log(response.data)
+          Vue.notify({'title': 'Failed to retrieve existing API tokens',
+            'type': 'error'})
+          return Promise.reject(response)
         })
     },
     // Deleting the token is as good as signing out as all API calls will
     // no longer be authenticated
     signOut(context) {
       localStorage.removeItem(TOKEN_KEY)
-      context.commit('token', '')
+      if (context) context.commit('token', '')
       delete axios.defaults.headers.common["Authorization"]
     }
   }

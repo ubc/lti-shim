@@ -1,5 +1,5 @@
 <template>
-  <notifications position="top center" :duration='5000' class='w-auto'>
+  <notifications position="top center" :duration='5000'>
     <template slot="body" slot-scope="props">
       <div class='alert mt-1'
            :class="{
