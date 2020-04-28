@@ -28,8 +28,10 @@ import 'vue-material-design-icons/styles.css';
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
+Vue.component('account', require('./components/Account.vue').default);
 Vue.component('admin-main', require('./components/AdminMain.vue').default);
-Vue.component('log-out', require('./components/LogOut.vue').default);
+Vue.component('session-dropdown',
+  require('./components/SessionDropdown.vue').default);
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 

@@ -6,13 +6,13 @@
       <div class='form-group'>
         <label for='name'>Name</label>
         <input id='name' type='text' class='form-control' required
-          :disabled='!user.name'
+          :disabled='!user.name && isEdit'
           v-model='user.name' />
       </div>
       <div class='form-group'>
         <label for='email'>Email</label>
         <input id='email' type='email' class='form-control' required
-          :disabled='!user.email'
+          :disabled='!user.email && isEdit'
           v-model='user.email'/>
       </div>
       <PasswordField :isNewPassword='true' :isRequired='!isEdit && !isEditSelf' 
