@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 use Jose\Component\Core\JWK;
@@ -22,9 +23,13 @@ abstract class AbstractLtiService extends Model
         // In laravel, validation is usually done in controller, but since we
         // might call the model alone, this is just in case.
         // Can't use filter_var() validation because it doesn't support utf-8
-        if (parse_url($url, PHP_URL_SCHEME) && parse_url($url, PHP_URL_HOST))
-            $this->attributes['jwks_url'] = $url;
-        throw new LTIException("JWKS URL not recognized as a valid URL.");
+        $validator = Validator::make(['jwks_url' => $url], [
+            'jwks_url' => ['url', 'nullable']
+        ]);
+        if ($validator->fails()) {
+            throw new LTIException("JWKS URL not recognized as a valid URL.");
+        }
+        $this->attributes['jwks_url'] = $url;
     }
 
     // retrieve the RSA key used for signatures on this platform/tool
