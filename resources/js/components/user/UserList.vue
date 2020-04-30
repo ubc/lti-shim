@@ -46,7 +46,7 @@ export default {
     EditIcon,
   },
   computed: {
-    users() { return this.$store.state.user.users }
+    users() { return this.$store.state.user.items }
   },
   methods: {
     deleteUser(userId) {

@@ -70,8 +70,8 @@ export default {
   }},
   methods: {
     save() {
-      let action = 'user/create'
-      if (this.isEdit) action = 'user/update'
+      let action = 'user/add'
+      if (this.isEdit) action = 'user/edit'
 
       this.isWaiting = true
       this.$store.dispatch(action, this.user)
@@ -89,18 +89,10 @@ export default {
       // I don't want changes here to be picked up by the store until the
       // user has pressed the save button. So we need to clone the user data to
       // a new object that's not managed by vuex.
-      this.user = Object.assign({}, this.$store.state.user.users[this.userId])
-      // in case we don't have the user in the store, try to grab just
-      // that user id
-      if (!('id' in this.user)) {
-        this.isWaiting = true
-        this.$store.dispatch('user/get', this.userId)
-          .then(() => {
-            this.user =
-              Object.assign({}, this.$store.state.user.users[this.userId])
-            this.isWaiting = false
-          })
-      }
+      this.$store.dispatch('user/getCopy', this.userId)
+        .then((userCopy) => {
+          this.user = userCopy
+        })
     }
   }
 }

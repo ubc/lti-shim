@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import { auth } from './authStore'
-import { user } from './userStore'
+import user from './userStore'
 import platform from './platformStore'
 import tool from './toolStore'
 
