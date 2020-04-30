@@ -1,15 +1,20 @@
 <template>
-  <div>
-    <h2>Users</h2>
-    <UserForm v-if='showUserForm' :userId='editUser'
-      @done='showUserForm = false'></UserForm>
-    <div v-else>
-      <button type='button' class='btn btn-outline-primary mb-3'
-        @click='add'>
-        <AddIcon /> Add User
-      </button>
-      <UserList @edit='edit'></UserList>
+  <div class='card'>
+
+    <h2 class='card-header'>Users</h2>
+
+    <div class='card-body'>
+      <UserForm v-if='showUserForm' :userId='editUser'
+        @done='showUserForm = false'></UserForm>
+      <div v-else>
+        <button type='button' class='btn btn-outline-primary mb-3'
+          @click='add'>
+          <AddIcon /> Add User
+        </button>
+        <UserList @edit='edit'></UserList>
+      </div>
     </div>
+
   </div>
 </template>
 
