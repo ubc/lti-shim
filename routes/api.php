@@ -19,4 +19,8 @@ Route::namespace('API')->group(function() {
     Route::get('/user/{id}', 'UserController@show');
     Route::post('/user/{id}', 'UserController@update');
     Route::delete('/user/{id}', 'UserController@destroy');
+
+    Route::apiResource('platform', 'PlatformController');
+    Route::apiResource('platform.clients', 'PlatformClientController');
+    Route::apiResource('platform.keys', 'PlatformKeyController');
 });
