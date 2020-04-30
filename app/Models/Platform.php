@@ -57,7 +57,7 @@ class Platform extends AbstractLtiService
         return $platform;
     }
 
-    public static function getAllEditable()
+    public static function getAllEditable(): Collection
     {
         // we don't want users to be able to edit the shim's own platform
         // configuration, so exclude it

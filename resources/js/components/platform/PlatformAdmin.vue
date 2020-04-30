@@ -7,6 +7,10 @@
       <PlatformForm v-if='showForm' :platformId='editPlatformId' 
         @done='showForm = false'/>
       <div v-else>
+        <p class='text-muted'>
+        LTI platforms are usually Learning Management Systems, platforms send
+        out LTI launches and information to tools.
+        </p>
         <button type='button' class='btn btn-outline-primary mb-3' @click='add'>
           <AddIcon /> Add Platform
         </button>

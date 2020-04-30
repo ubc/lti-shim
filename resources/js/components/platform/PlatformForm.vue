@@ -153,7 +153,6 @@ export default {
           this.platform = platformCopy
         })
     }
-    axios.get('/api/platform/2/clients')
   }
 }
 </script>

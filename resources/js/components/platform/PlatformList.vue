@@ -20,7 +20,6 @@
               <EditIcon /> Edit
             </button>
             <AreYouSureButton 
-              v-if='Object.keys(platforms).length > 1 && platform.id != 1'
               :css="'btn btn-outline-danger'"
               :warning="'Delete platform ' + platform.name + '?'"
               @yes='deletePlatform(platform.id)'>
