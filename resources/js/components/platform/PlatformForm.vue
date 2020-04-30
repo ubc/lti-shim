@@ -36,20 +36,9 @@
 
       <ClientList v-model='platform.clients' @delete='deleteClient' />
 
-      <h4>Platform Public Key</h4>
-      <p class='text-muted'>
-        Keys must follow the JSON Web Key (JWK) standard.
-      </p>
-      <div class='form-group'>
-        <label for='jwks_url'>JWKS URL</label>
-        <input id='jwks_url' type='text' class='form-control'
-          v-model='platform.jwks_url' aria-describedby='jwksUrlHelp' />
-        <small id="jwksUrlHelp" class="form-text text-muted">
-          Platform endpoint where we can grab a list of public keys.
-        </small>
-      </div>
-
-      <JwkList v-model='platform.keys' @delete='deleteJwk' />
+      <JwkForm @deleteJwk='deleteJwk'
+        :url='platform.jwks_url' @url='platform.jwks_url = $event'
+        :keys='platform.keys'  @keys='platform.keys = $event' />
 
       <button type='submit' class='btn btn-outline-primary'
         :disabled='isWaiting'>
@@ -72,14 +61,14 @@ import CancelIcon from 'icons/Cancel'
 import SaveIcon from 'icons/ContentSave'
 
 import ClientList from './ClientList'
-import JwkList from '../jwk/JwkList'
+import JwkForm from '../jwk/JwkForm'
 
 export default {
 	name: 'PlatformForm',
   components: {
     CancelIcon,
     ClientList,
-    JwkList,
+    JwkForm,
     SaveIcon,
   },
   props: {
