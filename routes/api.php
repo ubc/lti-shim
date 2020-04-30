@@ -23,4 +23,7 @@ Route::namespace('API')->group(function() {
     Route::apiResource('platform', 'PlatformController');
     Route::apiResource('platform.clients', 'PlatformClientController');
     Route::apiResource('platform.keys', 'PlatformKeyController');
+
+    Route::apiResource('tool', 'ToolController');
+    Route::apiResource('tool.keys', 'ToolKeyController');
 });

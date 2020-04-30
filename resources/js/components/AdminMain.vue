@@ -3,7 +3,7 @@
     <Notification />
     <h1>Admin</h1>
     <div v-if='isSignedIn'>
-      <h2>Tools</h2>
+      <ToolAdmin class='mb-4'></ToolAdmin>
       <PlatformAdmin class='mb-4'></PlatformAdmin>
       <UserAdmin></UserAdmin>
     </div>
@@ -16,6 +16,7 @@
 <script>
 import Notification from './util/Notification'
 import PlatformAdmin from './platform/PlatformAdmin'
+import ToolAdmin from './tool/ToolAdmin'
 import UserAdmin from './user/UserAdmin'
 
 export default {
@@ -23,6 +24,7 @@ export default {
   components: {
     Notification,
     PlatformAdmin,
+    ToolAdmin,
     UserAdmin,
   },
   computed: {

@@ -16,7 +16,7 @@ class CreateToolsTable extends Migration
         Schema::create('tools', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            $table->string('client_id', 1024);
+            $table->string('client_id', 1024)->unique();
             $table->text('oidc_login_url')
                   ->comment('URL for the first request to start LTI launch.');
             $table->text('auth_resp_url')
