@@ -13,7 +13,6 @@ class PlatformSeeder extends Seeder
     {
         // insert the shim and associated key
         DB::table('platforms')->insert([
-            'id' => 1,
             'name' => 'LTI Shim Platform Side',
             'iss' => config('lti.iss'),
             'auth_req_url' => config('app.url') . '/lti/launch/platform/auth'
@@ -43,7 +42,6 @@ class PlatformSeeder extends Seeder
 
         // insert the reference implementation platform
         DB::table('platforms')->insert([
-            'id' => 2,
             'name' => 'Reference Implementation',
             'iss' => 'https://lti-ri.imsglobal.org',
             'auth_req_url' => 'https://lti-ri.imsglobal.org/platforms/643/authorizations/new',
@@ -81,7 +79,6 @@ class PlatformSeeder extends Seeder
 
         // insert test canvas
         DB::table('platforms')->insert([
-            'id' => 3,
             'name' => 'UBC Test Canvas',
             'iss' => 'https://canvas.test.instructure.com',
             'auth_req_url' =>
@@ -91,7 +88,7 @@ class PlatformSeeder extends Seeder
         // this is the shim's client_id on test canvas
         DB::table('platform_clients')->insert([
             'platform_id' => 3,
-            'client_id' => '112240000000000076'
+            'client_id' => '112240000000000110'
         ]);
     }
 }

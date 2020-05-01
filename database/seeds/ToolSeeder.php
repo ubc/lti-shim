@@ -13,7 +13,6 @@ class ToolSeeder extends Seeder
     {
         // insert the shim's tool side
         DB::table('tools')->insert([
-            'id' => 1,
             'name' => 'LTI Shim Tool Side',
             'client_id' => 'Not used for shim, look up in platform_client',
             'oidc_login_url' => config('app.url') . '/lti/launch/tool/login',
@@ -45,7 +44,6 @@ class ToolSeeder extends Seeder
         
         // insert the lti 1.3 php example tool
         DB::table('tools')->insert([
-            'id' => 2,
             'name' => 'LTI 1.3 PHP Example Tool',
             'client_id' => 'StrawberryCat',
             'oidc_login_url' => 'http://localhost:9001/login.php',

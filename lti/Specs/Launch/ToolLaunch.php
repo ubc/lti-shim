@@ -123,7 +123,8 @@ class ToolLaunch
         $idToken = $this->processIdToken($this->request->input(Param::ID_TOKEN),
                                          $state, $platform);
         $toolId = $idToken->claims ->get(Param::CUSTOM_URI)['target_tool_id'];
-        $tool = Tool::findOrFail($toolId);
+        $tool = Tool::find($toolId);
+        if (!$tool) throw new LTIException("Unknown target tool id: $toolId");
         $deployment = Deployment::firstOrCreate(
             [
                 'lti_deployment_id' => $idToken->claims
