@@ -53,4 +53,13 @@ abstract class AbstractLtiService extends Model
             throw new \UnexpectedValueException($msg);
         }
     }
+
+    // convert the keys to public keys, it does NOT save to the database
+    // used for returning public keys only in controllers
+    public function convertToPublicKeys()
+    {
+        foreach ($this->keys as $key) {
+            $key->key = json_encode($key->public_key);
+        }
+    }
 }

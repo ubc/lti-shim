@@ -5,7 +5,8 @@
     <div v-if='isSignedIn'>
       <ToolAdmin class='mb-4'></ToolAdmin>
       <PlatformAdmin class='mb-4'></PlatformAdmin>
-      <UserAdmin></UserAdmin>
+      <UserAdmin class='mb-4'></UserAdmin>
+      <ShimConfigInfo></ShimConfigInfo>
     </div>
     <div v-else>
       Please Wait...
@@ -16,6 +17,7 @@
 <script>
 import Notification from './util/Notification'
 import PlatformAdmin from './platform/PlatformAdmin'
+import ShimConfigInfo from './help/ShimConfigInfo'
 import ToolAdmin from './tool/ToolAdmin'
 import UserAdmin from './user/UserAdmin'
 
@@ -24,6 +26,7 @@ export default {
   components: {
     Notification,
     PlatformAdmin,
+    ShimConfigInfo,
     ToolAdmin,
     UserAdmin,
   },

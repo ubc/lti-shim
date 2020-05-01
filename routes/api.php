@@ -22,4 +22,6 @@ Route::namespace('API')->group(function() {
 
     Route::apiResource('tool', 'ToolController');
     Route::apiResource('tool.keys', 'ToolKeyController');
+
+    Route::get('help/config', 'HelpController@config');
 });

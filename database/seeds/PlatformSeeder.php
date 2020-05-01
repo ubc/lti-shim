@@ -15,7 +15,8 @@ class PlatformSeeder extends Seeder
         DB::table('platforms')->insert([
             'name' => 'LTI Shim Platform Side',
             'iss' => config('lti.iss'),
-            'auth_req_url' => config('app.url') . '/lti/launch/platform/auth'
+            'auth_req_url' => config('app.url') . '/lti/launch/platform/auth',
+            'jwks_url' => config('app.url') . '/lti/platform/jwks'
         ]);
         DB::table('platform_keys')->insert([
             'kid' => 'ExampleKey',
