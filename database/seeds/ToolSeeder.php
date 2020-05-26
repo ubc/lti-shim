@@ -15,10 +15,13 @@ class ToolSeeder extends Seeder
         DB::table('tools')->insert([
             'name' => 'LTI Shim Tool Side',
             'client_id' => 'Not used for shim, look up in platform_client',
-            'oidc_login_url' => config('app.url') . '/lti/launch/tool/login',
-            'auth_resp_url' => config('app.url') . '/lti/launch/tool/auth',
-            'target_link_uri' => config('app.url') . '/lti/launch/platform/login',
-            'jwks_url' => config('app.url') . '/lti/tool/jwks'
+            'oidc_login_url' => config('app.url') .
+                config('lti.tool_launch_login_path'),
+            'auth_resp_url' => config('app.url') .
+                config('lti.tool_launch_auth_resp_path'),
+            'target_link_uri' => config('app.url') .
+                config('lti.platform_launch_login_path'),
+            'jwks_url' => config('app.url') . config('lti.tool_jwks_path')
         ]);
         DB::table('tool_keys')->insert([
             'kid' => 'MyDummyKey',
@@ -42,7 +45,7 @@ class ToolSeeder extends Seeder
             "qi": "LDCsUcj5gb_j1O4gVjAm1jbrkwlwebODWtIxjx3Bbk9RtsQmVMVmLnoyuyMXjkH3IOQen4cFHZIb1B0JdkwHagw8HEGkWZ1PpX_CzgA4FdaNso_dDAw94vkWVCY0iSCcgXaSLseWBpulwJr2L8CJDucBY7sCQ_KYcUKADZV0pptGqxQ4BnGHJQHfuhfX_2LSzbZmh8PKzFnKS5bZkG1uL0RlbcR9IJVwcRoRXlIyK39WyRnQ0eQwmdmO7m0jnUUJmMtgQcCbnGiiy_jjQabwv_WsXGv0cWZqLy8F5j-s1Rjrp-Xo4Gn_399tkEvn5dGlVQ8lcQ2reN8nIv0N6QKwbA"
             }'
         ]);
-        
+
         // insert the lti 1.3 php example tool
         DB::table('tools')->insert([
             'name' => 'LTI 1.3 PHP Example Tool',

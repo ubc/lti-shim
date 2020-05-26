@@ -13,23 +13,36 @@
 
 Route::namespace('LTI')->group(function() {
     // a list of public keys that can be used to verify our signed JWTs
-    Route::get('/lti/platform/jwks', 'JWKSController@platformPublicKeys');
-    Route::get('/lti/tool/jwks', 'JWKSController@toolPublicKeys');
+    Route::get(config('lti.platform_jwks_path'),
+        'JWKSController@platformPublicKeys');
+    Route::get(config('lti.tool_jwks_path'), 'JWKSController@toolPublicKeys');
     Route::get('/lti/keygen', 'JWKSController@keygen'); // TODO dev only, rm later
     Route::namespace('Launch')->group(function() {
         // TOOL
-        Route::match(['get', 'post'], '/lti/launch/tool/login',
-            'ToolLaunchController@login');
+        Route::match(
+            ['get', 'post'],
+            config('lti.tool_launch_login_path'),
+            'ToolLaunchController@login'
+        );
         // unlike login, only POST requests are allowed for the auth response
-        Route::post('/lti/launch/tool/auth', 'ToolLaunchController@auth');
+        Route::post(
+            config('lti.tool_launch_auth_resp_path'),
+            'ToolLaunchController@auth'
+        );
         // MIDWAY - transfer station from the tool side to the platform side
         Route::get('/lti/launch/midway/arrival', 'MidwayController@arrival');
         Route::post('/lti/launch/midway/departure', 'MidwayController@departure');
         // PLATFORM
-        Route::match(['get', 'post'], '/lti/launch/platform/login',
-            'PlatformLaunchController@login');
-        Route::match(['get', 'post'], '/lti/launch/platform/auth',
-            'PlatformLaunchController@auth');
+        Route::match(
+            ['get', 'post'],
+            config('lti.platform_launch_login_path'),
+            'PlatformLaunchController@login'
+        );
+        Route::match(
+            ['get', 'post'],
+            config('lti.platform_launch_auth_req_path'),
+            'PlatformLaunchController@auth'
+        );
     });
 });
 
