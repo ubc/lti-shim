@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 
 use Laravel\Passport\HasApiTokens;
 
@@ -41,5 +42,28 @@ class User extends Authenticatable
 
     public function AuthRouteAPI(Request $request){
         return $request->user();
+    }
+
+    public static function addUserIfNotExist(
+        string $name,
+        string $email,
+        string $password
+    ) {
+        $user = User::firstWhere('email', $email);
+        if ($user) return; # user already exists
+        # user does not exist, create one
+        $user = new User;
+        $user->name = $name;
+        $user->email = $email;
+        $user->password = $password;
+        $user->save();
+    }
+
+    /**
+     * Automatically hash passwords when you set them.
+     */
+    public function setPasswordAttribute($password)
+    {
+        $this->attributes['password'] = Hash::make($password);
     }
 }

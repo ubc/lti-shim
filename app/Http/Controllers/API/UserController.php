@@ -35,7 +35,6 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
         ]);
-        $newUser['password'] = Hash::make($newUser['password']);
         return User::create($newUser);
     }
 
@@ -70,7 +69,7 @@ class UserController extends Controller
         $user->email = $userInfo['email'];
         // allowed to change password
         if ($request->user()->id == $id && !empty($userInfo['password'])) {
-            $user->password = Hash::make($userInfo['password']);
+            $user->password = $userInfo['password'];
         }
         $user->save();
         return $user;
