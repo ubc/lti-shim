@@ -3,6 +3,8 @@ set -e
 
 echo 'Waiting for database to be available...'
 wait-for-it -t 60 "${DB_HOST}:${DB_PORT}"
+echo 'Regenerate config in case .env changed...'
+php artisan config:cache
 echo 'Running database migrations...'
 php artisan migrate
 echo 'Generating OAuth keys & clients...'
