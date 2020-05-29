@@ -2,7 +2,7 @@ APP_NAME="LTI Shim"
 APP_ENV=local
 # run 'artisan key:generate' to generate a new key
 APP_KEY=base64:m5LqBR7zPOhn0DJgiojINHaY/bXGJ+QUCxu2FHh2aWI=
-APP_DEBUG=true
+APP_DEBUG=false
 APP_URL=http://localhost:5000
 
 LOG_CHANNEL=stack
