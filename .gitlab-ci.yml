@@ -242,11 +242,9 @@ staging:
 
     # since we use fixed image names, we need to tell kubernetes to
     # restart the deployment so it'll pull updated images
-    kubectl rollout restart "$ROLLOUT_RESOURCE_TYPE/${name}-ui"
-    kubectl rollout restart "$ROLLOUT_RESOURCE_TYPE/${name}-api"
+    kubectl rollout restart "$ROLLOUT_RESOURCE_TYPE/${name}"
 
-    kubectl rollout status -w "$ROLLOUT_RESOURCE_TYPE/${name}-ui"
-    kubectl rollout status -w "$ROLLOUT_RESOURCE_TYPE/${name}-api"
+    kubectl rollout status -w "$ROLLOUT_RESOURCE_TYPE/${name}"
   }
 
   function install_dependencies() {
