@@ -45,11 +45,10 @@ staging:
 .auto_devops: &auto_devops |
   # Auto DevOps variables and functions
   [[ "$TRACE" ]] && set -x
-  auto_database_url=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${CI_ENVIRONMENT_SLUG}-postgres:5432/${POSTGRES_DB}
-  export DATABASE_URL=${DATABASE_URL-$auto_database_url}
   if [[ -z "$CI_COMMIT_TAG" ]]; then
     export CI_APPLICATION_REPOSITORY=$CI_REGISTRY_IMAGE/${CI_PROJECT_NAME}
-    export CI_APPLICATION_TAG=staging-${CI_ENVIRONMENT_SLUG}
+    #export CI_APPLICATION_TAG=staging-${CI_ENVIRONMENT_SLUG}
+    export CI_APPLICATION_TAG=latest
   else
     export CI_APPLICATION_REPOSITORY=$CI_REGISTRY_IMAGE/$CI_PROJECT_NAME
     export CI_APPLICATION_TAG=production-${CI_ENVIRONMENT_SLUG}
@@ -188,7 +187,6 @@ staging:
         --set image.tag="$CI_APPLICATION_TAG" \
         --set image.secrets[0].name="$secret_name" \
         --set application.track="$track" \
-        --set application.database_url="$DATABASE_URL" \
         --set application.secretName="$APPLICATION_SECRET_NAME" \
         --set application.secretChecksum="$APPLICATION_SECRET_CHECKSUM" \
         --set service.commonName="le.$KUBE_INGRESS_BASE_DOMAIN" \
@@ -225,7 +223,6 @@ staging:
         --set image.tag="$CI_APPLICATION_TAG" \
         --set image.secrets[0].name="$secret_name" \
         --set application.track="$track" \
-        --set application.database_url="$DATABASE_URL" \
         --set application.secretName="$APPLICATION_SECRET_NAME" \
         --set application.secretChecksum="$APPLICATION_SECRET_CHECKSUM" \
         --set service.commonName="le.$KUBE_INGRESS_BASE_DOMAIN" \
