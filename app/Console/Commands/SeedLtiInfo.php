@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 
 use Jose\Component\KeyManagement\JWKFactory;
 
+use App\Models\EncryptionKey;
 use App\Models\Platform;
 use App\Models\PlatformKey;
 use App\Models\Tool;
@@ -51,6 +52,7 @@ class SeedLtiInfo extends Command
         $this->faker = Faker::create();
         $this->seedPlatform();
         $this->seedTool();
+        $this->seedEncryptionKey();
     }
 
     private function seedPlatform()
@@ -104,6 +106,22 @@ class SeedLtiInfo extends Command
         $toolKey->kid = $kid;
         $toolKey->key = $this->generateKeyAsJson($kid);
         $tool->keys()->save($toolKey);
+    }
+
+    private function seedEncryptionKey()
+    {
+        $numKeys = EncryptionKey::count();
+        if ($numKeys >= 1) return; // only need to seed if table empty
+        $encryptionKey = new EncryptionKey;
+        $key = JWKFactory::createRSAKey(
+            4096,
+            [
+                'alg' => 'RSA-OAEP-256', // JWE compatible RSA-OAEP-256
+                'use' => 'enc'   // used for encryption/decryption operations only
+            ]
+        );
+        $encryptionKey->key = json_encode($key);
+        $encryptionKey->save();
     }
 
     private function generateKeyAsJson(string $kid): string {
