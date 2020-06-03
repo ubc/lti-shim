@@ -228,4 +228,11 @@ return [
 
     ],
 
+    // Laravel decides whether to use http or https based on the request used
+    // to access it. This cause issues in our kubernetes setup since Laravel
+    // only sees http requests and so errorenously generates http urls even
+    // though users are actually accessing through https via ingress. Setting
+    // this config to true forces Laravel to generate https urls.
+    'force_https' => env('FORCE_HTTPS', false),
+
 ];

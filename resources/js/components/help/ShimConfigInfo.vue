@@ -1,7 +1,10 @@
 <template>
 	<div class='card'>
 		<h2 class='card-header'>Shim Configuration Info</h2>
-    <div class='card-body'>
+    <div class='card-body' v-if='isLoading'>
+      Loading...
+    </div>
+    <div class='card-body' v-else>
       <p>
       When you need to add the shim to other LTI platforms or tools, use these
       configuration information.
@@ -54,12 +57,15 @@
 export default {
 	name: "ShimConfigInfo",
   data() { return {
-    config: {}
+    config: {},
+    isLoading: true
   }},
   mounted() {
+    this.isLoading = true
     axios.get('/api/help/config')
       .then(response => {
         this.config = response.data
+        this.isLoading = false
       })
       .catch(error => {
         this.$notify({
