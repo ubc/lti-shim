@@ -17,7 +17,9 @@ class PlatformSeeder extends Seeder
             'iss' => config('lti.iss'),
             'auth_req_url' => config('app.url') .
                 config('lti.platform_launch_auth_req_path'),
-            'jwks_url' => config('app.url') . config('lti.platform_jwks_path')
+            'jwks_url' => config('app.url') . config('lti.platform_jwks_path'),
+            'oauth_token_url' => 
+                config('app.url') . config('lti.platform_security_token_path')
         ]);
         DB::table('platform_keys')->insert([
             'kid' => 'ExampleKey',

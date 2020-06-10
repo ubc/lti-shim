@@ -60,4 +60,19 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
     public const CONTEXT_URI =
         'https://purl.imsglobal.org/spec/lti/claim/context';
+    // lti service oauth token request
+    public const GRANT_TYPE = 'grant_type';
+    public const GRANT_TYPE_VALUE = 'client_credentials';
+    public const CLIENT_ASSERTION = 'client_assertion';
+    public const CLIENT_ASSERTION_TYPE = 'client_assertion_type';
+    public const CLIENT_ASSERTION_TYPE_VALUE = 
+        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
+    public const ACCESS_TOKEN = 'access_token';
+    public const TOKEN_TYPE = 'token_type';
+    public const TOKEN_TYPE_VALUE = 'bearer';
+    public const EXPIRES_IN = 'expires_in';
+    // the oauth tokens needs to be properly scoped, each lti service spec has
+    // defines their own scope uri
+    public const NAMES_AND_ROLES_SCOPE_URI =
+        'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
 }

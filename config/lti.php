@@ -15,4 +15,5 @@ return [
     'platform_jwks_path' => '/lti/platform/jwks',
     'platform_launch_login_path' => '/lti/launch/platform/login',
     'platform_launch_auth_req_path' => '/lti/launch/platform/auth',
+    'platform_security_token_path' => '/lti/security/platform/token',
 ];

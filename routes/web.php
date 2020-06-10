@@ -17,6 +17,7 @@ Route::namespace('LTI')->group(function() {
         'JWKSController@platformPublicKeys');
     Route::get(config('lti.tool_jwks_path'), 'JWKSController@toolPublicKeys');
     Route::get('/lti/keygen', 'JWKSController@keygen'); // TODO dev only, rm later
+    // LTI Launch (Core Spec)
     Route::namespace('Launch')->group(function() {
         // TOOL
         Route::match(
@@ -42,6 +43,13 @@ Route::namespace('LTI')->group(function() {
             ['get', 'post'],
             config('lti.platform_launch_auth_req_path'),
             'PlatformLaunchController@auth'
+        );
+    });
+    // LTI Security Spec
+    Route::namespace('Security')->group(function() {
+        Route::post(
+            config('lti.platform_security_token_path'),
+            'OAuthTokenController@platformToken'
         );
     });
 });
