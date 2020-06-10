@@ -21,7 +21,8 @@ class ToolSeeder extends Seeder
                 config('lti.tool_launch_auth_resp_path'),
             'target_link_uri' => config('app.url') .
                 config('lti.platform_launch_login_path'),
-            'jwks_url' => config('app.url') . config('lti.tool_jwks_path')
+            'jwks_url' => config('app.url') . config('lti.tool_jwks_path'),
+            'iss' => config('lti.iss')
         ]);
         DB::table('tool_keys')->insert([
             'kid' => 'MyDummyKey',
@@ -53,6 +54,7 @@ class ToolSeeder extends Seeder
             'oidc_login_url' => 'http://localhost:9001/login.php',
             'auth_resp_url' => 'http://localhost:9001/game.php',
             'target_link_uri' => 'http://localhost:9001/game.php',
+            'iss' => 'http://localhost:9001'
         ]);
     }
 }

@@ -24,6 +24,11 @@ class CreatePlatformsTable extends Migration
             $table->text('jwks_url')->nullable()
                   ->comment("Where to get the platform's public keys.");
 
+            // These are actually conditionally required fields. If the tool
+            // supports LTI services, then they need to be filled in.
+            $table->text('oauth_token_url')->nullable()
+                  ->comment("Where to get OAuth2 token for LTI service calls.");
+
             // using just the standard timestampsTz() to create these pair of
             // timestamps doesn't give them database defaults
             $table->timestampTz('created_at')->useCurrent();

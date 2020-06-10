@@ -47,7 +47,9 @@ class PlatformSeeder extends Seeder
             'name' => 'Reference Implementation',
             'iss' => 'https://lti-ri.imsglobal.org',
             'auth_req_url' => 'https://lti-ri.imsglobal.org/platforms/643/authorizations/new',
-            'jwks_url' => 'https://lti-ri.imsglobal.org/platforms/643/platform_keys/656.json'
+            'jwks_url' => 'https://lti-ri.imsglobal.org/platforms/643/platform_keys/656.json',
+            'oauth_token_url' =>
+                'https://lti-ri.imsglobal.org/platforms/643/access_tokens'
         ]);
         // this is the shim's client_id on the RI platform
         DB::table('platform_clients')->insert([
@@ -85,7 +87,10 @@ class PlatformSeeder extends Seeder
             'iss' => 'https://canvas.test.instructure.com',
             'auth_req_url' =>
                 'https://ubc.test.instructure.com/api/lti/authorize',
-            'jwks_url' => 'https://ubc.test.instructure.com/api/lti/security/jwks'
+            'jwks_url' =>
+                'https://ubc.test.instructure.com/api/lti/security/jwks',
+            'oauth_token_url' =>
+                'https://ubc.test.instructure.com/login/oauth2/token'
         ]);
         // this is the shim's client_id on test canvas
         DB::table('platform_clients')->insert([
