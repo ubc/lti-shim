@@ -11,7 +11,7 @@ use Jose\Component\Core\JWK;
 
 use App\Models\AbstractRsaKey;
 
-use UBC\LTI\JwksUpdater;
+use UBC\LTI\Specs\Security\JwksUpdater;
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 

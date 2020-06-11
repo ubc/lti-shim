@@ -1,5 +1,5 @@
 <?php
-namespace Tests\Features\LTI\Jwks;
+namespace Tests\Features\LTI\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\HttpFoundation\Response;

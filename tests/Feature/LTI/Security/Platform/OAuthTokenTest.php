@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\LTI;
+namespace Tests\Feature\LTI\Security\Platform;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -18,7 +18,7 @@ use Tests\TestCase;
 // LTI service requests are authenticated by an OAuth2 token. The OAuth2 token
 // needs to be obtained in a separate call. This test is for the end point that
 // gives out the OAuth2 token.
-class PlatformOAuthTokenTest extends TestCase
+class OAuthTokenTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 
