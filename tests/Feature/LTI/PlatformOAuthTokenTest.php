@@ -8,7 +8,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Jose\Easy\Build;
 
+use App\Models\EncryptionKey;
 use App\Models\Tool;
+
+use UBC\LTI\Specs\Security\AccessToken;
 
 use Tests\TestCase;
 
@@ -30,6 +33,7 @@ class PlatformOAuthTokenTest extends TestCase
 
         // the tool that is requesting this token
         $tool = factory(Tool::class)->create();
+        $encryptionKey = factory(EncryptionKey::class)->create();
 
         $requestJwt = Build::jws()
             ->typ('JWT')
@@ -64,6 +68,10 @@ class PlatformOAuthTokenTest extends TestCase
             'scope' => $scope
         ];
         $resp->assertJson($goodData);
+        $token = $resp->getOriginalContent()['access_token'];
+        // Maybe we should also have a separate implementation for verifying the
+        // access token
+        $this->assertNotEmpty(AccessToken::verify($token));
 
         // test incorrect params
         $badParams = $goodParams;

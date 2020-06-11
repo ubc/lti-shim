@@ -13,6 +13,7 @@ use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
+use UBC\LTI\Specs\Security\AccessToken;
 
 // Part of the LTI security spec. LTI services require authentication using
 // OAuth2 tokens. This class deals with issuing these tokens. Note that while
@@ -83,9 +84,10 @@ class PlatformOAuthToken
                 throw new LTIException('Unsupported scope: ' . $scope);
             }
         }
-        // TODO: create access token
+        // create access token
+        $token = AccessToken::create($tool, $scopes);
         return [
-            Param::ACCESS_TOKEN => 'token',
+            Param::ACCESS_TOKEN => $token,
             Param::TOKEN_TYPE => Param::TOKEN_TYPE_VALUE,
             Param::EXPIRES_IN => 3600,
             Param::SCOPE => $this->request->input(Param::SCOPE)

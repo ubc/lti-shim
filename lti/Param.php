@@ -35,6 +35,11 @@ class Param
     public const IAT = 'iat'; // timestamp, issued at
     public const AZP = 'azp';
     public const NBF = 'nbf'; // timestamp, not before
+    // encrypted jwt used for state & access tokens
+    public const AT_JWT = 'at+JWT'; // typ value for access tokens
+    public const RSA_OAEP_256 = 'RSA-OAEP-256';
+    public const A256GCM = 'A256GCM';
+    public const ZIP_ALG = 'DEF'; // DEFLATE alg for zip compression
     // non-URI claims
     public const PICTURE = 'picture'; // avatar link
     public const GIVEN_NAME = 'given_name';
@@ -65,7 +70,7 @@ class Param
     public const GRANT_TYPE_VALUE = 'client_credentials';
     public const CLIENT_ASSERTION = 'client_assertion';
     public const CLIENT_ASSERTION_TYPE = 'client_assertion_type';
-    public const CLIENT_ASSERTION_TYPE_VALUE = 
+    public const CLIENT_ASSERTION_TYPE_VALUE =
         'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
     public const ACCESS_TOKEN = 'access_token';
     public const TOKEN_TYPE = 'token_type';
