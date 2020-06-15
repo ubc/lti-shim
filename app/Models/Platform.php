@@ -10,13 +10,9 @@ use App\Models\AbstractLtiService;
 
 class Platform extends AbstractLtiService
 {
-    protected $fillable = ['name', 'iss', 'auth_req_url', 'jwks_url'];
-    protected $with = ['clients', 'keys']; // eage load clients and keys
-
-    public function clients()
-    {
-        return $this->hasMany('App\Models\PlatformClient');
-    }
+    protected $fillable = ['name', 'iss', 'auth_req_url', 'jwks_url',
+        'shim_client_id'];
+    protected $with = ['keys']; // eage load keys
 
     public function deployments()
     {
@@ -31,14 +27,9 @@ class Platform extends AbstractLtiService
     public function updateWithRelations($info)
     {
         $this->update($info);
-        $new = [];
         // we're cheating a bit here, as the ui doesn't implement editing
-        // clients/keys, and deletes are handled by another call, so we
-        // only have to worry about adding in new clients/keys
-        foreach ($info['clients'] as $client) {
-            if (!isset($client['id'])) array_push($new, $client);
-        }
-        $this->clients()->createMany($new);
+        // keys, and deletes are handled by another call, so we
+        // only have to worry about adding in new keys
         $new = [];
         foreach ($info['keys'] as $key) {
             if (!isset($key['id'])) array_push($new, $key);

@@ -19,7 +19,8 @@ class PlatformSeeder extends Seeder
                 config('lti.platform_launch_auth_req_path'),
             'jwks_url' => config('app.url') . config('lti.platform_jwks_path'),
             'oauth_token_url' => 
-                config('app.url') . config('lti.platform_security_token_path')
+                config('app.url') . config('lti.platform_security_token_path'),
+            'shim_client_id' => 'Not used for shim.'
         ]);
         DB::table('platform_keys')->insert([
             'kid' => 'ExampleKey',
@@ -51,12 +52,9 @@ class PlatformSeeder extends Seeder
             'auth_req_url' => 'https://lti-ri.imsglobal.org/platforms/643/authorizations/new',
             'jwks_url' => 'https://lti-ri.imsglobal.org/platforms/643/platform_keys/656.json',
             'oauth_token_url' =>
-                'https://lti-ri.imsglobal.org/platforms/643/access_tokens'
-        ]);
-        // this is the shim's client_id on the RI platform
-        DB::table('platform_clients')->insert([
-            'platform_id' => 2,
-            'client_id' => 'StrawberryCat'
+                'https://lti-ri.imsglobal.org/platforms/643/access_tokens',
+            // this is the shim's client_id on the RI platform
+            'shim_client_id' => 'StrawberryCat'
         ]);
         // this is the RI platform's public key
         DB::table('platform_keys')->insert([
@@ -92,12 +90,9 @@ class PlatformSeeder extends Seeder
             'jwks_url' =>
                 'https://ubc.test.instructure.com/api/lti/security/jwks',
             'oauth_token_url' =>
-                'https://ubc.test.instructure.com/login/oauth2/token'
-        ]);
-        // this is the shim's client_id on test canvas
-        DB::table('platform_clients')->insert([
-            'platform_id' => 3,
-            'client_id' => '112240000000000110'
+                'https://ubc.test.instructure.com/login/oauth2/token',
+            // this is the shim's client_id on test canvas
+            'shim_client_id' => '112240000000000110'
         ]);
     }
 }

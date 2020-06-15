@@ -14,7 +14,6 @@ use App\Models\Deployment;
 use App\Models\LtiSession;
 use App\Models\LtiRealUser;
 use App\Models\Platform;
-use App\Models\PlatformClient;
 use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
@@ -87,9 +86,7 @@ class ToolLaunch
             // list of known client_id?
         } else {
             // client_id not in request, so retrieve from database
-            $client = PlatformClient::firstWhere('platform_id', $platform->id);
-            if (!$client) throw new LTIException("No client_id found for $iss");
-            $resp[Param::CLIENT_ID] = $client->client_id;
+            $resp[Param::CLIENT_ID] = $platform->shim_client_id;
         }
         // lti_message_hint needs to be passed as is back to the platform
         if ($this->request->filled(Param::LTI_MESSAGE_HINT)) {

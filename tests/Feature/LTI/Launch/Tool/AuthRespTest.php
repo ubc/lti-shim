@@ -32,7 +32,6 @@ class AuthRespTest extends TestCase
         $myTool = factory(Tool::class)->create(['id' => 1]);
         $targetTool = factory(Tool::class)->create(['id' => 2]);
         $targetPlatform = factory(Platform::class)->create();
-        $client = $targetPlatform->clients()->first();
         $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
             'platform_id' => $targetPlatform->id
@@ -44,7 +43,7 @@ class AuthRespTest extends TestCase
             ->iat($time)
             ->exp($time + 3600)
             ->iss($targetPlatform->iss)
-            ->aud($client->client_id)
+            ->aud($targetPlatform->shim_client_id)
             ->sub($loginHint)
             ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
                     'LtiResourceLinkRequest')
@@ -62,7 +61,7 @@ class AuthRespTest extends TestCase
             ->iat($time)
             ->exp($time + 3600)
             ->claim('original_iss', $targetPlatform->iss)
-            ->claim('client_id', $client->client_id)
+            ->claim('client_id', $targetPlatform->shim_client_id)
             ->claim('login_hint', $loginHint)
             ->encrypt($encryptionKey->public_key);
         $resp = $this->post($baseUrl, ['state'=>$state, 'id_token'=>$idToken]);

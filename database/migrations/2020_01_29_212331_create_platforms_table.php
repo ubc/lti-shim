@@ -23,6 +23,10 @@ class CreatePlatformsTable extends Migration
                   ->comment('Platform URL where we send authentication request.');
             $table->text('jwks_url')->nullable()
                   ->comment("Where to get the platform's public keys.");
+            // the shim's tool side needs to be registered on the platform,
+            // the platform will give us a client_id to use
+            $table->text('shim_client_id')->unique()
+                  ->comment("Shim's OAuth client_id given by the platform.");
 
             // These are actually conditionally required fields. If the tool
             // supports LTI services, then they need to be filled in.

@@ -1,7 +1,7 @@
 <template>
-	<div>
-		<h3 v-if='isEdit'>Edit Platform</h3>
-		<h3 v-else>Add Platform</h3>
+  <div>
+    <h3 v-if='isEdit'>Edit Platform</h3>
+    <h3 v-else>Add Platform</h3>
     <form @submit.prevent='save'>
       <div class='form-group'>
         <label for='name'>Name</label>
@@ -34,7 +34,19 @@
         </small>
       </div>
 
-      <ClientList v-model='platform.clients' @delete='deleteClient' />
+      <div class='form-group'>
+        <label for='shim_client_id'>Shim Client ID</label>
+        <input id='shim_client_id' type='shim_client_id' class='form-control'
+               required
+               aria-describedby='shimClientIdHelp'
+               v-model='platform.shim_client_id'
+               placeholder='1234567890'
+               />
+        <small id="shimClientIdHelp" class="form-text text-muted">
+          Client ID of the shim, assigned when registering as a tool on this
+          platform.
+        </small>
+      </div>
 
       <JwkForm @deleteJwk='deleteJwk'
         :url='platform.jwks_url' @url='platform.jwks_url = $event'
@@ -53,21 +65,19 @@
         Cancel
       </button>
     </form>
-	</div>
+  </div>
 </template>
 
 <script>
 import CancelIcon from 'icons/Cancel'
 import SaveIcon from 'icons/ContentSave'
 
-import ClientList from './ClientList'
 import JwkForm from '../jwk/JwkForm'
 
 export default {
-	name: 'PlatformForm',
+  name: 'PlatformForm',
   components: {
     CancelIcon,
-    ClientList,
     JwkForm,
     SaveIcon,
   },
@@ -90,7 +100,7 @@ export default {
       iss: '',
       auth_req_url: '',
       jwks_url: '',
-      clients: [],
+      shim_client_id: '',
       keys: []
     },
     isWaiting: false,
@@ -108,18 +118,6 @@ export default {
         })
         .catch(() => {
           this.isWaiting = false
-        })
-    },
-    deleteClient(clientId) {
-      this.$store.dispatch('platform/deleteClient',
-        {'platformId': this.platformId, 'clientId': clientId})
-        .then(response => {
-          for (const [index, client] of this.platform.clients.entries()) {
-            if (client.id == clientId) {
-              this.platform.clients.splice(index, 1)
-              break
-            }
-          }
         })
     },
     deleteJwk(keyId) {

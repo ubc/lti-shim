@@ -38,7 +38,7 @@ class AuthReqTest extends TestCase
         $resp->assertViewHas('response.scope', 'openid');
         $resp->assertViewHas('response.response_type', 'id_token');
         $resp->assertViewHas('response.client_id',
-                             $platform->clients()->first()->client_id);
+                             $platform->shim_client_id);
         $resp->assertViewHas('response.redirect_uri', $myTool->auth_resp_url);
         $resp->assertViewHas('response.login_hint', $loginHint);
         $resp->assertViewHas('response.response_mode', 'form_post');
