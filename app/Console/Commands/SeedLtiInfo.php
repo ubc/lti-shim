@@ -66,6 +66,7 @@ class SeedLtiInfo extends Command
             config('lti.platform_launch_auth_req_path');
         $platform->jwks_url = config('app.url') .
             config('lti.platform_jwks_path');
+        $platform->shim_client_id = 'Not used for shim';
         $platform->save();
         // correct the id if needed
         if ($platform->id != config('lti.own_platform_id')) {
