@@ -12,6 +12,7 @@
     "facade/ignition": "^2.0",
     "fideloper/proxy": "^4.0",
     "fzaninotto/faker": "^1.4",
+    "guzzlehttp/guzzle": "^6.5",
     "laravel/framework": "^7.0",
     "laravel/passport": "^8.4",
     "laravel/tinker": "^2.0",

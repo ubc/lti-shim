@@ -1,6 +1,7 @@
 <?php
 namespace UBC\LTI\Specs\Security;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 use Jose\Easy\Build;
@@ -8,6 +9,7 @@ use Jose\Easy\JWT;
 use Jose\Easy\Load;
 
 use App\Models\EncryptionKey;
+use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\LTIException;
@@ -55,5 +57,35 @@ class AccessToken
         catch(\Exception $e) {
             throw new LTIException('Failed to verify token.', 0, $e);
         }
+    }
+
+    // shim requesting an access token from a platform
+    public static function request(Platform $platform, array $scopes): string
+    {
+        $ownTool = Tool::getOwnTool();
+        $key = $ownTool->keys()->first();
+        $time = time();
+        $requestJwt = Build::jws()
+            ->typ(Param::JWT)
+            ->alg(Param::RS256)
+            ->iss($ownTool->iss)
+            ->sub($platform->shim_client_id)
+            // the audience is often just the token endpoint url
+            ->aud($platform->oauth_token_url)
+            ->iat($time) // automatically set issued at time
+            ->exp($time + 60)
+            ->jti('JWT Token Identifier1')
+            ->header(Param::KID, $key->kid)
+            ->sign($key->key);
+        $params = [
+            Param::GRANT_TYPE => Param::GRANT_TYPE_VALUE,
+            Param::CLIENT_ASSERTION_TYPE => Param::CLIENT_ASSERTION_TYPE_VALUE,
+            Param::CLIENT_ASSERTION => $requestJwt,
+            Param::SCOPE => implode(' ', $scopes)
+        ];
+        $resp = Http::asForm()->post($platform->oauth_token_url, $params);
+        if ($resp->failed())
+            throw new LTIException('Unable to get access token: '.$resp->body());
+        return $resp['access_token'];
     }
 }
