@@ -4,7 +4,6 @@ namespace UBC\LTI\Specs\Launch;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
-use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\Build;
 
 use App\Models\Deployment;

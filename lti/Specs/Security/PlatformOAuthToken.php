@@ -1,10 +1,9 @@
 <?php
-namespace UBC\LTI\Specs\Security\Platform;
+namespace UBC\LTI\Specs\Security;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
-use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\Load;
 
 use App\Models\Tool;

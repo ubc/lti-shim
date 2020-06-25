@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
 
 use UBC\LTI\LTIException;
-use UBC\LTI\Specs\Security\Platform\PlatformOAuthToken;
+use UBC\LTI\Specs\Security\PlatformOAuthToken;
 
 class OAuthTokenController extends Controller
 {

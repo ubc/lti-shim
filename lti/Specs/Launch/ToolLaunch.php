@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 use Jose\Component\Checker\InvalidClaimException;
-use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\Build;
 use Jose\Easy\JWT;
 use Jose\Easy\Load;
@@ -19,6 +18,7 @@ use App\Models\Tool;
 use UBC\LTI\EncryptedState;
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
+use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
 
 // we're acting as the Tool
@@ -159,15 +159,10 @@ class ToolLaunch
         $kid = '';
         try {
             $jwt = Load::jws($token);
-            // can't access the claims with only Load::jws, but we need to know
-            // if the id_token provided a key id, so need to separately
-            // deserialize it and check for the kid
-            $payload = (new CompactSerializer())->unserialize($token);
-            if (isset($payload->getSignature(0)->getProtectedHeader()['kid'])) {
-                $kid = $payload->getSignature(0)->getProtectedHeader()['kid'];
-            }
+            $jwsUtil = new JwsUtil($token);
+            $kid = $jwsUtil->getKid();
         } catch(InvalidArgumentException $e) {
-            throw new LTIException('id_token not base64 encoded.', 0, $e);
+            throw new LTIException('id_token invalid: ', 0, $e);
         }
         $jwk = $platform->getKey($kid)->public_key;
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used

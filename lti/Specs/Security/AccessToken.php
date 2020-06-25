@@ -62,6 +62,7 @@ class AccessToken
     // shim requesting an access token from a platform
     public static function request(Platform $platform, array $scopes): string
     {
+        Log::debug('====================================================');
         $ownTool = Tool::getOwnTool();
         $key = $ownTool->keys()->first();
         $time = time();
@@ -74,18 +75,23 @@ class AccessToken
             ->aud($platform->oauth_token_url)
             ->iat($time) // automatically set issued at time
             ->exp($time + 60)
+            // TODO: real JTI protection
             ->jti('JWT Token Identifier1')
             ->header(Param::KID, $key->kid)
             ->sign($key->key);
+        Log::debug($requestJwt);
         $params = [
             Param::GRANT_TYPE => Param::GRANT_TYPE_VALUE,
             Param::CLIENT_ASSERTION_TYPE => Param::CLIENT_ASSERTION_TYPE_VALUE,
             Param::CLIENT_ASSERTION => $requestJwt,
             Param::SCOPE => implode(' ', $scopes)
         ];
+        Log::debug($params);
         $resp = Http::asForm()->post($platform->oauth_token_url, $params);
+        Log::debug($resp->body());
         if ($resp->failed())
             throw new LTIException('Unable to get access token: '.$resp->body());
+        Log::debug($resp->body());
         return $resp['access_token'];
     }
 }
