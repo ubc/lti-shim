@@ -92,7 +92,7 @@ class PlatformSeeder extends Seeder
             'oauth_token_url' =>
                 'https://ubc.test.instructure.com/login/oauth2/token',
             // this is the shim's client_id on test canvas
-            'shim_client_id' => '112240000000000110'
+            'shim_client_id' => '112240000000000113'
         ]);
     }
 }

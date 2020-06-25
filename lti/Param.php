@@ -76,8 +76,12 @@ class Param
     public const TOKEN_TYPE = 'token_type';
     public const TOKEN_TYPE_VALUE = 'bearer';
     public const EXPIRES_IN = 'expires_in';
-    // the oauth tokens needs to be properly scoped, each lti service spec has
-    // defines their own scope uri
-    public const NAMES_AND_ROLES_SCOPE_URI =
+    // Names and Roles Provisioning Service
+    public const NRPS_CLAIM_URI =
+        'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
+    // oauth token scope
+    public const NRPS_SCOPE_URI =
         'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
+    public const CONTEXT_MEMBERSHIPS_URL = 'context_memberships_url';
+    public const SERVICE_VERSIONS = 'service_versions';
 }

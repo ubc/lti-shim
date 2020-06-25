@@ -22,7 +22,7 @@ use UBC\LTI\Specs\Security\AccessToken;
 class PlatformOAuthToken
 {
     public const VALID_SCOPES = array(
-        Param::NAMES_AND_ROLES_SCOPE_URI
+        Param::NRPS_SCOPE_URI
     );
 
     private Request $request; // laravel request object

@@ -21,6 +21,7 @@ use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Filters\CourseContextFilter;
 use UBC\LTI\Filters\DeploymentFilter;
 use UBC\LTI\Filters\LaunchPresentationFilter;
+use UBC\LTI\Filters\NrpsFilter;
 use UBC\LTI\Filters\ResourceLinkFilter;
 use UBC\LTI\Filters\UserFilter;
 use UBC\LTI\Filters\WhitelistFilter;
@@ -46,7 +47,8 @@ class PlatformLaunch
             new UserFilter(),
             new ResourceLinkFilter(),
             new LaunchPresentationFilter(),
-            new CourseContextFilter()
+            new CourseContextFilter(),
+            new NrpsFilter()
         ];
     }
 
@@ -150,7 +152,8 @@ class PlatformLaunch
             Param::NAME,
             Param::EMAIL,
             Param::LAUNCH_PRESENTATION_URI,
-            Param::CONTEXT_URI
+            Param::CONTEXT_URI,
+            Param::NRPS_CLAIM_URI
         ];
         foreach ($optionalParams as $optionalParam) {
             if (isset($ltiSession->token[$optionalParam])) {
