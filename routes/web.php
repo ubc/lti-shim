@@ -52,6 +52,11 @@ Route::namespace('LTI')->group(function() {
             'OAuthTokenController@platformToken'
         );
     });
+    // LTI Names and Role Provisioning Services
+    Route::namespace('Nrps')->group(function() {
+        Route::get(config('lti.platform_nrps_path'), 'NrpsController@nrps')
+            ->name('nrps');
+    });
 });
 
 // enable login system but disable the registration page

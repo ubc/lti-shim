@@ -16,4 +16,5 @@ return [
     'platform_launch_login_path' => '/lti/launch/platform/login',
     'platform_launch_auth_req_path' => '/lti/launch/platform/auth',
     'platform_security_token_path' => '/lti/security/platform/token',
+    'platform_nrps_path' => '/lti/platform/nrps/{nrps}'
 ];
