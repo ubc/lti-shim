@@ -1,6 +1,6 @@
 <?php
 
-namespace UBC\LTI\Filters;
+namespace UBC\LTI\Specs\Launch\Filters;
 
 use App\Models\LtiSession;
 

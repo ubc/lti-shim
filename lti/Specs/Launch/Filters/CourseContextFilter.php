@@ -1,11 +1,11 @@
 <?php
 
-namespace UBC\LTI\Filters;
+namespace UBC\LTI\Specs\Launch\Filters;
 
 use App\Models\CourseContext;
 use App\Models\LtiSession;
 
-use UBC\LTI\Filters\FilterInterface;
+use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 class CourseContextFilter implements FilterInterface

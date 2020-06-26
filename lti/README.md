@@ -4,5 +4,4 @@
   * Launch: [LTI 1.3 Core Spec](https://www.imsglobal.org/spec/lti/v1p3/)
   * Security: [IMS Security Framework](https://www.imsglobal.org/spec/security/v1p0)
   * Nrps: [Names and Role Provisioning Services](http://www.imsglobal.org/spec/lti-nrps/v2p0) 
-* Filters: Filters we want to apply to the parameters to remove/censor personal information.
 

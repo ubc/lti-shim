@@ -132,9 +132,7 @@ To preserve privacy and to protect against CSRF, the state string is an encrypte
 
 ##### Data Filters
 
-Filters need to implement the `FilterInterface` in `lti/Filters/`. The `filter()` method takes an array and a `LtiSession` model. The array needs is filtered, removing/renaming key/values as necessary, and then returned.
-
-To apply the new filter, add it to the `$filters` list in `PlatformLaunch`.
+Each implemented spec has their own set of filters. For example, the LTI launch filters are located in `lti/Specs/Launch/Filters`. Each launch filters implements the `FilterInterface` in `lti/Specs/Launch/Filters/FilterInterface.php`. The `filter()` method takes an array and a `LtiSession` model. The array needs to be filtered, removing/renaming key/values as necessary, and then returned. To apply a new filter, add it to the `$filters` list in `PlatformLaunch`.
 
 #### Troubleshooting
 

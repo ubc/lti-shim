@@ -1,10 +1,10 @@
 <?php
 
-namespace UBC\LTI\Filters;
+namespace UBC\LTI\Specs\Launch\Filters;
 
 use App\Models\LtiSession;
 
-use UBC\LTI\Filters\FilterInterface;
+use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 // Remove any parameters that we do not recognize. This does not check the

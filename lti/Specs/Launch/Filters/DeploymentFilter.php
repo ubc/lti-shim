@@ -1,11 +1,11 @@
 <?php
 
-namespace UBC\LTI\Filters;
+namespace UBC\LTI\Specs\Launch\Filters;
 
 use App\Models\LtiSession;
 use App\Models\Deployment;
 
-use UBC\LTI\Filters\FilterInterface;
+use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 class DeploymentFilter implements FilterInterface

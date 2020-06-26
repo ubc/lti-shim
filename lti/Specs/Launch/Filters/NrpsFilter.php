@@ -1,6 +1,6 @@
 <?php
 
-namespace UBC\LTI\Filters;
+namespace UBC\LTI\Specs\Launch\Filters;
 
 use Illuminate\Support\Facades\Log;
 
@@ -8,7 +8,7 @@ use App\Models\LtiSession;
 use App\Models\Deployment;
 use App\Models\Nrps;
 
-use UBC\LTI\Filters\FilterInterface;
+use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 // Names and Role Provisioning Service (NRPS)

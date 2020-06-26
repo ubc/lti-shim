@@ -17,13 +17,13 @@ use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 
-use UBC\LTI\Filters\CourseContextFilter;
-use UBC\LTI\Filters\DeploymentFilter;
-use UBC\LTI\Filters\LaunchPresentationFilter;
-use UBC\LTI\Filters\NrpsFilter;
-use UBC\LTI\Filters\ResourceLinkFilter;
-use UBC\LTI\Filters\UserFilter;
-use UBC\LTI\Filters\WhitelistFilter;
+use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
+use UBC\LTI\Specs\Launch\Filters\DeploymentFilter;
+use UBC\LTI\Specs\Launch\Filters\LaunchPresentationFilter;
+use UBC\LTI\Specs\Launch\Filters\NrpsFilter;
+use UBC\LTI\Specs\Launch\Filters\ResourceLinkFilter;
+use UBC\LTI\Specs\Launch\Filters\UserFilter;
+use UBC\LTI\Specs\Launch\Filters\WhitelistFilter;
 
 // we're acting as the Platform
 // the main idea is that we supply this object with the params that we receive
