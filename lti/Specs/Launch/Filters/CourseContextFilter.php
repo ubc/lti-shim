@@ -23,7 +23,7 @@ class CourseContextFilter implements FilterInterface
             return $params;
         }
         // replace real values with fake
-        $courseContext = CourseContext::getByRealContext(
+        $courseContext = CourseContext::createOrGet(
             $session->deployment_id,
             $session->tool_id,
             $params[Param::CONTEXT_URI]['id']

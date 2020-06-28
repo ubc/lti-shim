@@ -16,7 +16,7 @@ class CourseContext extends Model
 
     // get the given CourseContext by tool_id, deployment_id and real_context_id
     // will create one if it doesn't already exist
-    public static function getByRealContext(
+    public static function createOrGet(
         int $deploymentId,
         int $toolId,
         string $realContextId
