@@ -77,6 +77,7 @@ class Param
     public const TOKEN_TYPE_VALUE = 'bearer';
     public const EXPIRES_IN = 'expires_in';
     // Names and Roles Provisioning Service
+    public const ID = 'id';
     public const NRPS_CLAIM_URI =
         'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     public const CONTEXT = 'context';

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Nrps;
 
 use UBC\LTI\Specs\Nrps\Filters\CourseContextFilter;
+use UBC\LTI\Specs\Nrps\Filters\NrpsUrlFilter;
 use UBC\LTI\Specs\Nrps\ToolNrps;
 
 class PlatformNrps
@@ -20,7 +21,8 @@ class PlatformNrps
         $this->request = $request;
         $this->nrps = $nrps;
         $this->filters = [
-            new CourseContextFilter
+            new CourseContextFilter,
+            new NrpsUrlFilter
         ];
     }
 

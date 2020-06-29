@@ -20,8 +20,8 @@ class CourseContext extends Model
         int $deploymentId,
         int $toolId,
         string $realContextId
-    ): CourseContext {
-        $courseContext = CourseContext::firstOrCreate([
+    ): self {
+        $courseContext = self::firstOrCreate([
             'tool_id' => $toolId,
             'deployment_id' => $deploymentId,
             'real_context_id' => $realContextId
