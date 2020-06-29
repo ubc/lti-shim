@@ -4,12 +4,13 @@ namespace UBC\LTI\Specs\Launch\Filters;
 
 use App\Models\LtiSession;
 
+use UBC\LTI\Filters\AbstractWhitelistFilter;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 // Remove any parameters that we do not recognize. This does not check the
 // parameter values at all, only looking at the parameter name.
-class WhitelistFilter implements FilterInterface
+class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
 {
     // list of params that show up in oidc login
     // needs to be an associative array instead of regular array for faster
@@ -65,20 +66,16 @@ class WhitelistFilter implements FilterInterface
         Param::CONTEXT_URI => 21,
         Param::NRPS_CLAIM_URI => 22
     ];
+
+    protected array $whitelists = [
+        self::LOGIN_PARAMS,
+        self::AUTH_REQ_PARAMS,
+        self::AUTH_RESP_PARAMS,
+        self::ID_TOKEN_PARAMS
+    ];
     
     public function filter(array $params, LtiSession $session): array
     {
-        foreach ($params as $key => $val) {
-            if (
-                isset(self::LOGIN_PARAMS[$key])     ||
-                isset(self::AUTH_REQ_PARAMS[$key])  ||
-                isset(self::AUTH_RESP_PARAMS[$key]) ||
-                isset(self::ID_TOKEN_PARAMS[$key])
-            ) {
-                continue; // whitelisted param, allowed to remain
-            } 
-            unset($params[$key]); // remove unrecognized param
-        }
-        return $params;
+        return $this->apply($params);
     }
 }

@@ -78,9 +78,10 @@ class Param
     public const EXPIRES_IN = 'expires_in';
     // Names and Roles Provisioning Service
     public const ID = 'id';
+    public const CONTEXT = 'context';
+    public const MEMBERS = 'members';
     public const NRPS_CLAIM_URI =
         'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
-    public const CONTEXT = 'context';
     // oauth token scope
     public const NRPS_SCOPE_URI =
         'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
