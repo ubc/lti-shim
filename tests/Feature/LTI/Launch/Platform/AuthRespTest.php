@@ -53,7 +53,8 @@ class AuthRespTest extends TestCase
             'deployment_id' => $deployment->id
         ]);
         $courseContext = factory(CourseContext::class)->create([
-            'deployment_id' => $deployment->id
+            'deployment_id' => $deployment->id,
+            'tool_id' => $tool->id
         ]);
         // prepare session
         $ltiSession = factory(LtiSession::class)->create([

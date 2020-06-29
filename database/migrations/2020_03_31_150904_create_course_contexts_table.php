@@ -20,12 +20,16 @@ class CreateCourseContextsTable extends Migration
             $table->string('fake_context_id', 255)->nullable()
                   ->comment('We mask the original ID using this ID.');
 
+            $table->unsignedBigInteger('tool_id');
+            $table->foreign('tool_id')->references('id')->on('tools')
+                  ->onDelete('cascade');
+
             $table->unsignedBigInteger('deployment_id');
             $table->foreign('deployment_id')->references('id')->on('deployments')
                   ->onDelete('cascade');
 
-            $table->unique(['real_context_id', 'deployment_id']);
-            $table->unique(['fake_context_id', 'deployment_id']);
+            $table->unique(['real_context_id', 'fake_context_id']);
+            $table->unique(['fake_context_id', 'tool_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
