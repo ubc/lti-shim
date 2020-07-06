@@ -6,17 +6,15 @@ use Illuminate\Support\Facades\Log;
 
 use App\Models\CourseContext;
 use App\Models\LtiSession;
+use App\Models\Nrps;
 
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 class CourseContextFilter implements FilterInterface
 {
-    public function filter(
-        array $params,
-        int $deploymentId,
-        int $toolId
-    ): array {
+    public function filter(array $params, Nrps $nrps): array
+    {
         // check required fields exist
         if (!isset($params[Param::CONTEXT])) return $params;
         if (!isset($params[Param::CONTEXT]['id'])) {
@@ -29,8 +27,8 @@ class CourseContextFilter implements FilterInterface
         }
         // get the course mapping so we can give the fake id
         $courseContext = CourseContext::createOrGet(
-            $deploymentId,
-            $toolId,
+            $nrps->deployment_id,
+            $nrps->tool_id,
             $params[Param::CONTEXT]['id']
         );
         $newContext = ['id' => $courseContext->fake_context_id];

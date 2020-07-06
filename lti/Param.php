@@ -76,13 +76,17 @@ class Param
     public const TOKEN_TYPE = 'token_type';
     public const TOKEN_TYPE_VALUE = 'bearer';
     public const EXPIRES_IN = 'expires_in';
-    // Names and Roles Provisioning Service
+    // Names and Roles Provisioning Service (NRPS) response params
     public const ID = 'id';
     public const CONTEXT = 'context';
     public const MEMBERS = 'members';
     public const USER_ID = 'user_id';
     public const STATUS = 'status';
     public const ROLES = 'roles';
+    // NRPS get params
+    public const ROLE = 'role';
+    public const LIMIT = 'limit';
+    // NRPS uri
     public const NRPS_CLAIM_URI =
         'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     // oauth token scope

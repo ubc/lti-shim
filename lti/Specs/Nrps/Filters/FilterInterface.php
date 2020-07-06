@@ -2,9 +2,9 @@
 
 namespace UBC\LTI\Specs\Nrps\Filters;
 
-use App\Models\Tool;
+use App\Models\Nrps;
 
 interface FilterInterface
 {
-    public function filter(array $params, int $deploymentId, int $toolId): array;
+    public function filter(array $params, Nrps $nrps): array;
 }

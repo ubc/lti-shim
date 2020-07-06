@@ -2,6 +2,8 @@
 
 namespace UBC\LTI\Specs\Nrps\Filters;
 
+use App\Models\Nrps;
+
 use UBC\LTI\Filters\AbstractWhitelistFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
 use UBC\LTI\Param;
@@ -21,7 +23,7 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         self::NRPS_PARAMS
     ];
     
-    public function filter(array $params, int $deploymentId, int $toolId): array
+    public function filter(array $params, Nrps $nrps): array
     {
         return $this->apply($params);
     }

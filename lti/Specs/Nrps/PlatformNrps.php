@@ -36,8 +36,7 @@ class PlatformNrps
         $response = $toolNrps->getNrps();
         // apply all filters to the response
         foreach ($this->filters as $filter) {
-            $response = $filter->filter($response, $this->nrps->deployment_id,
-                $this->nrps->tool_id);
+            $response = $filter->filter($response, $this->nrps);
         }
         return $response;
     }

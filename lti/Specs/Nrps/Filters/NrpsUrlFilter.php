@@ -4,6 +4,10 @@ namespace UBC\LTI\Specs\Nrps\Filters;
 
 use Illuminate\Support\Facades\Log;
 
+use League\Uri\Components\Query;
+use League\Uri\Uri;
+use League\Uri\Contracts\UriException;
+
 use App\Models\LtiSession;
 use App\Models\Deployment;
 use App\Models\Nrps;
@@ -15,11 +19,8 @@ use UBC\LTI\Param;
 // rewrites the NRPS urls provided by the original platform into the shim's urls
 class NrpsUrlFilter implements FilterInterface
 {
-    public function filter(
-        array $params,
-        int $deploymentId,
-        int $toolId
-    ): array {
+    public function filter(array $params, Nrps $nrps): array
+    {
         // the NRPS url is written in the Param::ID field in the NRPS response
         // nothing to do if field doesn't exist
         if (!isset($params[Param::ID])) return $params;
@@ -29,19 +30,26 @@ class NrpsUrlFilter implements FilterInterface
         // NRPS endpoint into the Param::ID field, so maybe it's written in
         // some other spec.
         $url = $params[Param::ID];
-        $nrps = Nrps::getByUrl($url, $deploymentId, $toolId);
-        if (!$nrps) {
-            // for some reason, they're not using an URL for the id, log it
-            // so we can see what they're using
-            Log::error("NRPS response ID not using URL: " . $url);
-            // replace it with some random value for now cause I have no idea
-            // what we should do yet
-            $params[Param::ID] = bin2hex(random_bytes(32));
-            return $params;
+
+        $queries = [];
+        try {
+            $uri = Uri::createFromString($url);
+            $query = Query::createFromUri($uri);
+            // pull the NRPS pagination/filter queries from the URI so we can
+            // attach them to the shim NRPS url
+            if ($query->get(Param::LIMIT)) {
+                $queries[Param::LIMIT] = $query->get(Param::LIMIT);
+            }
+            if ($query->get(Param::ROLE)) {
+                $queries[Param::ROLE] = $query->get(Param::ROLE);
+            }
+        }
+        catch (UriException $e) {
+            Log::warning("NRPS Result Not Using URL: " . $url);
         }
 
         // replace the original endpoint with the one on the shim
-        $params[Param::ID] = $nrps->shim_url;
+        $params[Param::ID] = $nrps->getShimUrl($queries);
         return $params;
     }
 }

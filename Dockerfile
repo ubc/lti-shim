@@ -46,6 +46,9 @@ RUN apt-get install -y --no-install-recommends libpq-dev && \
 # php gmp extension required by JWT Framework library for encryption
 RUN apt-get install -y libgmp-dev && \
     docker-php-ext-install -j$(nproc) gmp
+# php intl extension used by League\Uri for unicode URLs
+RUN apt-get install -y libicu-dev && \
+    docker-php-ext-install intl
 # for entrypoint, so we can wait for the database before running migrations
 RUN apt-get install -y wait-for-it
 # enable apache mod_rewrite or the laravel router won't work

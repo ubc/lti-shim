@@ -52,12 +52,20 @@ class ToolNrps
         $params = [Param::JWT => $requestJwt];
 
         $req = Http::withHeaders([
-            'Accept' => 'application/vnd.ims.lti-nrps.v2.membershipcontainer+json',
-            
+            'Accept' => 
+                'application/vnd.ims.lti-nrps.v2.membershipcontainer+json',
             'Authorization' => 'Bearer ' . $accessToken
         ]);
-        $resp = $req->get($this->nrps->context_memberships_url);
+        // the spec allow the 'limit' and 'role' GET params for pagination and
+        // filtering purposes, we should be able to pass through those as is
+        $queries = [];
+        if ($this->request->input(Param::LIMIT)) {
+            $queries[Param::LIMIT] = $this->request->input(Param::LIMIT);
+        }
+        if ($this->request->input(Param::ROLE)) {
+            $queries[Param::ROLE] = $this->request->input(Param::ROLE);
+        }
+        $resp = $req->get($this->nrps->getContextMembershipsUrl($queries));
         return $resp->json();
-
     }
 }

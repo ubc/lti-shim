@@ -9,16 +9,18 @@ use App\Models\Deployment;
 use App\Models\LtiSession;
 use App\Models\LtiRealUser;
 use App\Models\LtiFakeUser;
+use App\Models\Nrps;
 
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 class MemberFilter implements FilterInterface
 {
-    public function filter(array $params, int $deploymentId, int $toolId): array
+    public function filter(array $params, Nrps $nrps): array
     {
         if (!isset($params[Param::MEMBERS])) return $params;
-        $deployment = Deployment::find($deploymentId);
+        $toolId = $nrps->tool_id;
+        $deployment = Deployment::find($nrps->deployment_id);
         $platformId = $deployment->platform_id;
         $members = $params[Param::MEMBERS];
 
