@@ -28,7 +28,8 @@ class MemberFilter implements FilterInterface
         foreach ($members as $member) {
             if (!isset($member[Param::USER_ID]) ||
                 !isset($member[Param::ROLES])) {
-                // user_id and roles are required by spec, skip if missing 
+                // user_id and roles are required by spec, skip if missing
+                // TODO: maybe should throw exception instead?
                 Log::warn('NRPS member does not have a required field:');
                 Log::warn($member);
             }
@@ -59,7 +60,7 @@ class MemberFilter implements FilterInterface
         foreach ($fakeUsers as $fakeUser) {
             $passthrough = $passthroughs[$fakeUser->lti_real_user_id];
             $fakeMember = [
-                Param::USER_ID => $fakeUser->login_hint,
+                Param::USER_ID => $fakeUser->sub,
                 Param::NAME => $fakeUser->name,
                 Param::EMAIL => $fakeUser->email,
                 Param::ROLES => $passthrough[Param::ROLES]

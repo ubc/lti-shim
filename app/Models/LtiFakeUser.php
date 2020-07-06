@@ -35,6 +35,7 @@ class LtiFakeUser extends Model
         $faker = self::faker();
         $this->login_hint = $faker->uuid;
         $this->name = $faker->name;
+        $this->sub = $faker->uuid;
         $email = $faker->email;
         $count = 0;
         // try to reasonably ensure a unique fake email
@@ -84,6 +85,7 @@ class LtiFakeUser extends Model
                     'lti_real_user_id' => $newUserId,
                     'tool_id' => $toolId,
                     'login_hint' => $faker->uuid,
+                    'sub' => $faker->uuid,
                     'name' => $faker->name,
                     'email' => $faker->email
                 ];

@@ -16,8 +16,10 @@ class CreatePlatformsTable extends Migration
         Schema::create('platforms', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            // urls technically can be very long, so using text instead of string
-            $table->text('iss')->unique()
+            // iss could technically be longer, but 1024 should be sufficient
+            // for real world use cases, we need it to be a string for compat
+            // with mysql, as mysql doesn't support indexed text fields
+            $table->string('iss', 1024)->unique()
                   ->comment("OAuth issuer, usually just the platform's URL.");
             $table->text('auth_req_url')
                   ->comment('Platform URL where we send authentication request.');

@@ -110,7 +110,7 @@ class AuthRespTest extends TestCase
             ->nbf()
             ->aud($tool->client_id)
             ->iss(config('lti.iss'))
-            ->sub($fakeUser->login_hint)
+            ->sub($fakeUser->sub)
             ->key($platformKey->public_key)
             ->run();
         $response->assertViewMissing('response.state');

@@ -54,6 +54,8 @@ class CreateLtiUsersTable extends Migration
                   ->comment('Fake name we should send to tools.');
             $table->string('email', 1024)->unique()
                   ->comment('Fake email we should send to tools.');
+            $table->string('sub', 1024)
+                  ->comment("Fake sub param we send to tools.");
 
             // link to a real user
             $table->unsignedBigInteger('lti_real_user_id');
@@ -67,7 +69,7 @@ class CreateLtiUsersTable extends Migration
             // we're going to do a lot of lookups via these
             $table->unique(['lti_real_user_id', 'tool_id']);
             // prevent duplicates
-            $table->unique(['login_hint', 'tool_id']);
+            $table->unique(['sub', 'tool_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();

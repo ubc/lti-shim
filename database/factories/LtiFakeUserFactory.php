@@ -8,6 +8,7 @@ $factory->define(LtiFakeUser::class, function (Faker $faker) {
     return [
         'login_hint' => $faker->uuid,
         'name' => $faker->name,
-        'email' => $faker->email
+        'email' => $faker->email,
+        'sub' => $faker->uuid,
     ];
 });

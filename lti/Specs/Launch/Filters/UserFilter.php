@@ -18,7 +18,7 @@ class UserFilter implements FilterInterface
             $params[Param::LOGIN_HINT] = $fakeUser->login_hint;
         }
         if (isset($params[Param::SUB])) {
-            $params[Param::SUB] = $fakeUser->login_hint;
+            $params[Param::SUB] = $fakeUser->sub;
         }
         if (isset($params[Param::NAME])) {
             $params[Param::NAME] = $fakeUser->name;
