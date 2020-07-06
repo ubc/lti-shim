@@ -3,11 +3,23 @@
 namespace App\Models;
 
 use Faker\Factory as Faker;
-use Illuminate\Support\Facades\Log;
+
 use Illuminate\Database\Eloquent\Model;
+
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class LtiFakeUser extends Model
 {
+    protected $fillable = [
+        'email',
+        'login_hint',
+        'lti_real_user_id',
+        'name',
+        'tool_id'
+    ];
+    private static $faker;
+
     public function tool()
     {
         return $this->belongsTo('App\Models\Tool');
@@ -20,7 +32,7 @@ class LtiFakeUser extends Model
 
     public function fillFakeFields()
     {
-        $faker = Faker::create();
+        $faker = self::faker();
         $this->login_hint = $faker->uuid;
         $this->name = $faker->name;
         $email = $faker->email;
@@ -32,5 +44,72 @@ class LtiFakeUser extends Model
         }
         $this->email = $email;
         $this->save();
+    }
+
+    public static function getByRealUser(
+        int $toolId,
+        LtiRealUser $realUser
+    ): self {
+        $fakeUsers = self::getByRealUsers($toolId, collect([$realUser]));
+        return $fakeUsers->first();
+    }
+
+    // Get the fake users associated with the given tool based on the given list
+    // of real users. Will create a fake user if they don't exist already.
+    public static function getByRealUsers(
+        int $toolId,
+        Collection $realUsers
+    ): Collection {
+        // map real users by their id
+        $realUserIds = [];
+        foreach ($realUsers as $realUser) {
+            $realUserIds[] = $realUser->id;
+        }
+        // get existing users
+        $existingUsers = self::whereIn('lti_real_user_id', $realUserIds)
+                               ->where('tool_id', $toolId)
+                               ->get();
+        // figure out which real users needs a new fake user
+        $existingUserIds = [];
+        foreach ($existingUsers as $user)
+            $existingUserIds[] = $user->lti_real_user_id;
+        $newUserIds = array_diff($realUserIds, $existingUserIds);
+        // create the missing users, if there are any
+        $newUsers = collect([]);
+        if (!empty($newUserIds)) {
+            $newUsersInfo = [];
+            $faker = self::faker();
+            foreach ($newUserIds as $newUserId) {
+                $userInfo = [
+                    'lti_real_user_id' => $newUserId,
+                    'tool_id' => $toolId,
+                    'login_hint' => $faker->uuid,
+                    'name' => $faker->name,
+                    'email' => $faker->email
+                ];
+                $newUsersInfo[] = $userInfo;
+            }
+            self::insert($newUsersInfo);
+            // can't find an easy way to get the bulk inserted rows back,
+            // so have to do another query to get the new rows
+            $newUsers = self::getByRealUserIds($toolId, $newUserIds);
+        }
+
+        return $existingUsers->merge($newUsers);
+    }
+
+    public static function getByRealUserIds(
+        int $toolId,
+        array $realUserIds
+    ): Collection {
+        return self::whereIn('lti_real_user_id', $realUserIds)
+                     ->where('tool_id', $toolId)
+                     ->get();
+    }
+
+    private static function faker()
+    {
+        if (!isset(self::$faker)) self::$faker = Faker::create();
+        return self::$faker;
     }
 }

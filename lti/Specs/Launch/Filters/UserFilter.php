@@ -12,7 +12,8 @@ class UserFilter implements FilterInterface
 {
     public function filter(array $params, LtiSession $session): array
     {
-        $fakeUser = $this->getFakeUser($session);
+        $fakeUser = LtiFakeUser::getByRealUser($session->tool_id,
+            $session->lti_real_user);
         if (isset($params[Param::LOGIN_HINT])) {
             $params[Param::LOGIN_HINT] = $fakeUser->login_hint;
         }
@@ -27,20 +28,5 @@ class UserFilter implements FilterInterface
         }
 
         return $params;
-    }
-
-    private function getFakeUser(LtiSession $session): LtiFakeUser
-    {
-        $user = LtiFakeUser::firstWhere([
-            'lti_real_user_id' => $session->lti_real_user_id,
-            'tool_id' => $session->tool_id
-        ]);
-        if ($user) return $user; // user already exists
-        // new user, need to create
-        $user = new LtiFakeUser();
-        $user->lti_real_user_id = $session->lti_real_user_id;
-        $user->tool_id = $session->tool_id;
-        $user->fillFakeFields();
-        return $user;
     }
 }

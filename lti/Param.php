@@ -80,6 +80,9 @@ class Param
     public const ID = 'id';
     public const CONTEXT = 'context';
     public const MEMBERS = 'members';
+    public const USER_ID = 'user_id';
+    public const STATUS = 'status';
+    public const ROLES = 'roles';
     public const NRPS_CLAIM_URI =
         'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     // oauth token scope

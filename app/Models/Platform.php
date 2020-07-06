@@ -12,7 +12,7 @@ class Platform extends AbstractLtiService
 {
     protected $fillable = ['name', 'iss', 'auth_req_url', 'jwks_url',
         'shim_client_id'];
-    protected $with = ['keys']; // eage load keys
+    protected $with = ['keys']; // eager load keys
 
     public function deployments()
     {

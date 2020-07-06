@@ -17,7 +17,10 @@ class CreateLtiUsersTable extends Migration
         Schema::create('lti_real_users', function (Blueprint $table) {
             $table->bigIncrements('id');
 
-            $table->string('login_hint', 1024)
+            // login_hint only available if user was created from LTI launch,
+            // if user was populated from NRPS, we won't have login_hint, so
+            // it has to be nullable
+            $table->string('login_hint', 1024)->nullable()
                   ->comment('Real login_hint received from the platform.');
             $table->string('name', 1024)->nullable()
                   ->comment('Real name received from the platform.');
@@ -34,8 +37,7 @@ class CreateLtiUsersTable extends Migration
             $table->foreign('platform_id')->references('id')->on('platforms')
                   ->onDelete('cascade');
 
-            // we're going to do a lot of lookups via login_hint and sub
-            $table->unique(['login_hint', 'platform_id']);
+            // we're going to do a lot of lookups via sub
             $table->unique(['sub', 'platform_id']);
 
             $table->timestampTz('created_at')->useCurrent();
