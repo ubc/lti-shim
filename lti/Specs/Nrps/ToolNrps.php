@@ -12,6 +12,7 @@ use Jose\Easy\Build;
 use App\Models\Nrps;
 use App\Models\Tool;
 
+use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Security\AccessToken;
 
@@ -66,6 +67,22 @@ class ToolNrps
             $queries[Param::ROLE] = $this->request->input(Param::ROLE);
         }
         $resp = $req->get($this->nrps->getContextMembershipsUrl($queries));
-        return $resp->json();
+
+        if ($resp->serverError()) {
+            throw new LTIException('NRPS platform error: ' . $resp->status()
+                . ' ' . $resp->body());
+        }
+        if ($resp->clientError()) {
+            throw new LTIException('NRPS client error: ' . $resp->status() . ' '
+                . $resp->body());
+        }
+
+        // pagination URLs, if they exist, are in the header
+        $link = $resp->header(Param::LINK);
+
+        $ret = $resp->json();
+        if ($link) $ret[Param::LINK] = $link;
+
+        return $ret;
     }
 }

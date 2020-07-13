@@ -26,22 +26,12 @@ class NrpsFilter implements FilterInterface
         $origClaim = $params[Param::NRPS_CLAIM_URI];
 
         // The nrps table is where we can store data about the original nrps
-        // service call. See if we have an existing entry
-        $nrps = Nrps::where([
-            'context_memberships_url' => 
-                $origClaim[Param::CONTEXT_MEMBERSHIPS_URL],
-            'tool_id' => $tool->id,
-            'deployment_id' => $deployment->id
-        ])->first();
-        // we don't have an existing entry, so create a new one
-        if (!$nrps) {
-            $nrps = new Nrps;
-            $nrps->context_memberships_url =
-                $origClaim[Param::CONTEXT_MEMBERSHIPS_URL];
-            $nrps->tool()->associate($tool); 
-            $nrps->deployment()->associate($deployment);
-            $nrps->save();
-        }
+        // service call.
+        $nrps = Nrps::createOrGet(
+            $origClaim[Param::CONTEXT_MEMBERSHIPS_URL],
+            $deployment->id,
+            $tool->id
+        );
 
         // replace the original endpoint with the one on the shim
         $filteredClaim = [

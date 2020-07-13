@@ -83,6 +83,7 @@ class Param
     public const USER_ID = 'user_id';
     public const STATUS = 'status';
     public const ROLES = 'roles';
+    public const LINK = 'link';
     // NRPS get params
     public const ROLE = 'role';
     public const LIMIT = 'limit';

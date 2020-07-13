@@ -28,12 +28,12 @@ class Nrps extends Model
         return route('nrps', ['nrps' => $this->id]);
     }
 
-    public function getContextMembershipsUrl(array $params): string
+    public function getContextMembershipsUrl(array $params = []): string
     {
         return $this->addParamsToUrl($this->context_memberships_url, $params);
     }
 
-    public function getShimUrl(array $params): string
+    public function getShimUrl(array $params = []): string
     {
         return $this->addParamsToUrl($this->shim_url, $params);
     }
@@ -56,7 +56,7 @@ class Nrps extends Model
         string $url,
         int $deploymentId,
         int $toolId
-    ): self {
+    ): ?self {
         $nrps = self::where([
             'context_memberships_url' => $url,
             'deployment_id' => $deploymentId,

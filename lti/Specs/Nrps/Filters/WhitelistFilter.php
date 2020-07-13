@@ -16,7 +16,8 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
     public const NRPS_PARAMS = [
         Param::ID => 1,
         Param::CONTEXT => 2,
-        Param::MEMBERS => 3
+        Param::MEMBERS => 3,
+        Param::LINK => 4
     ];
 
     protected array $whitelists = [
