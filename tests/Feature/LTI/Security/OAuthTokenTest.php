@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\LTI\Security\Platform;
+namespace Tests\Feature\LTI\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -23,11 +23,12 @@ class OAuthTokenTest extends TestCase
     use RefreshDatabase; // reset database after each test
 
     /**
-     * Test getting the OAuth2 token for LTI service requests.
+     * Test a tool getting an OAuth2 access token from the shim for LTI
+     * service requests.
      *
      * @return void
      */
-    public function testGetToken()
+    public function testShimProvidesToken()
     {
         $baseUrl = config('lti.platform_security_token_path');
 

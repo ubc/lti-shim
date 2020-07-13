@@ -53,7 +53,7 @@ class AuthRespTest extends TestCase
                     $deployment->lti_deployment_id)
             ->claim('https://purl.imsglobal.org/spec/lti/claim/custom',
                     ['target_tool_id' => $targetTool->id])
-            ->sign($targetPlatform->keys()->first()->key);
+            ->sign($targetPlatform->getKey()->key);
         $state = Build::jwe()
             ->alg('RSA-OAEP-256') // key encryption algo
             ->enc('A256GCM') // content encryption algo
