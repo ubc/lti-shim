@@ -62,6 +62,8 @@ class AccessToken
     // shim requesting an access token from a platform
     public static function request(Platform $platform, array $scopes): string
     {
+        if (!$scopes)
+            throw new LTIException("Access token request scope can't be empty");
         $ownTool = Tool::getOwnTool();
         $key = $ownTool->keys()->first();
         $time = time();
