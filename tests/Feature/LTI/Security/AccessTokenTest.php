@@ -66,8 +66,8 @@ class AccessTokenTest extends TestCase
 
     private function validateRequestJwt($token)
     {
-        $ownTool = Tool::getOwnTool();
-        $key = $ownTool->keys()->first();
+        $shimTool = Tool::getOwnTool();
+        $key = $shimTool->keys()->first();
 
         // TODO: validate JTI?
         $jwt = Load::jws($token)
@@ -75,7 +75,7 @@ class AccessTokenTest extends TestCase
             ->exp() // We check the "exp" claim
             ->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
             ->aud($this->platform->oauth_token_url) // Allowed audience
-            ->iss($ownTool->iss) // Allowed issuer
+            ->iss($shimTool->iss) // Allowed issuer
             ->key($key->key) // Key used to verify the signature
             ->run(); // Go!
         $this->assertNotEmpty($jwt);

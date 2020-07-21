@@ -18,6 +18,11 @@ class LtiRealUser extends Model
         return $this->belongsTo('App\Models\Platform');
     }
 
+    public function lti_fake_users()
+    {
+        return $this->hasMany('App\Models\LtiFakeuser');
+    }
+
     // Create users based on info returned from NRPS. As far as I can figure,
     // Eloquent doesn't have a bulk create method, so we have to use the DB
     // abstraction's insert(). This assumes that the given list of users are all

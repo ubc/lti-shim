@@ -53,7 +53,7 @@ class ToolNrps
         $params = [Param::JWT => $requestJwt];
 
         $req = Http::withHeaders([
-            'Accept' => 
+            'Accept' =>
                 'application/vnd.ims.lti-nrps.v2.membershipcontainer+json',
             'Authorization' => 'Bearer ' . $accessToken
         ]);
