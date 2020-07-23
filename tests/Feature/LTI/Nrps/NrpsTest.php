@@ -21,37 +21,33 @@ class NrpsTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 
+    private const EXPECTED_ACCESS_TOKEN = 'NrpsTestExpectedAccessToken';
+
     private string $baseUrl = '/lti/platform/nrps/';
+    private Tool $tool;
+    private Platform $platform;
+    private Deployment $deployment;
+    private Nrps $nrps;
 
-    /**
-     * If we try to access an NRPS endpoint on the shim that doesn't exist in
-     * the database, we should get a 404
-     *
-     * @return void
-     */
-    public function testNonExistentNrpsEndpoint()
-    {
-        $resp = $this->get($this->baseUrl . '9999');
-        $resp->assertStatus(Response::HTTP_NOT_FOUND);
-    }
+    private array $fakeNrps; // holds the fake NRPS response that the platform
+                            // sends back, that needs to be filtered
 
-    public function testSuccessfulNrpsCall()
+    protected function setUp(): void
     {
+        parent::setUp();
         // setup the database
         $this->seed();
-        $tool = Tool::find(2); // php test tool
-        $platform = Platform::find(3); // canvas test
-        $deployment = factory(Deployment::class)->create([
-            'platform_id' => $platform->id
+        $this->tool = Tool::find(2); // php test tool
+        $this->platform = Platform::find(3); // canvas test
+        $this->deployment = factory(Deployment::class)->create([
+            'platform_id' => $this->platform->id
         ]);
-        $nrps = factory(Nrps::class)->create([
-            'deployment_id' => $deployment->id,
-            'tool_id' => $tool->id
+        $this->nrps = factory(Nrps::class)->create([
+            'deployment_id' => $this->deployment->id,
+            'tool_id' => $this->tool->id
         ]);
-
         // configure fake http responses
-        $expectedAcccessToken = 'AccessTokenShouldBeThis';
-        $fakeNrps = [
+        $this->fakeNrps = [
             "id" => "http://192.168.55.182:8900/api/lti/courses/1/names_and_roles",
             "context" => [
                 "id" => "4dde05e8ca1973bcca9bffc13e1548820eee93a3",
@@ -84,14 +80,34 @@ class NrpsTest extends TestCase
             ]
         ];
         Http::fake([
-            $nrps->context_memberships_url => Http::response($fakeNrps),
-            $platform->oauth_token_url => Http::response([
-                'access_token' => $expectedAcccessToken
+            $this->nrps->context_memberships_url =>
+                Http::response($this->fakeNrps),
+            $this->platform->oauth_token_url => Http::response([
+                'access_token' => self::EXPECTED_ACCESS_TOKEN
             ])
         ]);
+    }
 
-        // finally can do the nrps call
-        $resp = $this->get($nrps->getShimUrl());
+    /**
+     * If we try to access an NRPS endpoint on the shim that doesn't exist in
+     * the database, we should get a 404
+     *
+     * @return void
+     */
+    public function testNonExistentNrpsEndpoint()
+    {
+        $resp = $this->get($this->baseUrl . '9999');
+        $resp->assertStatus(Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Test that the users returned by the NRPS request are entered into the
+     * database and fake users created for them.
+     */
+    public function testMemberFiltering()
+    {
+        // do the nrps call
+        $resp = $this->get($this->nrps->getShimUrl());
         // request should be successful
         $resp->assertStatus(Response::HTTP_OK);
         // the response must have these fields
@@ -101,10 +117,10 @@ class NrpsTest extends TestCase
             'members'
         ]);
         // make sure that the users we got back have been entered into database
-        $this->assertNotEmpty($fakeNrps['members']); // sanity check, make sure
+        $this->assertNotEmpty($this->fakeNrps['members']); // sanity check, make sure
                                                     // we aren't skipping loop
         $expectedFakeUsers = []; // store fake users for filter verification
-        foreach ($fakeNrps['members'] as $expectedRealUser) {
+        foreach ($this->fakeNrps['members'] as $expectedRealUser) {
             $actualRealUser = LtiRealUser::firstWhere('sub',
                                                   $expectedRealUser['user_id']);
             $this->assertNotEmpty($actualRealUser);
@@ -112,12 +128,12 @@ class NrpsTest extends TestCase
                                 $actualRealUser->name);
             $this->assertEquals($expectedRealUser['email'],
                                 $actualRealUser->email);
-            $this->assertEquals($platform->id,
+            $this->assertEquals($this->platform->id,
                                 $actualRealUser->platform_id);
             // make sure the real users also has a fake user created
             $fakeUser = $actualRealUser->lti_fake_users()->first();
             $this->assertNotEmpty($fakeUser);
-            $this->assertEquals($tool->id, $fakeUser->tool_id);
+            $this->assertEquals($this->tool->id, $fakeUser->tool_id);
             $expectedFakeUsers[$fakeUser->sub] = [
                 'fakeUser' => $fakeUser,
                 'roles' => $expectedRealUser['roles']
@@ -140,5 +156,28 @@ class NrpsTest extends TestCase
             $this->assertEquals($expectedRoles,
                                 $actualFakeUser['roles']);
         }
+    }
+
+    /**
+     * Test that pagination and role filter queries are passed through as is.
+     */
+    public function testLimitAndRoleParamPassthrough()
+    {
+        $expectedQueries = '?limit=1&role=Teacher';
+        // the queries are passed on to the original URL, so we need to modify
+        // it to match in the fake response
+        $this->fakeNrps['id'] = $this->fakeNrps['id'] . $expectedQueries;
+        // make sure we fake the HTTP response to the URL with the queries
+        Http::fake([
+            $this->nrps->context_memberships_url . $expectedQueries =>
+                Http::response($this->fakeNrps)
+        ]);
+        $expectedUrl = $this->nrps->getShimUrl() . $expectedQueries;
+
+        $resp = $this->get($expectedUrl);
+        $resp->assertStatus(Response::HTTP_OK);
+        // make sure that the NRPS url is rewritten with the params
+        $actualUrl = $resp['id'];
+        $this->assertEquals($expectedUrl, $actualUrl);
     }
 }
