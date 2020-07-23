@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Tests\TestCase;
 
+use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\LtiRealUser;
 use App\Models\Nrps;
@@ -104,7 +105,7 @@ class NrpsTest extends TestCase
      * Test that the users returned by the NRPS request are entered into the
      * database and fake users created for them.
      */
-    public function testMemberFiltering()
+    public function testContextAndMemberFiltering()
     {
         // do the nrps call
         $resp = $this->get($this->nrps->getShimUrl());
@@ -116,6 +117,14 @@ class NrpsTest extends TestCase
             'context',
             'members'
         ]);
+        // make sure the the course has been filtered
+        $courseContext = CourseContext::firstWhere(
+            'real_context_id',
+            $this->fakeNrps['context']['id']
+        );
+        $expectedContext = ['id' => $courseContext->fake_context_id];
+        $actualContext = $resp['context'];
+        $this->assertEquals($expectedContext, $actualContext);
         // make sure that the users we got back have been entered into database
         $this->assertNotEmpty($this->fakeNrps['members']); // sanity check, make sure
                                                     // we aren't skipping loop
