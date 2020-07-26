@@ -189,4 +189,42 @@ class NrpsTest extends TestCase
         $actualUrl = $resp['id'];
         $this->assertEquals($expectedUrl, $actualUrl);
     }
+
+    /**
+     * Pagination URLs are passed using the "Link" header, we need to make sure
+     * those URLs are rewritten to shim NRPS URLs too.
+     */
+    public function testPaginationHeaderFiltering()
+    {
+        $nrps = factory(Nrps::class)->create([
+            'deployment_id' => $this->deployment->id,
+            'tool_id' => $this->tool->id
+        ]);
+        // make sure to send the a link header in the fake response
+        Http::fake([
+            $nrps->context_memberships_url => Http::response(
+                $this->fakeNrps,
+                Response::HTTP_OK,
+                [
+                    'link' => '<http://192.168.55.182:8900/api/lti/courses/1/names_and_roles?page=1&per_page=1>; rel="current",<http://192.168.55.182:8900/api/lti/courses/1/names_and_roles?page=2&per_page=1>; rel="next",<http://192.168.55.182:8900/api/lti/courses/1/names_and_roles?page=1&per_page=1>; rel="first",<http://192.168.55.182:8900/api/lti/courses/1/names_and_roles?page=2&per_page=1>; rel="last"'
+                ]
+            ),
+            '*' => Http::response('Accidental real request',
+                                  Response::HTTP_NOT_FOUND)
+        ]);
+        $resp = $this->get($nrps->getShimurl());
+        $resp->assertStatus(Response::HTTP_OK);
+        // make sure the link urls were rewritten to shim URLs
+        $resp->assertHeader('link',
+            '<http://localhost/lti/platform/nrps/3>; rel="current",<http://localhost/lti/platform/nrps/4>; rel="next",<http://localhost/lti/platform/nrps/3>; rel="first",<http://localhost/lti/platform/nrps/4>; rel="last"');
+        // make sure corresponding NRPS entries are in the database
+        $actualNrps = Nrps::find(3);
+        $this->assertNotEmpty($actualNrps);
+        $this->assertEquals('http://localhost/lti/platform/nrps/3',
+            $actualNrps->getShimUrl());
+        $actualNrps = Nrps::find(4);
+        $this->assertNotEmpty($actualNrps);
+        $this->assertEquals('http://localhost/lti/platform/nrps/4',
+            $actualNrps->getShimUrl());
+    }
 }
