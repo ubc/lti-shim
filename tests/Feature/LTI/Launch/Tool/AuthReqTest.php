@@ -2,6 +2,7 @@
 namespace Tests\Feature\LTI\Launch\Tool;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 use Tests\TestCase;
@@ -44,6 +45,9 @@ class AuthReqTest extends TestCase
         $resp->assertViewHas('response.response_mode', 'form_post');
         $resp->assertViewHas('response.prompt', 'none');
         $resp->assertViewHas('response.lti_message_hint', $messageHint);
-        // TODO: test nonce when implemented
+        // test nonce is properly stored in the database
+        $nonceResult = DB::table('nonce')->first();
+        $nonce = str_replace('lti_shim_cache', '', $nonceResult->key);
+        $resp->assertViewHas('response.nonce', $nonce);
     }
 }

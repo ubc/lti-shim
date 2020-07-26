@@ -100,9 +100,6 @@ class PlatformLaunch
         $requiredValues = $this->applyFilters($requiredValues, $ltiSession);
         // TODO: validate redirect_uri, valid redirect_uri is supposed to be
         // pre-registered and we need to make sure it matches what we have
-        // TODO: nonce validation will probably needs to be tied to client_id
-        // and other such dynamic values somehow, so we can be sure that the
-        // original login request came from us
 
         $this->checker->requireValues($requiredValues);
 

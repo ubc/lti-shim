@@ -20,6 +20,7 @@ use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
+use UBC\LTI\Specs\Security\Nonce;
 
 // we're acting as the Tool
 // the main idea is that we supply this object with the params that we receive
@@ -99,8 +100,7 @@ class ToolLaunch
         // against the id_token into the state.
         $resp[Param::STATE] = $this->createState();
 
-        // TODO: real nonce security
-        $resp[Param::NONCE] = 'fakenonce';
+        $resp[Param::NONCE] = Nonce::create();
 
         return ['response' => $resp, 'auth_req_url' => $platform->auth_req_url];
     }
@@ -174,7 +174,6 @@ class ToolLaunch
         try {
             // check signature
             $jwt = $jwt->run();
-            // TODO: check presence of required params
             // check required claim values
             $requiredValues = [
                 Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
@@ -186,6 +185,17 @@ class ToolLaunch
             }
             $checker = new ParamChecker($jwt->claims->all());
             $checker->requireValues($requiredValues);
+            $checker->requireParams([
+                Param::TARGET_LINK_URI_URI,
+                Param::RESOURCE_LINK_URI,
+                Param::ROLES_URI,
+                Param::NONCE,
+            ]);
+            // TODO: verify and FOLLOW target_link_uri
+            // check nonce
+            $nonce = $jwt->claims->get(Param::NONCE);
+            if (Nonce::isValid($nonce)) Nonce::used($nonce);
+            else throw new LTIException('Invalid nonce');
         } catch(\Exception $e) { // invalid signature throws a bare Exception
             throw new LTIException('Invalid id_token: '.$e->getMessage(),0,$e);
         }

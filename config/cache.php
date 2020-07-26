@@ -71,6 +71,12 @@ return [
             ],
         ],
 
+        'nonce' => [
+            'driver' => 'database',
+            'table' => 'nonce',
+            'connection' => null,
+        ],
+
         'redis' => [
             'driver' => 'redis',
             'connection' => 'cache',
