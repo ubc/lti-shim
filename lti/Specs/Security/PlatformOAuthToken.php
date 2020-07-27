@@ -13,6 +13,7 @@ use UBC\LTI\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\AccessToken;
+use UBC\LTI\Specs\Security\Nonce;
 
 // Part of the LTI security spec. LTI services require authentication using
 // OAuth2 tokens. This class deals with issuing these tokens. Note that while
@@ -69,8 +70,12 @@ class PlatformOAuthToken
         try {
             // check signature
             $jwt = $jwt->run();
+            // replay protection based on jti
+            $jti = $jwt->claims->jti();
+            Nonce::store($jti, $jwt->claims->exp() - time());
+            if (Nonce::isValid($jti)) Nonce::used($jti);
+            else throw new LTIException('Replayed JTI');
             // TODO: verify aud
-            // TODO: add replay protection based on jti
         } catch(\Exception $e) { // invalid signature throws a bare Exception
             throw new LTIException(
                 'Invalid client assertion JWT: ' . $e->getMessage(), 0, $e);

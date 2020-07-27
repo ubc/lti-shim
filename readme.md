@@ -91,12 +91,22 @@ Laravel uses VueJS for JavaScript framework and Bootstrap 4 for CSS.
 
 #### Run Tests
 
-Make sure you're in workspace, run `phpunit` to run all the tests.
+Make sure you're in workspace, run `phpunit` or `artisan test` to run all the tests.
 
 ```
 docker-compose exec -u laradock workspace bash
   workspace$ phpunit
+  workspace$ artisan test
 ```
+
+You can limit the test you run with the `--filter` parameter, for example, to run only the NrpsTest:
+
+```
+ $ artisan test --filter NrpsTest
+ $ phpunit --filter NrpsTest
+```
+
+`artisan test` provides a fancier output and will stop on the first test failure. It should also pass all parameters to the underlying `phpunit`. But the option to call `phpunit` directly might be valuable in some circumstances.
 
 #### LTI Module
 

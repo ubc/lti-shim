@@ -2,6 +2,7 @@
 namespace Tests\Features\LTI\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
  
 use Jose\Easy\Load;
@@ -69,7 +70,6 @@ class AccessTokenTest extends TestCase
         $shimTool = Tool::getOwnTool();
         $key = $shimTool->keys()->first();
 
-        // TODO: validate JTI?
         $jwt = Load::jws($token)
             ->algs(['RS256']) // The algorithms allowed to be used
             ->exp() // We check the "exp" claim
@@ -79,6 +79,10 @@ class AccessTokenTest extends TestCase
             ->key($key->key) // Key used to verify the signature
             ->run(); // Go!
         $this->assertNotEmpty($jwt);
+        // test that the jti was properly stored as a nonce
+        $nonceResult = DB::table('nonce')->first();
+        $nonce = str_replace('lti_shim_cache', '', $nonceResult->key);
+        $this->assertEquals($nonce, $jwt->claims->jti());
     }
 }
 

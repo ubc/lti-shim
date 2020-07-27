@@ -14,11 +14,16 @@ use App\Models\Tool;
 
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
+use UBC\LTI\Specs\Security\Nonce;
 
 class AccessToken
 {
-    // IMS recommends tokens be valid for 1 hour (3600 seconds)
+    // IMS recommends tokens be valid for 1 hour (3600 seconds),
+    // this is the expiry time for tokens we issue
     public const EXPIRY_TIME = 3600;
+    // When requesting an access token, we need to send a request JWT, this is
+    // the request JWT's expiry time.
+    public const REQUEST_EXPIRY_TIME = 3600;
 
     public static function create(Tool $tool, array $scopes): string
     {
@@ -31,7 +36,6 @@ class AccessToken
             ->iat($time)
             ->aud(config('lti.iss'))
             ->sub($tool->client_id)
-            ->jti('TODO token')
             ->alg(Param::RSA_OAEP_256) // key encryption alg
             ->enc(Param::A256GCM) // content encryption alg
             ->zip(Param::ZIP_ALG) // compress the data, DEFLATE alg
@@ -75,9 +79,8 @@ class AccessToken
             // the audience is often just the token endpoint url
             ->aud($platform->oauth_token_url)
             ->iat($time) // automatically set issued at time
-            ->exp($time + 60)
-            // TODO: real JTI protection
-            ->jti('JWT Token Identifier1')
+            ->exp($time + self::REQUEST_EXPIRY_TIME)
+            ->jti(Nonce::create(self::REQUEST_EXPIRY_TIME))
             ->header(Param::KID, $key->kid)
             ->sign($key->key);
         $params = [
