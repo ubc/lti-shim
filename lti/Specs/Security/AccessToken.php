@@ -66,6 +66,7 @@ class AccessToken
 
     public static function verify(string $token): JWT
     {
+        // TODO enforce scope checking once we have more than 1 scope
         try {
             $jwt = Load::jwe($token) // deserialize the token
                 ->algs([Param::RSA_OAEP_256]) // key encryption algo
@@ -77,7 +78,8 @@ class AccessToken
             return $jwt;
         }
         catch(\Exception $e) {
-            throw new LTIException('Failed to verify token.', 0, $e);
+            throw new LTIException('Invalid access token: ' . $e->getMessage(),
+                                   0, $e);
         }
     }
 

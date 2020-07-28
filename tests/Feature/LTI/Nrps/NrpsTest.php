@@ -16,15 +16,15 @@ use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\Specs\Nrps\PlatformNrps;
+use UBC\LTI\Specs\Security\AccessToken;
 
 // only tests the incoming requests for the platform, this is just the auth req
 class NrpsTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 
-    private const EXPECTED_ACCESS_TOKEN = 'NrpsTestExpectedAccessToken';
-
     private string $baseUrl = '/lti/platform/nrps/';
+    private string $accessToken;
     private Tool $tool;
     private Platform $platform;
     private Deployment $deployment;
@@ -32,6 +32,7 @@ class NrpsTest extends TestCase
 
     private array $fakeNrps; // holds the fake NRPS response that the platform
                             // sends back, that needs to be filtered
+    private array $headers; // headers sent on each NRPS request
 
     protected function setUp(): void
     {
@@ -47,6 +48,14 @@ class NrpsTest extends TestCase
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id
         ]);
+        $this->accessToken = AccessToken::create(
+            $this->tool,
+            ['https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly']
+        );
+        $this->headers = [
+            'Accept' => 'application/vnd.ims.lti-nrps.v2.membershipcontainer+json',
+            'Authorization' => 'Bearer ' . $this->accessToken
+        ];
         // configure fake http responses
         $this->fakeNrps = [
             "id" => "http://192.168.55.182:8900/api/lti/courses/1/names_and_roles",
@@ -84,7 +93,7 @@ class NrpsTest extends TestCase
             $this->nrps->context_memberships_url =>
                 Http::response($this->fakeNrps),
             $this->platform->oauth_token_url => Http::response([
-                'access_token' => self::EXPECTED_ACCESS_TOKEN,
+                'access_token' => $this->accessToken,
                 'expires_in' => 3600
             ])
         ]);
@@ -98,7 +107,7 @@ class NrpsTest extends TestCase
      */
     public function testNonExistentNrpsEndpoint()
     {
-        $resp = $this->get($this->baseUrl . '9999');
+        $resp = $this->withHeaders($this->headers)->get($this->baseUrl . '9999');
         $resp->assertStatus(Response::HTTP_NOT_FOUND);
     }
 
@@ -109,7 +118,9 @@ class NrpsTest extends TestCase
     public function testContextAndMemberFiltering()
     {
         // do the nrps call
-        $resp = $this->get($this->nrps->getShimUrl());
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->nrps->getShimUrl());
+        //$resp->dump();
         // request should be successful
         $resp->assertStatus(Response::HTTP_OK);
         // the response must have these fields
@@ -184,7 +195,7 @@ class NrpsTest extends TestCase
         ]);
         $expectedUrl = $this->nrps->getShimUrl() . $expectedQueries;
 
-        $resp = $this->get($expectedUrl);
+        $resp = $this->withHeaders($this->headers)->get($expectedUrl);
         $resp->assertStatus(Response::HTTP_OK);
         // make sure that the NRPS url is rewritten with the params
         $actualUrl = $resp['id'];
@@ -201,7 +212,7 @@ class NrpsTest extends TestCase
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id
         ]);
-        // make sure to send the a link header in the fake response
+        // make sure to send the link header in the fake response
         Http::fake([
             $nrps->context_memberships_url => Http::response(
                 $this->fakeNrps,
@@ -213,7 +224,7 @@ class NrpsTest extends TestCase
             '*' => Http::response('Accidental real request',
                                   Response::HTTP_NOT_FOUND)
         ]);
-        $resp = $this->get($nrps->getShimurl());
+        $resp = $this->withHeaders($this->headers)->get($nrps->getShimurl());
         $resp->assertStatus(Response::HTTP_OK);
         // make sure the link urls were rewritten to shim URLs
         $resp->assertHeader('link',
@@ -227,5 +238,31 @@ class NrpsTest extends TestCase
         $this->assertNotEmpty($actualNrps);
         $this->assertEquals('http://localhost/lti/platform/nrps/4',
             $actualNrps->getShimUrl());
+    }
+
+    /**
+     * Make sure that NRPS calls will reject invalid access tokens.
+     */
+    public function testRejectInvalidAccessToken()
+    {
+        // change the access token to a bad one
+        $headers = $this->headers;
+        $headers['Authorization'] = 'Bearer ClearlyBadAccessToken';
+
+        // do the nrps call
+        $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
+        // request should fail
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testMissingAccessToken()
+    {
+        // delete the access token
+        $headers = $this->headers;
+        unset($headers['Authorization']);
+        // do the nrps call
+        $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
+        // request should fail
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
 }

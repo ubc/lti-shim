@@ -7,6 +7,7 @@ use Illuminate\Http\Response;
 
 use App\Models\Nrps;
 
+use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Nrps\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Nrps\Filters\MemberFilter;
@@ -14,6 +15,7 @@ use UBC\LTI\Specs\Nrps\Filters\NrpsUrlFilter;
 use UBC\LTI\Specs\Nrps\Filters\PaginationFilter;
 use UBC\LTI\Specs\Nrps\Filters\WhitelistFilter;
 use UBC\LTI\Specs\Nrps\ToolNrps;
+use UBC\LTI\Specs\Security\AccessToken;
 
 class PlatformNrps
 {
@@ -36,6 +38,13 @@ class PlatformNrps
 
     public function getNrps(): Response
     {
+        // verify access token
+        $accessToken = $this->request->bearerToken();
+        if (!$accessToken) throw new LTIException('Missing access token header');
+        // TODO verify that token has nrps scope
+        AccessToken::verify($accessToken);
+
+        // access token good, proxy the request
         $toolNrps = new ToolNrps($this->request, $this->nrps);
         $nrpsData = $toolNrps->getNrps();
 
