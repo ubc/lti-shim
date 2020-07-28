@@ -21,10 +21,6 @@ use UBC\LTI\Specs\Security\Nonce;
 // the JWT authentication method that LTI 1.3 requires.
 class PlatformOAuthToken
 {
-    public const VALID_SCOPES = array(
-        Param::NRPS_SCOPE_URI
-    );
-
     private Request $request; // laravel request object
     private ParamChecker $checker;
 
@@ -80,14 +76,8 @@ class PlatformOAuthToken
             throw new LTIException(
                 'Invalid client assertion JWT: ' . $e->getMessage(), 0, $e);
         }
-        // scopes are space delimited, we want to throw an error if it's a scope
-        // we don't support
+        // scopes are space delimited
         $scopes = explode(' ', $this->request->input(Param::SCOPE));
-        foreach ($scopes as $scope) {
-            if (!in_array($scope, self::VALID_SCOPES)) {
-                throw new LTIException('Unsupported scope: ' . $scope);
-            }
-        }
         // create access token
         $token = AccessToken::create($tool, $scopes);
         return [

@@ -77,6 +77,12 @@ return [
             'connection' => null,
         ],
 
+        'accessToken' => [
+            'driver' => 'database',
+            'table' => 'cache_access_tokens',
+            'connection' => null,
+        ],
+
         'redis' => [
             'driver' => 'redis',
             'connection' => 'cache',

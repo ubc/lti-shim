@@ -1,6 +1,7 @@
 <?php
 namespace UBC\LTI\Specs\Security;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -14,19 +15,36 @@ use App\Models\Tool;
 
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
+use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\Nonce;
+use UBC\LTI\Specs\Security\PlatformOAuthToken;
 
 class AccessToken
 {
+    public const ACCESS_TOKEN_STORE = 'accessToken'; // access token cache
     // IMS recommends tokens be valid for 1 hour (3600 seconds),
     // this is the expiry time for tokens we issue
     public const EXPIRY_TIME = 3600;
     // When requesting an access token, we need to send a request JWT, this is
     // the request JWT's expiry time.
     public const REQUEST_EXPIRY_TIME = 3600;
+    // only bother caching the access token if it's valid for at least this long
+    public const MINIMUM_TOKEN_VALID_TIME = 60;
+    // each scope must be mapped to an unique int as we're using it as a unique
+    // id for that scope in access token cache
+    public const VALID_SCOPES = [
+        Param::NRPS_SCOPE_URI => 0
+    ];
+
+    // when we request an access token, the response must have these parameters
+    private const ACCESS_TOKEN = 'access_token'; // the actual access token
+    private const EXPIRES_IN = 'expires_in'; // how long the token is valid for
+                                            // in seconds
+
 
     public static function create(Tool $tool, array $scopes): string
     {
+        self::checkScopes($scopes);
         $time = time();
         // IETF has a draft spec for JWT access tokens that we're using as guide
         $jwe = Build::jwe() // We build a JWE
@@ -63,15 +81,91 @@ class AccessToken
         }
     }
 
-    // shim requesting an access token from a platform
+    /**
+     * Shim requesting an access token from a platform. We want to cache the
+     * access token so that we don't have to send an access token request for
+     * every service call.
+     */
     public static function request(Platform $platform, array $scopes): string
     {
-        if (!$scopes)
-            throw new LTIException("Access token request scope can't be empty");
+        self::checkScopes($scopes);
+
+        // see if we can get from cache
+        $store = Cache::store(self::ACCESS_TOKEN_STORE);
+        $cacheKey = self::getCacheKey($platform->id, $scopes);
+        $token = $store->get($cacheKey);
+        if ($token) return $token;
+
+        // not in cache, request an access token
+        $requestJwt = self::getRequestJwt($platform, $scopes);
+        $params = [
+            Param::GRANT_TYPE => Param::GRANT_TYPE_VALUE,
+            Param::CLIENT_ASSERTION_TYPE => Param::CLIENT_ASSERTION_TYPE_VALUE,
+            Param::CLIENT_ASSERTION => $requestJwt,
+            Param::SCOPE => implode(' ', $scopes)
+        ];
+        $timeBefore = time();
+        $resp = Http::asForm()->post($platform->oauth_token_url, $params);
+        $timeTaken = time() - $timeBefore;
+
+        if ($resp->failed())
+            throw new LTIException('Unable to get access token: '.$resp->body());
+
+        // make sure the response has the parameters we need
+        try {
+            $checker = new ParamChecker($resp->json());
+            $checker->requireParams([self::ACCESS_TOKEN, self::EXPIRES_IN]);
+            if (!is_numeric($resp[self::EXPIRES_IN]))
+                throw new LTIException('expires_in must be a number');
+        }
+        catch(LTIException $e) {
+            throw new LTIException("Invalid access token response: " .
+                $e->getMessage(), 0, $e);
+        }
+
+        // store access token in cache
+        $token = $resp[self::ACCESS_TOKEN];
+        // in case the request took some time and we want to make sure we expire
+        // the token before it becomes invalid
+        $expires = $resp[self::EXPIRES_IN] - $timeTaken - 1;
+        // only store the token if it's valid for a minimum time
+        if ($expires > self::MINIMUM_TOKEN_VALID_TIME) {
+            $store->put($cacheKey, $token, $expires);
+        }
+
+        return $token;
+    }
+
+    /**
+     * Create a unique cache key based on the platform id and the access token
+     * scope. Since the key can only be max 255 chars, we can't exactly use
+     * the scope uri as is. PlatformOAuthToken has a list of valid scopes that
+     * we accept, each scope is mapped to an int, we can use that as an id,
+     * shortening the scope to fit the character limit.
+     *
+     * This is basically a comma delimited id list, with the platform id first
+     * and the scope ids following sequentially.
+     */
+    private static function getCacheKey(int $platformId, array $scopes): string
+    {
+        $key = $platformId . ',';
+        foreach ($scopes as $scope) {
+            $key .= self::VALID_SCOPES[$scope] . ',';
+        }
+        return $key;
+    }
+
+    /**
+     * Build the JWT needed to make the access token request.
+     */
+    private static function getRequestJwt(
+        Platform $platform,
+        array $scopes
+    ): string {
         $ownTool = Tool::getOwnTool();
         $key = $ownTool->keys()->first();
         $time = time();
-        $requestJwt = Build::jws()
+        return Build::jws()
             ->typ(Param::JWT)
             ->alg(Param::RS256)
             ->iss($ownTool->iss)
@@ -83,15 +177,19 @@ class AccessToken
             ->jti(Nonce::create(self::REQUEST_EXPIRY_TIME))
             ->header(Param::KID, $key->kid)
             ->sign($key->key);
-        $params = [
-            Param::GRANT_TYPE => Param::GRANT_TYPE_VALUE,
-            Param::CLIENT_ASSERTION_TYPE => Param::CLIENT_ASSERTION_TYPE_VALUE,
-            Param::CLIENT_ASSERTION => $requestJwt,
-            Param::SCOPE => implode(' ', $scopes)
-        ];
-        $resp = Http::asForm()->post($platform->oauth_token_url, $params);
-        if ($resp->failed())
-            throw new LTIException('Unable to get access token: '.$resp->body());
-        return $resp['access_token'];
+    }
+
+    /**
+     * Throw an exception if it's a scope we don't support.
+     */
+    private static function checkScopes(array $scopes)
+    {
+        if (!$scopes)
+            throw new LTIException("Access token request scope can't be empty");
+        foreach ($scopes as $scope) {
+            if (!array_key_exists($scope, self::VALID_SCOPES)) {
+                throw new LTIException('Unsupported scope: ' . $scope);
+            }
+        }
     }
 }

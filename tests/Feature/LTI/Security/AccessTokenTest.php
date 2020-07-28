@@ -4,7 +4,7 @@ namespace Tests\Features\LTI\Security;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
- 
+
 use Jose\Easy\Load;
 
 use Tests\TestCase;
@@ -22,7 +22,9 @@ class AccessTokenTest extends TestCase
     private const EXPECTED_ACCESS_TOKEN = 'SomeExpectedAccessToken';
 
     private Platform $platform;
-
+    private array $scopes = [
+        'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly'
+    ];
     protected function setUp(): void
     {
         parent::setUp();
@@ -30,16 +32,16 @@ class AccessTokenTest extends TestCase
         $this->platform = Platform::find(3);
         Http::fake([
             $this->platform->oauth_token_url =>  Http::response([
-                'access_token' => self::EXPECTED_ACCESS_TOKEN
+                'access_token' => self::EXPECTED_ACCESS_TOKEN,
+                'expires_in' => 3600
             ])
         ]);
     }
 
     public function testRequestAccessToken()
     {
-        $scopes = ['https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly'];
-        $actualAccessToken = AccessToken::request($this->platform, $scopes);
-        $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualAccessToken);
+        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         Http::assertSent(function ($request) {
             // required to be a form post request
             $this->assertTrue($request->isForm());
@@ -50,7 +52,7 @@ class AccessTokenTest extends TestCase
                 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
             );
             $this->assertEquals(
-                $request['scope'], 
+                $request['scope'],
                 'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly'
             );
             // validate JWT
@@ -62,7 +64,83 @@ class AccessTokenTest extends TestCase
     public function testRequestAccessTokenFailsWithEmptyScope()
     {
         $this->expectException(LTIException::class);
-        $actualAccessToken = AccessToken::request($this->platform, []);
+        AccessToken::request($this->platform, []);
+    }
+
+    public function testAccessTokenIsCached()
+    {
+        // this should store the token into cache
+        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
+        // modify the token stored in cache
+        $expectedToken = self::EXPECTED_ACCESS_TOKEN . "NowModified";
+        $nonceResult = DB::table('cache_access_tokens')->update([
+            'value' => serialize($expectedToken)
+        ]);
+        // this should retrieve the now modified token from cache
+        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $this->assertEquals($expectedToken, $actualToken);
+    }
+
+    public function testRefreshExpiredTokens()
+    {
+        // this should store the token into cache
+        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
+        // expire the cached token and change its value
+        $expectedToken = self::EXPECTED_ACCESS_TOKEN . "NowModified";
+        $nonceResult = DB::table('cache_access_tokens')->update([
+            'value' => serialize($expectedToken),
+            'expiration' => time() - 5
+        ]);
+        // the token shouldn't the one from cache
+        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
+        // change the cached token again, this time we expect it to get the
+        // the cached token
+        $nonceResult = DB::table('cache_access_tokens')->update([
+            'value' => serialize($expectedToken),
+        ]);
+        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $this->assertEquals($expectedToken, $actualToken);
+    }
+
+    public function testDontCacheShortLivedTokens()
+    {
+        // switch platform so we can fake a request with a shorter expiry
+        $platform = Platform::find(2);
+        Http::fake([
+            $platform->oauth_token_url =>  Http::response([
+                'access_token' => self::EXPECTED_ACCESS_TOKEN,
+                'expires_in' => AccessToken::MINIMUM_TOKEN_VALID_TIME - 1
+            ])
+        ]);
+        // hopefully doesn't store the token into cache
+        $actualToken = AccessToken::request($platform, $this->scopes);
+        $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
+        // modify all tokens stored in cache
+        $expectedToken = self::EXPECTED_ACCESS_TOKEN . "NowModified";
+        $nonceResult = DB::table('cache_access_tokens')->update([
+            'value' => serialize($expectedToken)
+        ]);
+        // this should still retrieve the unmodified token
+        $actualToken = AccessToken::request($platform, $this->scopes);
+        $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
+    }
+    
+    public function testExpirationNotANumber()
+    {
+        // switch platform so we can fake a request with a shorter expiry
+        $platform = Platform::find(2);
+        Http::fake([
+            $platform->oauth_token_url =>  Http::response([
+                'access_token' => self::EXPECTED_ACCESS_TOKEN,
+                'expires_in' => "Shouldn'tBeString"
+            ])
+        ]);
+        $this->expectException(LTIException::class);
+        // hopefully doesn't store the token into cache
+        AccessToken::request($platform, $this->scopes);
     }
 
     private function validateRequestJwt($token)
