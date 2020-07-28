@@ -80,7 +80,7 @@ class AccessTokenTest extends TestCase
             ->run(); // Go!
         $this->assertNotEmpty($jwt);
         // test that the jti was properly stored as a nonce
-        $nonceResult = DB::table('nonce')->first();
+        $nonceResult = DB::table('cache_nonce')->first();
         $nonce = str_replace('lti_shim_cache', '', $nonceResult->key);
         $this->assertEquals($nonce, $jwt->claims->jti());
     }

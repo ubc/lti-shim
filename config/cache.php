@@ -73,7 +73,7 @@ return [
 
         'nonce' => [
             'driver' => 'database',
-            'table' => 'nonce',
+            'table' => 'cache_nonce',
             'connection' => null,
         ],
 

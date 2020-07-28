@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateNonceTable extends Migration
+class CreateCacheNonceTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateNonceTable extends Migration
      */
     public function up()
     {
-        Schema::create('nonce', function (Blueprint $table) {
+        Schema::create('cache_nonce', function (Blueprint $table) {
             $table->string('key')->unique();
             $table->mediumText('value');
             $table->integer('expiration');
@@ -27,6 +27,6 @@ class CreateNonceTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('nonce');
+        Schema::dropIfExists('cache_nonce');
     }
 }

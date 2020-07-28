@@ -97,7 +97,7 @@ class AuthRespTest extends TestCase
         $nonce = Nonce::create();
         $this->createIdToken($nonce);
         // set the nonce expiration to the past
-        DB::table('nonce')->update(['expiration' => time() - 5]);
+        DB::table('cache_nonce')->update(['expiration' => time() - 5]);
 
         $resp = $this->post($this->baseUrl,
             ['state' => $this->state, 'id_token' => $this->idToken]);

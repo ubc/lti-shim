@@ -46,7 +46,7 @@ class AuthReqTest extends TestCase
         $resp->assertViewHas('response.prompt', 'none');
         $resp->assertViewHas('response.lti_message_hint', $messageHint);
         // test nonce is properly stored in the database
-        $nonceResult = DB::table('nonce')->first();
+        $nonceResult = DB::table('cache_nonce')->first();
         $nonce = str_replace('lti_shim_cache', '', $nonceResult->key);
         $resp->assertViewHas('response.nonce', $nonce);
     }
