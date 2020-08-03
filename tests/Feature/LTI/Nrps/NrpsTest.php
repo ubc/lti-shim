@@ -265,4 +265,18 @@ class NrpsTest extends TestCase
         // request should fail
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
+
+    public function testAuthorizationHeaderCaseSensitivity()
+    {
+        $headers = $this->headers;
+        // lower case b in bearer
+        $headers['Authorization'] = 'bearer ' . $this->accessToken;
+        $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
+        $resp->assertStatus(Response::HTTP_OK);
+        // lower case authorization
+        unset($headers['Authorization']);
+        $headers['authorization'] = 'Bearer ' . $this->accessToken;
+        $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
+        $resp->assertStatus(Response::HTTP_OK);
+    }
 }

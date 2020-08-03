@@ -38,11 +38,7 @@ class PlatformNrps
 
     public function getNrps(): Response
     {
-        // verify access token
-        $accessToken = $this->request->bearerToken();
-        if (!$accessToken) throw new LTIException('Missing access token header');
-        // TODO verify that token has nrps scope
-        AccessToken::verify($accessToken);
+        AccessToken::verify($this->getAccessToken());
 
         // access token good, proxy the request
         $toolNrps = new ToolNrps($this->request, $this->nrps);
@@ -67,5 +63,27 @@ class PlatformNrps
         if ($linkHeader) $response->header(Param::LINK, $linkHeader);
 
         return $response;
+    }
+
+    /**
+     * Laravel has a convenient function to get the access token for us, in the
+     * form of request->bearerToken(). Unfortunately, it does not follow spec
+     * and requires bearer to be case sensitive, e.g. it works with:
+     *   "authorization: Bearer <access token>"
+     * But not with:
+     *   "authorization: bearer <access token>"
+     *
+     * So we have to have our own function to get the access token.
+     */
+    private function getAccessToken()
+    {
+        $authHeader = $this->request->header('authorization');
+        if (!$authHeader) throw new LTIException('Missing authorization header');
+        // make sure we have a bearer token, no matter how it's capitalized
+        $tokenType = substr($authHeader, 0, 6);
+        if (strcasecmp(Param::TOKEN_TYPE_VALUE, $tokenType) != 0)
+            throw new LTIException('Unknown authorization token type: ' .
+                $tokenType);
+        return substr($authHeader, 7);
     }
 }

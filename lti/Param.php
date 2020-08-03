@@ -65,7 +65,7 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
     public const CONTEXT_URI =
         'https://purl.imsglobal.org/spec/lti/claim/context';
-    // lti service oauth token request
+    // LTI service oauth token request
     public const GRANT_TYPE = 'grant_type';
     public const GRANT_TYPE_VALUE = 'client_credentials';
     public const CLIENT_ASSERTION = 'client_assertion';
