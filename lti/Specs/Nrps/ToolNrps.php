@@ -35,22 +35,6 @@ class ToolNrps
             $this->nrps->deployment->platform,
             [Param::NRPS_SCOPE_URI]
         );
-        $ownTool = Tool::getOwnTool();
-        $platform = $this->nrps->deployment->platform;
-        $key = $ownTool->keys()->first();
-        $faker = Faker::create();
-        $requestJwt = Build::jws()
-            ->typ(Param::JWT)
-            ->alg(Param::RS256)
-            ->iss($ownTool->iss)
-            ->aud($platform->iss)
-            ->iat() // automatically set issued at time
-            ->exp(time() + 60)
-            ->header(Param::KID, $key->kid)
-        // TODO: real nonce protection
-            ->claim(Param::NONCE, $faker->md5)
-            ->sign($key->key);
-        $params = [Param::JWT => $requestJwt];
 
         $req = Http::withHeaders([
             'Accept' =>

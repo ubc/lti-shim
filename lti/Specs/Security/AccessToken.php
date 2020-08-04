@@ -49,7 +49,7 @@ class AccessToken
         // IETF has a draft spec for JWT access tokens that we're using as guide
         $jwe = Build::jwe() // We build a JWE
             ->typ(Param::AT_JWT)
-            ->iss(config('lti.iss'))
+            ->iss($tool->client_id)
             ->exp($time + self::EXPIRY_TIME)
             ->iat($time)
             ->aud(config('lti.iss'))
