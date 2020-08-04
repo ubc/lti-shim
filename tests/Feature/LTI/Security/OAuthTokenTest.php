@@ -7,10 +7,12 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Symfony\Component\HttpFoundation\Response;
 
 use Jose\Easy\Build;
+use Jose\Easy\JWSBuilder;
 
 use App\Models\EncryptionKey;
 use App\Models\Tool;
 
+use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\Security\AccessToken;
 
 use Tests\TestCase;
@@ -43,7 +45,20 @@ class OAuthTokenTest extends TestCase
         ];
     }
 
-    private function getRequestJwt(string $jti='JWT Token Identifier'): string
+    /**
+     * Request JWT building has been split up so that I can customize the
+     * timestamps (iat, exp, nbf) used for testing timestamp validation.
+     */
+    private function getRequestJwt(): string
+    {
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat() // automatically set issued at time
+            ->exp(time() + 60);
+        return $this->signJwtBuilder($builder);
+    }
+
+    private function getRequestJwtBuilder(): JWSBuilder
     {
         return Build::jws()
             ->typ('JWT')
@@ -52,10 +67,12 @@ class OAuthTokenTest extends TestCase
             ->sub($this->tool->client_id)
             // the audience is often just the token endpoint url
             ->aud(config('app.url') . $this->baseUrl)
-            ->iat() // automatically set issued at time
-            ->exp(time() + 60)
-            ->jti('JWT Token Identifier')
-            ->sign($this->tool->keys()->first()->key);
+            ->jti('JWT Token Identifier');
+    }
+
+    private function signJwtBuilder(JWSBuilder $builder): string
+    {
+        return $builder->sign($this->tool->keys()->first()->key);
     }
 
     /**
@@ -136,4 +153,131 @@ class OAuthTokenTest extends TestCase
         $resp = $this->post($this->baseUrl, $this->goodParams);
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
+
+    public function testExpiredRequestLeeway()
+    {
+        // just within the leeway
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat()
+            ->exp(time() - JwsUtil::TOKEN_LEEWAY + 1);
+
+        $goodParams = $this->goodParams;
+        $goodParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $goodParams);
+        $resp->assertStatus(Response::HTTP_OK);
+
+        // just out of the leeway
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat()
+            ->exp(time() - JwsUtil::TOKEN_LEEWAY - 1);
+
+        $badParams = $this->goodParams;
+        $badParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $badParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testIssuedAtRequestLeeway()
+    {
+        // just within the leeway
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat(time() + JwsUtil::TOKEN_LEEWAY - 1)
+            ->exp(time() + 60);
+
+        $goodParams = $this->goodParams;
+        $goodParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $goodParams);
+        $resp->assertStatus(Response::HTTP_OK);
+
+        // just out of the leeway
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat(time() + JwsUtil::TOKEN_LEEWAY + 1)
+            ->exp(time() + 60);
+
+        $badParams = $this->goodParams;
+        $badParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $badParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testRequestTooOld()
+    {
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat(time() - JwsUtil::TOKEN_OLD_AGE - 1)
+            ->exp(time() + 60);
+
+        $badParams = $this->goodParams;
+        $badParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $badParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testNotBeforeRequestLeeway()
+    {
+        // just in the leeway
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat(time())
+            ->exp(time() + JwsUtil::TOKEN_LEEWAY)
+            ->nbf(time() + JwsUtil::TOKEN_LEEWAY - 1);
+
+        $goodParams = $this->goodParams;
+        $goodParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $goodParams);
+        $resp->assertStatus(Response::HTTP_OK);
+
+        // just out of the leeway
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat(time())
+            ->exp(time() + JwsUtil::TOKEN_LEEWAY)
+            ->nbf(time() + JwsUtil::TOKEN_LEEWAY + 1);
+
+        $badParams = $this->goodParams;
+        $badParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $badParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testExpIsRequired()
+    {
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat();
+
+        $badParams = $this->goodParams;
+        $badParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $badParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testIatIsRequired()
+    {
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->exp(time() + 60);
+
+        $badParams = $this->goodParams;
+        $badParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $badParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    // TODO: test exp, iat, nbf that are floating point numbers
+    // difficulty is that the JWT framework won't deal with that, and I really
+    // don't want to implement JWT signing myself
 }

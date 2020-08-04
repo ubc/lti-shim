@@ -104,9 +104,22 @@ class AuthRespTest extends TestCase
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
 
-    private function createIdToken(string $nonce)
+    public function testRejectExpiredIdToken()
+    {
+        $nonce = Nonce::create();
+        $this->createIdToken($nonce, true);
+
+        $resp = $this->post($this->baseUrl,
+            ['state' => $this->state, 'id_token' => $this->idToken]);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    private function createIdToken(string $nonce, bool $isExpired=false)
     {
         $time = time();
+        if ($isExpired) {
+            $time -= 3601;
+        }
         $this->idToken = Build::jws()
             ->alg('RS256')
             ->iat($time)

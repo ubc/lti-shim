@@ -32,8 +32,10 @@ class PlatformOAuthToken
         $this->checker = new ParamChecker($request->input());
     }
 
-    // second stage of LTI launch on the platform side, we need to check
-    // the authentication request sent by the tool.
+    /**
+     * Validate the access token request JWT, if it's valid, reply with an
+     * access token.
+     */
     public function processTokenRequest()
     {
         $requiredParams = [
@@ -54,21 +56,26 @@ class PlatformOAuthToken
         $jwsUtil = new JwsUtil($jwtString);
         $kid = $jwsUtil->getKid();
         $clientId = $jwsUtil->getClaim(Param::SUB);
-        // now we know the tool and can verify the JWT
+        // now that we know the tool, we can verify the JWT
         $tool = Tool::firstWhere('client_id', $clientId);
         $jwk = $tool->getKey($kid)->public_key;
         $jwt = Load::jws($jwtString);
+        // Note that we're not validating the iss because the spec is not clear
+        // on what should be in it. The spec could be read two ways, since it's
+        // not clear whether the access token request counts as an LTI message.
+        // Either the iss needs to be the OAuth issuer (not an LTI message) or
+        // it needs to be the OAuth client id (is an LTI message). I've seen it
+        // implemented both ways.
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
-                   ->exp() // We check the "exp" claim
-                   ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
-                   ->iss($tool->iss)
                    ->key($jwk); // Key used to verify the signature
         try {
             // check signature
             $jwt = $jwt->run();
+            JwsUtil::verifyTimestamps($jwt);
             // replay protection based on jti
             $jti = $jwt->claims->jti();
-            Nonce::store($jti, $jwt->claims->exp() - time());
+            Nonce::store($jti,
+                ($jwt->claims->exp() + JwsUtil::TOKEN_LEEWAY) - time());
             if (Nonce::isValid($jti)) Nonce::used($jti);
             else throw new LTIException('Replayed JTI');
             // TODO: verify aud

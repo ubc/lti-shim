@@ -166,14 +166,13 @@ class ToolLaunch
         }
         $jwk = $platform->getKey($kid)->public_key;
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
-                   ->exp() // We check the "exp" claim
-                   ->iat(5000) // We check the "iat" claim. Leeway is 5000ms
                    ->aud($state->claims->get(Param::CLIENT_ID))
                    ->iss($state->claims->get('original_iss'))
                    ->key($jwk); // Key used to verify the signature
         try {
             // check signature
             $jwt = $jwt->run();
+            JwsUtil::verifyTimestamps($jwt);
             // check required claim values
             $requiredValues = [
                 Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
