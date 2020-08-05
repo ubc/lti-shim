@@ -47,14 +47,15 @@ class ToolSeeder extends Seeder
             }'
         ]);
 
-        // insert the lti 1.3 php example tool
+        // insert the ltijs example server
         DB::table('tools')->insert([
-            'name' => 'LTI 1.3 PHP Example Tool',
-            'client_id' => 'StrawberryCat',
-            'oidc_login_url' => 'http://localhost:9001/login.php',
-            'auth_resp_url' => 'http://localhost:9001/game.php',
-            'target_link_uri' => 'http://localhost:9001/game.php',
-            'iss' => 'http://localhost:9001'
+            'name' => 'Ltijs Demo Server',
+            'client_id' => 'CLIENTID',
+            'oidc_login_url' => 'http://localhost:4000/login',
+            'auth_resp_url' => 'http://localhost:4000/',
+            'target_link_uri' => 'http://localhost:4000/',
+            'jwks_url' => 'http://ltijs-demo-server:4000/keys',
+            'iss' => 'http://localhost:4000/'
         ]);
     }
 }
