@@ -11,7 +11,7 @@ git clone --recurse-submodules -b prototype1 https://github.com/ubc/lti-shim.git
 cd lti-shim/
 cp .env.example .env
 cd laradock-lti-shim/
-docker-compose up -d nginx postgres workspace adminer lti-example-tool
+docker-compose up -d nginx postgres workspace adminer ltijs-demo-server
 docker-compose exec -u laradock workspace bash
   workspace$ composer install
   workspace$ artisan key:generate
@@ -34,9 +34,14 @@ docker-compose exec -u laradock workspace bash
   * Username: default
   * Password: secret
   * Database: default
-* LTI 1.3 PHP Example Tool is used for development testing as a target tool.
-  * OIDC login URL: http://localhost:9001/login.php
-  * LTI launch target (target_link_uri): http://localhost:9001/game.php
+* Ltijs Demo Server is used for development testing as a target tool.
+  * OAuth client id: CLIENTID
+  * LTI launch OIDC login URL: http://localhost:4000/login
+  * LTI launch authorization response URL: http://localhost:4000/
+  * LTI launch target (target_link_uri): http://localhost:4000/
+  * JWKS url
+    * inside Laradock: http://ltijs-demo-server:4000/keys
+    * outside Laradock: http://localhost:4000/keys
 
 After the initial setup, you can bring up the containers and access the workspace with just the docker-compose commands.
 
@@ -64,7 +69,7 @@ Test data for development use can be seeded using `artisan db:seed`. This can be
 
 The current seeded data works with this Reference Implemention platform: https://lti-ri.imsglobal.org/platforms/643
 
-It should direct a launch from that RI platform to the LTI example tool brought up locally with docker-compose.
+It should direct a launch from that RI platform to the Ltijs demo server brought up locally with docker-compose.
 
 #### UI Setup
 
@@ -148,7 +153,11 @@ Each implemented spec has their own set of filters. For example, the LTI launch 
 
 * If you're not the first user in the system (i.e.: uid/gid is not 1000/1000). You will have to edit `laradock-lti-shim/.env` and  change WORKSPACE_PUID, WORKSPACE_PGID, PHP_FPM_PUID, and PHP_FPM_PGID to your uid/gid. This is to avoid permission issues with the files created inside docker containers. E.g.: if you `composer install` a library while in the workspace container, the files downloaded by composer will be corrected own by you and not some other user.
 
-* If dependencies seem out of date, `docker-compose build --no-cache nginx postgres workspace adminer`
+* If dependencies seem out of date, you might need to rebuild the relevant docker images while avoiding the docker cache (where the outdated dependencies are stored), so something like: `docker-compose build --no-cache nginx postgres workspace adminer php-fpm`
+
+* If Laradock has issues after an update from upstream Laradock:
+  * You probably need to merge new entries in `env-example` into `.env`
+  * You probably need to rebuild the docker images. Just in case, you should tell docker to attempt to pull newer versions of the images too while building, something like: `docker-compose build --pull nginx postgres workspace adminer php-fpm`
 
 ## Deployment
 
