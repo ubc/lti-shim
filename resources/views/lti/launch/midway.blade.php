@@ -1,18 +1,18 @@
-@extends('layouts.basic')
+@extends('layouts.autosubmitform')
 
 @section('title', 'Midway Transfer Station')
 
 @section('content')
-  <h3>Midway Transfer</h3>
+  <p>Working, please wait...</p>
 
-  <form action='/lti/launch/midway/departure' method='post'>
-      <div class='form-group'>
+  <form action='/lti/launch/midway/departure' method='post' id='autoSubmitForm'>
+      <div>
         <label for='lti_message_hint'>LTI Session Token</label>
-        <input class='form-control' type='text' id='lti_message_hint'
+        <input type='hidden' id='lti_message_hint'
                name='lti_message_hint' value='{{ $lti_message_hint }}' />
       </div>
 
-    <button type='submit' class='btn btn-primary'>
+    <button type='submit'>
       Continue
     </button>
   </form>

@@ -1,19 +1,20 @@
-@extends('layouts.basic')
+@extends('layouts.autosubmitform')
 
 @section('title', 'OIDC Login - Send to Tool')
 
 @section('content')
-  <h3>Login Parameters</h3>
-  <form action='{{ $oidc_login_url }}' method='get'>
+  <p>Working, please wait...</p>
+
+  <form action='{{ $oidc_login_url }}' method='post' id='autoSubmitForm'>
     @foreach ($response as $key => $val)
-      <div class='form-group'>
+      <div>
         <label for='{{ $key }}'>{{ $key }}</label>
-        <input class='form-control' type='text' id='{{ $key }}'
+        <input type='hidden' id='{{ $key }}'
                name='{{ $key }}' value='{{ $val }}' />
       </div>
     @endforeach
 
-    <button type='submit' class='btn btn-primary'>
+    <button type='submit'>
       Send Login
     </button>
   </form>

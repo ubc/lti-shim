@@ -1,25 +1,20 @@
-@extends('layouts.basic')
+@extends('layouts.autosubmitform')
 
 @section('title', 'OIDC Login Complete - Authentication Request')
 
 @section('content')
-  <h3>Login Parameters</h3>
-  <ul>
-    @foreach ($login as $key => $val)
-      <li>{{ $key }}: {{ $val }}</li>
-    @endforeach
-  </ul>
+  <p>Working, please wait...</p>
 
-  <form action='{{ $auth_req_url }}' method='get'>
+  <form action='{{ $auth_req_url }}' method='get' id='autoSubmitForm'>
     @foreach ($response as $key => $val)
-      <div class='form-group'>
+      <div>
         <label for='{{ $key }}'>{{ $key }}</label>
-        <input class='form-control' type='text' id='{{ $key }}'
+        <input type='hidden' id='{{ $key }}'
                name='{{ $key }}' value='{{ $val }}' />
       </div>
     @endforeach
 
-    <button type='submit' class='btn btn-primary'>
+    <button type='submit'>
       Send Authentication Request
     </button>
   </form>
