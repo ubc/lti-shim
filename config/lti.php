@@ -2,7 +2,7 @@
 
 return [
     'iss' => config('app.url'),
-    
+
     // shim's platform information is stored in the database, so we need the id
     'own_platform_id' => 1,
     // shim's tool information is stored in the database, so we need the id
@@ -16,5 +16,5 @@ return [
     'platform_launch_login_path' => '/lti/launch/platform/login',
     'platform_launch_auth_req_path' => '/lti/launch/platform/auth',
     'platform_security_token_path' => '/lti/security/platform/token',
-    'platform_nrps_path' => '/lti/platform/nrps/{nrps}'
+    'platform_nrps_path' => '/lti/nrps/platform/{nrps}'
 ];

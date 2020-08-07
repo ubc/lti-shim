@@ -23,7 +23,7 @@ class NrpsTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 
-    private string $baseUrl = '/lti/platform/nrps/';
+    private string $baseUrl = '/lti/nrps/platform/';
     private string $accessToken;
     private Tool $tool;
     private Platform $platform;
@@ -228,15 +228,15 @@ class NrpsTest extends TestCase
         $resp->assertStatus(Response::HTTP_OK);
         // make sure the link urls were rewritten to shim URLs
         $resp->assertHeader('link',
-            '<http://localhost/lti/platform/nrps/3>; rel="current",<http://localhost/lti/platform/nrps/4>; rel="next",<http://localhost/lti/platform/nrps/3>; rel="first",<http://localhost/lti/platform/nrps/4>; rel="last"');
+            '<http://localhost/lti/nrps/platform/3>; rel="current",<http://localhost/lti/nrps/platform/4>; rel="next",<http://localhost/lti/nrps/platform/3>; rel="first",<http://localhost/lti/nrps/platform/4>; rel="last"');
         // make sure corresponding NRPS entries are in the database
         $actualNrps = Nrps::find(3);
         $this->assertNotEmpty($actualNrps);
-        $this->assertEquals('http://localhost/lti/platform/nrps/3',
+        $this->assertEquals('http://localhost/lti/nrps/platform/3',
             $actualNrps->getShimUrl());
         $actualNrps = Nrps::find(4);
         $this->assertNotEmpty($actualNrps);
-        $this->assertEquals('http://localhost/lti/platform/nrps/4',
+        $this->assertEquals('http://localhost/lti/nrps/platform/4',
             $actualNrps->getShimUrl());
     }
 
