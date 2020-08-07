@@ -17,11 +17,11 @@ use UBC\LTI\Specs\Security\AccessToken;
 
 use Tests\TestCase;
 
-// Tests UBC\LTI\Specs\Security\PlatformOAuthToken
+// Tests UBC\LTI\Specs\Security\PlatformAccessToken
 // LTI service requests are authenticated by an OAuth2 access token. The OAuth2
 // access token needs to be obtained in a separate call. This test is for the
 // end point that gives out the OAuth2 access token.
-class OAuthTokenTest extends TestCase
+class PlatformAccessTokenTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 

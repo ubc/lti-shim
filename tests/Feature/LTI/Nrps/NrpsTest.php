@@ -92,7 +92,7 @@ class NrpsTest extends TestCase
         Http::fake([
             $this->nrps->context_memberships_url =>
                 Http::response($this->fakeNrps),
-            $this->platform->oauth_token_url => Http::response([
+            $this->platform->access_token_url => Http::response([
                 'access_token' => $this->accessToken,
                 'expires_in' => 3600
             ])

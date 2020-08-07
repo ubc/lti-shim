@@ -8,19 +8,19 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
 
 use UBC\LTI\LTIException;
-use UBC\LTI\Specs\Security\PlatformOAuthToken;
+use UBC\LTI\Specs\Security\PlatformAccessToken;
 
-class OAuthTokenController extends Controller
+class AccessTokenController extends Controller
 {
     /**
-     * Handles handing out OAuth tokens for LTI service authentication
+     * Handles handing out OAuth access tokens for LTI service authentication
      *
      * @param Request $request
      *
      */
     public function platformToken(Request $request)
     {
-        $oauthToken = new PlatformOAuthToken($request);
+        $oauthToken = new PlatformAccessToken($request);
         try {
             return $oauthToken->processTokenRequest();
         } catch (LTIException $e) {

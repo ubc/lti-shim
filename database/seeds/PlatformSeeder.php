@@ -18,7 +18,7 @@ class PlatformSeeder extends Seeder
             'auth_req_url' => config('app.url') .
                 config('lti.platform_launch_auth_req_path'),
             'jwks_url' => config('app.url') . config('lti.platform_jwks_path'),
-            'oauth_token_url' => 
+            'access_token_url' =>
                 config('app.url') . config('lti.platform_security_token_path'),
             'shim_client_id' => 'Not used for shim.'
         ]);
@@ -51,7 +51,7 @@ class PlatformSeeder extends Seeder
             'iss' => 'https://lti-ri.imsglobal.org',
             'auth_req_url' => 'https://lti-ri.imsglobal.org/platforms/643/authorizations/new',
             'jwks_url' => 'https://lti-ri.imsglobal.org/platforms/643/platform_keys/656.json',
-            'oauth_token_url' =>
+            'access_token_url' =>
                 'https://lti-ri.imsglobal.org/platforms/643/access_tokens',
             // this is the shim's client_id on the RI platform
             'shim_client_id' => 'StrawberryCat'
@@ -89,7 +89,7 @@ class PlatformSeeder extends Seeder
                 'https://ubc.test.instructure.com/api/lti/authorize',
             'jwks_url' =>
                 'https://ubc.test.instructure.com/api/lti/security/jwks',
-            'oauth_token_url' =>
+            'access_token_url' =>
                 'https://ubc.test.instructure.com/login/oauth2/token',
             // this is the shim's client_id on test canvas
             'shim_client_id' => '112240000000000113'

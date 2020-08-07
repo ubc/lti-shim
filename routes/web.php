@@ -49,7 +49,7 @@ Route::namespace('LTI')->group(function() {
     Route::namespace('Security')->group(function() {
         Route::post(
             config('lti.platform_security_token_path'),
-            'OAuthTokenController@platformToken'
+            'AccessTokenController@platformToken'
         );
     });
     // LTI Names and Role Provisioning Services

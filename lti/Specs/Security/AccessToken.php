@@ -17,7 +17,6 @@ use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\Nonce;
-use UBC\LTI\Specs\Security\PlatformOAuthToken;
 
 class AccessToken
 {
@@ -78,6 +77,7 @@ class AccessToken
             return $jwt;
         }
         catch(\Exception $e) {
+            Log::error("Unable to verify access token.");
             throw new LTIException('Invalid access token: ' . $e->getMessage(),
                                    0, $e);
         }
@@ -107,7 +107,7 @@ class AccessToken
             Param::SCOPE => implode(' ', $scopes)
         ];
         $timeBefore = time();
-        $resp = Http::asForm()->post($platform->oauth_token_url, $params);
+        $resp = Http::asForm()->post($platform->access_token_url, $params);
         $timeTaken = time() - $timeBefore;
 
         if ($resp->failed())
@@ -141,7 +141,7 @@ class AccessToken
     /**
      * Create a unique cache key based on the platform id and the access token
      * scope. Since the key can only be max 255 chars, we can't exactly use
-     * the scope uri as is. PlatformOAuthToken has a list of valid scopes that
+     * the scope uri as is. PlatformAccessToken has a list of valid scopes that
      * we accept, each scope is mapped to an int, we can use that as an id,
      * shortening the scope to fit the character limit.
      *
@@ -173,7 +173,7 @@ class AccessToken
             ->iss($platform->shim_client_id)
             ->sub($platform->shim_client_id)
             // the audience is often just the token endpoint url
-            ->aud($platform->oauth_token_url)
+            ->aud($platform->access_token_url)
             ->iat($time) // automatically set issued at time
             ->exp($time + self::REQUEST_EXPIRY_TIME)
             ->jti(Nonce::create(self::REQUEST_EXPIRY_TIME))

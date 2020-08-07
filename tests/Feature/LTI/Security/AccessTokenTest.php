@@ -31,7 +31,7 @@ class AccessTokenTest extends TestCase
         $this->seed();
         $this->platform = Platform::find(3);
         Http::fake([
-            $this->platform->oauth_token_url =>  Http::response([
+            $this->platform->access_token_url =>  Http::response([
                 'access_token' => self::EXPECTED_ACCESS_TOKEN,
                 'expires_in' => 3600
             ])
@@ -110,7 +110,7 @@ class AccessTokenTest extends TestCase
         // switch platform so we can fake a request with a shorter expiry
         $platform = Platform::find(2);
         Http::fake([
-            $platform->oauth_token_url =>  Http::response([
+            $platform->access_token_url =>  Http::response([
                 'access_token' => self::EXPECTED_ACCESS_TOKEN,
                 'expires_in' => AccessToken::MINIMUM_TOKEN_VALID_TIME - 1
             ])
@@ -133,7 +133,7 @@ class AccessTokenTest extends TestCase
         // switch platform so we can fake a request with a shorter expiry
         $platform = Platform::find(2);
         Http::fake([
-            $platform->oauth_token_url =>  Http::response([
+            $platform->access_token_url =>  Http::response([
                 'access_token' => self::EXPECTED_ACCESS_TOKEN,
                 'expires_in' => "Shouldn'tBeString"
             ])
@@ -152,7 +152,7 @@ class AccessTokenTest extends TestCase
             ->algs(['RS256']) // The algorithms allowed to be used
             ->exp() // We check the "exp" claim
             ->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
-            ->aud($this->platform->oauth_token_url) // Allowed audience
+            ->aud($this->platform->access_token_url) // Allowed audience
             ->sub($this->platform->shim_client_id)
             ->iss($this->platform->shim_client_id) // Allowed issuer
             ->key($key->key) // Key used to verify the signature

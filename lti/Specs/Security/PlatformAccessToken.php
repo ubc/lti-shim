@@ -19,7 +19,7 @@ use UBC\LTI\Specs\Security\Nonce;
 // OAuth2 tokens. This class deals with issuing these tokens. Note that while
 // Laravel Passport also issues client credential tokens, it does not support
 // the JWT authentication method that LTI 1.3 requires.
-class PlatformOAuthToken
+class PlatformAccessToken
 {
     private Request $request; // laravel request object
     private ParamChecker $checker;

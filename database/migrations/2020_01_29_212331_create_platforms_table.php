@@ -32,7 +32,7 @@ class CreatePlatformsTable extends Migration
 
             // These are actually conditionally required fields. If the tool
             // supports LTI services, then they need to be filled in.
-            $table->text('oauth_token_url')->nullable()
+            $table->text('access_token_url')->nullable()
                   ->comment("Where to get OAuth2 token for LTI service calls.");
 
             // using just the standard timestampsTz() to create these pair of
