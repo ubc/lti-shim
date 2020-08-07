@@ -63,7 +63,7 @@ class OAuthTokenTest extends TestCase
         return Build::jws()
             ->typ('JWT')
             ->alg('RS256')
-            ->iss($this->tool->iss)
+            ->iss($this->tool->client_id)
             ->sub($this->tool->client_id)
             // the audience is often just the token endpoint url
             ->aud(config('app.url') . $this->baseUrl)

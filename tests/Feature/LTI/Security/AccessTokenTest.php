@@ -127,7 +127,7 @@ class AccessTokenTest extends TestCase
         $actualToken = AccessToken::request($platform, $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
     }
-    
+
     public function testExpirationNotANumber()
     {
         // switch platform so we can fake a request with a shorter expiry
@@ -153,7 +153,8 @@ class AccessTokenTest extends TestCase
             ->exp() // We check the "exp" claim
             ->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
             ->aud($this->platform->oauth_token_url) // Allowed audience
-            ->iss($shimTool->iss) // Allowed issuer
+            ->sub($this->platform->shim_client_id)
+            ->iss($this->platform->shim_client_id) // Allowed issuer
             ->key($key->key) // Key used to verify the signature
             ->run(); // Go!
         $this->assertNotEmpty($jwt);

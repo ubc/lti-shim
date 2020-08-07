@@ -21,8 +21,7 @@ class ToolSeeder extends Seeder
                 config('lti.tool_launch_auth_resp_path'),
             'target_link_uri' => config('app.url') .
                 config('lti.platform_launch_login_path'),
-            'jwks_url' => config('app.url') . config('lti.tool_jwks_path'),
-            'iss' => config('lti.iss')
+            'jwks_url' => config('app.url') . config('lti.tool_jwks_path')
         ]);
         DB::table('tool_keys')->insert([
             'kid' => 'MyDummyKey',
@@ -54,8 +53,18 @@ class ToolSeeder extends Seeder
             'oidc_login_url' => 'http://localhost:4000/login',
             'auth_resp_url' => 'http://localhost:4000/',
             'target_link_uri' => 'http://localhost:4000/',
-            'jwks_url' => 'http://ltijs-demo-server:4000/keys',
-            'iss' => 'http://localhost:4000/'
+            'jwks_url' => 'http://ltijs-demo-server:4000/keys'
         ]);
+
+        // insert the lti reference implementation tool
+        DB::table('tools')->insert([
+            'name' => 'LTI Reference Implementation Tool',
+            'client_id' => 'StrawberryCat',
+            'oidc_login_url' => 'https://lti-ri.imsglobal.org/lti/tools/716/login_initiations ',
+            'auth_resp_url' => 'https://lti-ri.imsglobal.org/lti/tools/716/launches',
+            'target_link_uri' => 'https://lti-ri.imsglobal.org/lti/tools/716/launches',
+            'jwks_url' => 'https://lti-ri.imsglobal.org/lti/tools/716/.well-known/jwks.json'
+        ]);
+
     }
 }

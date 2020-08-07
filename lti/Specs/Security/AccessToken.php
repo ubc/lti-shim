@@ -170,7 +170,7 @@ class AccessToken
         return Build::jws()
             ->typ(Param::JWT)
             ->alg(Param::RS256)
-            ->iss($ownTool->iss)
+            ->iss($platform->shim_client_id)
             ->sub($platform->shim_client_id)
             // the audience is often just the token endpoint url
             ->aud($platform->oauth_token_url)

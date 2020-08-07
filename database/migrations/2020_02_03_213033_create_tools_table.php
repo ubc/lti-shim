@@ -28,11 +28,6 @@ class CreateToolsTable extends Migration
             $table->text('jwks_url')->nullable()
                   ->comment("Where to get the tool's public keys.");
 
-            // These are actually conditionally required fields. If the tool
-            // supports LTI services, then they need to be filled in.
-            $table->text('iss')->nullable()
-                  ->comment("OAuth issuer, usually just the tool's URL.");
-
             // using just the standard timestampsTz() to create these pair of
             // timestamps doesn't give them database defaults
             $table->timestampTz('created_at')->useCurrent();
