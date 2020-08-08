@@ -35,12 +35,14 @@ class PlatformController extends Controller
             'iss' => ['required', 'string', 'unique:platforms'],
             'auth_req_url' => ['required', 'string', 'url'],
             'jwks_url' => ['string', 'url', 'nullable'],
+            'clients' => ['array'],
             'keys' => ['array'],
-            'shim_client_id' => ['required', 'string', 'max:255'],
+            'clients.*.client_id' => ['required', 'string', 'max:255'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
         ]);
         $platform = Platform::create($newPlatform);
+        $platform->clients()->createMany($newPlatform['clients']);
         $platform->keys()->createMany($newPlatform['keys']);
         return $this->show($platform->id);
     }
@@ -72,8 +74,9 @@ class PlatformController extends Controller
                 Rule::unique('platforms')->ignore($platform)],
             'auth_req_url' => ['required', 'string', 'url'],
             'jwks_url' => ['string', 'url', 'nullable'],
+            'clients' => ['array'],
             'keys' => ['array'],
-            'shim_client_id' => ['required', 'string', 'max:255'],
+            'clients.*.client_id' => ['required', 'string', 'max:255'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
         ]);

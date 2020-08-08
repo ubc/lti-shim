@@ -13,6 +13,7 @@ use Tests\TestCase;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\Platform;
+use App\Models\PlatformClient;
 use App\Models\Tool;
 
 use UBC\LTI\Specs\Security\Nonce;
@@ -29,6 +30,7 @@ class AuthRespTest extends TestCase
 
     private Deployment $deployment;
     private Platform $targetPlatform;
+    private PlatformClient $client;
     private Tool $tool;
 
     protected function setUp(): void
@@ -37,6 +39,7 @@ class AuthRespTest extends TestCase
         // known good request
         $this->tool = factory(Tool::class)->create(['id' => 2]);
         $this->targetPlatform = factory(Platform::class)->create();
+        $this->client = $this->targetPlatform->clients()->first();
         $encryptionKey = factory(EncryptionKey::class)->create();
         $this->deployment = factory(Deployment::class)->create([
             'platform_id' => $this->targetPlatform->id
@@ -50,7 +53,7 @@ class AuthRespTest extends TestCase
             ->iat($time)
             ->exp($time + 3600)
             ->claim('original_iss', $this->targetPlatform->iss)
-            ->claim('client_id', $this->targetPlatform->shim_client_id)
+            ->claim('client_id', $this->client->client_id)
             ->claim('login_hint', $this->loginHint)
             ->encrypt($encryptionKey->public_key);
     }
@@ -125,7 +128,7 @@ class AuthRespTest extends TestCase
             ->iat($time)
             ->exp($time + 3600)
             ->iss($this->targetPlatform->iss)
-            ->aud($this->targetPlatform->shim_client_id)
+            ->aud($this->client->client_id)
             ->sub($this->loginHint)
             ->claim('nonce', $nonce)
             ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
