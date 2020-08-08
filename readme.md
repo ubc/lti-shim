@@ -159,6 +159,8 @@ Each implemented spec has their own set of filters. For example, the LTI launch 
   * You probably need to merge new entries in `env-example` into `.env`
   * You probably need to rebuild the docker images. Just in case, you should tell docker to attempt to pull newer versions of the images too while building, something like: `docker-compose build --pull nginx postgres workspace adminer php-fpm`
 
+* If you just added a class, e.g. a database seeder, and composer complains its missing/autoloader doesn't seem to pick it up, you might need to regenerate the autoloader: `composer dump-autoload`
+
 ## Deployment
 
 It would be advisable to run `artisan key:generate` to generate a different `APP_KEY` from development.

@@ -1,5 +1,6 @@
 <?php
-namespace Tests\Features\LTI\Security;
+
+namespace Tests\Feature\LTI\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -7,13 +8,13 @@ use Illuminate\Support\Facades\Http;
 
 use Jose\Easy\Load;
 
-use Tests\TestCase;
-
 use App\Models\Tool;
 use App\Models\Platform;
 
 use UBC\LTI\LTIException;
 use UBC\LTI\Specs\Security\AccessToken;
+
+use Tests\TestCase;
 
 class AccessTokenTest extends TestCase
 {

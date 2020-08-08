@@ -1,5 +1,5 @@
 <?php
-namespace Tests\Features\LTI\Security;
+namespace Tests\Feature\LTI\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,8 +17,8 @@ class JwksTest extends TestCase
 
     public function testPlatformJwks()
     {
-		$baseUrl = '/lti/platform/jwks';
-        // the factory should've created at least 1 key 
+        $baseUrl = '/lti/platform/jwks';
+        // the factory should've created at least 1 key
         $myPlatform = factory(Platform::class)->create(['id' => 1]);
         $keys = $myPlatform->keys;
         $expectedJson = ['keys' => []];
@@ -38,8 +38,8 @@ class JwksTest extends TestCase
 
     public function testToolJwks()
     {
-		$baseUrl = '/lti/tool/jwks';
-        // the factory should've created at least 1 key 
+        $baseUrl = '/lti/tool/jwks';
+        // the factory should've created at least 1 key
         $myTool = factory(Tool::class)->create(['id' => 1]);
         $keys = $myTool->keys;
         $expectedJson = ['keys' => []];
