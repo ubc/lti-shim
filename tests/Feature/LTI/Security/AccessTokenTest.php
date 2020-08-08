@@ -147,14 +147,15 @@ class AccessTokenTest extends TestCase
     {
         $shimTool = Tool::getOwnTool();
         $key = $shimTool->keys()->first();
+        $clientId = $this->platform->clients()->first()->client_id;
 
         $jwt = Load::jws($token)
             ->algs(['RS256']) // The algorithms allowed to be used
             ->exp() // We check the "exp" claim
             ->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
             ->aud($this->platform->access_token_url) // Allowed audience
-            ->sub($this->platform->shim_client_id)
-            ->iss($this->platform->shim_client_id) // Allowed issuer
+            ->sub($clientId)
+            ->iss($clientId) // Allowed issuer
             ->key($key->key) // Key used to verify the signature
             ->run(); // Go!
         $this->assertNotEmpty($jwt);

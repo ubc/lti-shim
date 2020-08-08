@@ -167,11 +167,12 @@ class AccessToken
         $ownTool = Tool::getOwnTool();
         $key = $ownTool->keys()->first();
         $time = time();
+        $clientId = $platform->clients()->first()->client_id;
         return Build::jws()
             ->typ(Param::JWT)
             ->alg(Param::RS256)
-            ->iss($platform->shim_client_id)
-            ->sub($platform->shim_client_id)
+            ->iss($clientId)
+            ->sub($clientId)
             // the audience is often just the token endpoint url
             ->aud($platform->access_token_url)
             ->iat($time) // automatically set issued at time
