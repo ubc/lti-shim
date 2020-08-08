@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(PlatformSeeder::class);
         $this->call(ToolSeeder::class);
+        $this->call(PlatformClientSeeder::class);
         $this->call(EncryptionKeySeeder::class);
         $this->call(UserSeeder::class);
     }

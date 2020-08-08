@@ -18,6 +18,16 @@ class Tool extends AbstractLtiService
         return $this->hasMany('App\Models\ToolKey');
     }
 
+    public function clients()
+    {
+        return $this->hasMany('App\Models\PlatformClient');
+    }
+
+    public function getPlatformClient(int $platformId)
+    {
+        return $this->clients()->firstWhere('platform_id', $platformId);
+    }
+
     public function updateWithRelations($info)
     {
         $this->update($info);

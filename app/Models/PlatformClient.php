@@ -12,4 +12,9 @@ class PlatformClient extends Model
     {
         return $this->belongsTo('App\Models\Platform');
     }
+
+    public function tool()
+    {
+        return $this->belongsTo('App\Models\Tool');
+    }
 }

@@ -19,13 +19,7 @@ $factory->define(Platform::class, function (Faker $faker) {
 $factory->afterCreating(
     Platform::class,
     function($platform, Faker $faker) {
-        // each platform also needs a registered client
-        $platform->clients()
-                 ->save(
-                     factory(PlatformClient::class)
-                         ->create(['platform_id' => $platform->id])
-                 );
-        // each platform also needs a public key
+        // each platform needs a public key
         $platform->keys()
                  ->save(
                      factory(PlatformKey::class)

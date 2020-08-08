@@ -28,6 +28,11 @@ class Platform extends AbstractLtiService
         return $this->hasMany('App\Models\PlatformKey');
     }
 
+    public function getPlatformClient(string $clientId)
+    {
+        return $this->clients()->firstWhere('client_id', $clientId);
+    }
+
     public function updateWithRelations($info)
     {
         $this->update($info);
@@ -47,7 +52,7 @@ class Platform extends AbstractLtiService
     }
 
     // get the shim's platform entry
-    public static function getOwnPlatform(): Platform
+    public static function getOwnPlatform(): self
     {
         $platform = self::find(config('lti.own_platform_id'));
         if (!$platform) {

@@ -54,11 +54,6 @@ class PlatformSeeder extends Seeder
                 'https://lti-ri.imsglobal.org/platforms/643/access_tokens'
             // this is the shim's client_id on the RI platform
         ]);
-        // this is the shim's client_id on the RI platform
-        DB::table('platform_clients')->insert([
-            'platform_id' => 2,
-            'client_id' => 'StrawberryCat'
-        ]);
         // this is the RI platform's public key
         DB::table('platform_keys')->insert([
             'kid' => 'FakeKeyID',
@@ -94,11 +89,6 @@ class PlatformSeeder extends Seeder
                 'https://ubc.test.instructure.com/api/lti/security/jwks',
             'access_token_url' =>
                 'https://ubc.test.instructure.com/login/oauth2/token'
-        ]);
-        // this is the shim's client_id on test canvas
-        DB::table('platform_clients')->insert([
-            'platform_id' => 3,
-            'client_id' => '112240000000000113'
         ]);
     }
 }
