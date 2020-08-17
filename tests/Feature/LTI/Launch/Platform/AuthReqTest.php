@@ -14,6 +14,7 @@ use App\Models\LtiSession;
 use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\Platform;
+use App\Models\PlatformClient;
 use App\Models\Tool;
 
 use Tests\TestCase;
@@ -30,11 +31,15 @@ class AuthReqTest extends TestCase
      */
     public function testCheckAuthRequest()
     {
-		$baseUrl = '/lti/launch/platform/auth';
+        $baseUrl = '/lti/launch/platform/auth';
         // known good request
         $tool = factory(Tool::class)->create();
         $shimPlatform = factory(Platform::class)->create(['id' => 1]);
         $platform = factory(Platform::class)->create(['id' => 2]);
+        $platformClient = factory(PlatformClient::class)->create([
+            'platform_id' => $platform->id,
+            'tool_id' => $tool->id
+        ]);
         $encryptionKey = factory(EncryptionKey::class)->create();
         $deployment = factory(Deployment::class)->create([
             'platform_id' => $shimPlatform->id

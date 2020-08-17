@@ -51,6 +51,18 @@ class Platform extends AbstractLtiService
         $this->keys()->createMany($new);
     }
 
+    public static function getAllEditable(): Collection
+    {
+        // we don't want users to be able to edit the shim's own platform
+        // configuration, so exclude it
+        return self::where('id', '!=', config('lti.own_platform_id'))->get();
+    }
+
+    public static function getByIss(string $iss): self
+    {
+        return self::firstWhere('iss', $iss);
+    }
+
     // get the shim's platform entry
     public static function getOwnPlatform(): self
     {
@@ -60,12 +72,5 @@ class Platform extends AbstractLtiService
                 "Missing own platform information, did you seed the database?");
         }
         return $platform;
-    }
-
-    public static function getAllEditable(): Collection
-    {
-        // we don't want users to be able to edit the shim's own platform
-        // configuration, so exclude it
-        return self::where('id', '!=', config('lti.own_platform_id'))->get();
     }
 }

@@ -28,6 +28,8 @@ use UBC\LTI\Specs\Security\Nonce;
 // and get the appropriate response params back
 class ToolLaunch
 {
+    public const PLATFORM_CLIENT_ID_PARAM = 'platform_client_id';
+
     private Request $request; // laravel request object
     private ParamChecker $checker;
 
@@ -52,7 +54,7 @@ class ToolLaunch
 
         // check that the request is coming from a platform we know
         $iss = $this->request->input(Param::ISS);
-        $platform = Platform::firstWhere('iss', $iss);
+        $platform = Platform::getByIss($iss);
         if (!$platform) throw new LTIException("Unknown platform iss: $iss");
         // make sure that target_link_uri is pointing to us
         $target = $this->request->input(Param::TARGET_LINK_URI);
@@ -78,21 +80,31 @@ class ToolLaunch
             Param::PROMPT => Param::NONE,
             Param::REDIRECT_URI => $ownTool->auth_resp_url
         ];
-        // client_id is either given in the request or stored in the database
+
         $iss = $this->request->input(Param::ISS);
-        $platform = Platform::firstWhere('iss', $iss);
+        $platform = Platform::getByIss($iss);
+
+        // Get the client_id for the response. To do that, we need to figure
+        // out what tool is being targetted so we can get that tool's client_id
+        // on the given platform. There's two ways to do this:
+        // 1. get the target tool by the optional OIDC param client_id, if given
+        // 2. get the target tool by unique target_link_uri
+        $clientId = '';
+        $platformClient = null;
         if ($this->request->filled(Param::CLIENT_ID)) {
-            // client_id is in request, just forward it
-            $resp[Param::CLIENT_ID] = $this->request->input(Param::CLIENT_ID);
-            // TODO: if this is an unknown client_id, should we add it to the
-            // list of known client_id?
-        } else {
-            // client_id not in request, so retrieve from database
-            $client = PlatformClient::firstWhere('platform_id', $platform->id);
-            if (!$client) throw new LTIException("No client_id found for $iss");
-            $resp[Param::CLIENT_ID] = $client->client_id;
+            $platformClient = $platform->getPlatformClient(
+                $this->request->input(Param::CLIENT_ID));
         }
-        // lti_message_hint needs to be passed as is back to the platform
+        else {
+            $targetLinkUri = $this->request->input(Param::TARGET_LINK_URI);
+            $targetTool = Tool::getByTargetLinkUri($targetLinkUri);
+            if (!$targetTool) throw new LTIException('Unknown target tool');
+            $platformClient = $targetTool->getPlatformClient($platform->id);
+        }
+        if (!$platformClient) throw new LTIException('Unregistered client');
+        $resp[Param::CLIENT_ID] = $platformClient->client_id;
+
+        // lti_message_hint needs to be passed back as is to the platform
         if ($this->request->filled(Param::LTI_MESSAGE_HINT)) {
             $resp[Param::LTI_MESSAGE_HINT] =
                 $this->request->input(Param::LTI_MESSAGE_HINT);
@@ -101,7 +113,7 @@ class ToolLaunch
         // storing values into state reduces the amount of bookkeeping we need
         // to do on our side, so I'm putting values that requires verification
         // against the id_token into the state.
-        $resp[Param::STATE] = $this->createState();
+        $resp[Param::STATE] = $this->createState($platformClient->id);
 
         $resp[Param::NONCE] = Nonce::create();
 
@@ -118,13 +130,13 @@ class ToolLaunch
         ];
         $this->checker->requireParams($requiredParams);
         $state = $this->processState($this->request->input(Param::STATE));
-        $platform = Platform::firstWhere('iss',
-                                         $state->claims->get('original_iss'));
+        $platformClient = PlatformClient::find(
+            $state->claims->get(self::PLATFORM_CLIENT_ID_PARAM));
+        $platform = $platformClient->platform;
+        $tool = $platformClient->tool;
+
         $idToken = $this->processIdToken($this->request->input(Param::ID_TOKEN),
-                                         $state, $platform);
-        $toolId = $idToken->claims ->get(Param::CUSTOM_URI)['target_tool_id'];
-        $tool = Tool::find($toolId);
-        if (!$tool) throw new LTIException("Unknown target tool id: $toolId");
+                                         $state, $platformClient);
         $deployment = Deployment::firstOrCreate(
             [
                 'lti_deployment_id' => $idToken->claims
@@ -156,7 +168,7 @@ class ToolLaunch
     private function processIdToken(
         string $token,
         JWT $state,
-        Platform $platform
+        PlatformClient $platformClient
     ): JWT {
         $jwt;
         $kid = '';
@@ -167,10 +179,10 @@ class ToolLaunch
         } catch(InvalidArgumentException $e) {
             throw new LTIException('id_token invalid: ', 0, $e);
         }
-        $jwk = $platform->getKey($kid)->public_key;
+        $jwk = $platformClient->platform->getKey($kid)->public_key;
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
-                   ->aud($state->claims->get(Param::CLIENT_ID))
-                   ->iss($state->claims->get('original_iss'))
+                   ->aud($platformClient->client_id)
+                   ->iss($platformClient->platform->iss)
                    ->key($jwk); // Key used to verify the signature
         try {
             // check signature
@@ -218,11 +230,10 @@ class ToolLaunch
     }
 
     // create an encrypted JWT storing params that we expect to see in id_token
-    private function createState(): string
+    private function createState(int $platformClientId): string
     {
         $claims = [
-            'original_iss' => $this->request->input(Param::ISS),
-            Param::CLIENT_ID => $this->request->input(Param::CLIENT_ID),
+            self::PLATFORM_CLIENT_ID_PARAM => $platformClientId,
             Param::LOGIN_HINT => $this->request->input(Param::LOGIN_HINT)
         ];
         if ($this->request->has(Param::LTI_DEPLOYMENT_ID)) {

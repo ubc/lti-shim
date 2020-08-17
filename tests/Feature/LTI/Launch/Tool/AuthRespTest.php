@@ -29,20 +29,21 @@ class AuthRespTest extends TestCase
     private string $loginHint = 'someLoginHint';
 
     private Deployment $deployment;
-    private Platform $targetPlatform;
+    private Platform $platform;
     private PlatformClient $client;
     private Tool $tool;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed();
         // known good request
-        $this->tool = factory(Tool::class)->create(['id' => 2]);
-        $this->targetPlatform = factory(Platform::class)->create();
-        $this->client = $this->targetPlatform->clients()->first();
+        $this->tool = Tool::find(2);
+        $this->platform = Platform::find(2);
+        $this->client = $this->tool->getPlatformClient($this->platform->id);
         $encryptionKey = factory(EncryptionKey::class)->create();
         $this->deployment = factory(Deployment::class)->create([
-            'platform_id' => $this->targetPlatform->id
+            'platform_id' => $this->platform->id
         ]);
         $this->createIdToken(Nonce::create());
         $time = time();
@@ -52,8 +53,7 @@ class AuthRespTest extends TestCase
             ->nbf($time)
             ->iat($time)
             ->exp($time + 3600)
-            ->claim('original_iss', $this->targetPlatform->iss)
-            ->claim('client_id', $this->client->client_id)
+            ->claim('platform_client_id', $this->client->id)
             ->claim('login_hint', $this->loginHint)
             ->encrypt($encryptionKey->public_key);
     }
@@ -127,7 +127,7 @@ class AuthRespTest extends TestCase
             ->alg('RS256')
             ->iat($time)
             ->exp($time + 3600)
-            ->iss($this->targetPlatform->iss)
+            ->iss($this->platform->iss)
             ->aud($this->client->client_id)
             ->sub($this->loginHint)
             ->claim('nonce', $nonce)
@@ -145,6 +145,6 @@ class AuthRespTest extends TestCase
                ['http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'])
             ->claim('https://purl.imsglobal.org/spec/lti/claim/custom',
                     ['target_tool_id' => $this->tool->id])
-            ->sign($this->targetPlatform->getKey()->key);
+            ->sign($this->platform->getKey()->key);
     }
 }
