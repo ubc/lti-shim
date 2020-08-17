@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Http;
 
 use Jose\Easy\Load;
 
-use App\Models\Tool;
 use App\Models\Platform;
+use App\Models\PlatformClient;
+use App\Models\Tool;
 
 use UBC\LTI\LTIException;
 use UBC\LTI\Specs\Security\AccessToken;
@@ -23,6 +24,7 @@ class AccessTokenTest extends TestCase
     private const EXPECTED_ACCESS_TOKEN = 'SomeExpectedAccessToken';
 
     private Platform $platform;
+    private Tool $tool;
     private array $scopes = [
         'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly'
     ];
@@ -31,6 +33,7 @@ class AccessTokenTest extends TestCase
         parent::setUp();
         $this->seed();
         $this->platform = Platform::find(3);
+        $this->tool = Tool::find(2);
         Http::fake([
             $this->platform->access_token_url =>  Http::response([
                 'access_token' => self::EXPECTED_ACCESS_TOKEN,
@@ -41,7 +44,7 @@ class AccessTokenTest extends TestCase
 
     public function testRequestAccessToken()
     {
-        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $actualToken = AccessToken::request($this->platform, $this->tool, $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         Http::assertSent(function ($request) {
             // required to be a form post request
@@ -65,13 +68,14 @@ class AccessTokenTest extends TestCase
     public function testRequestAccessTokenFailsWithEmptyScope()
     {
         $this->expectException(LTIException::class);
-        AccessToken::request($this->platform, []);
+        AccessToken::request($this->platform, $this->tool, []);
     }
 
     public function testAccessTokenIsCached()
     {
         // this should store the token into cache
-        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $actualToken = AccessToken::request($this->platform, $this->tool,
+                                            $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // modify the token stored in cache
         $expectedToken = self::EXPECTED_ACCESS_TOKEN . "NowModified";
@@ -79,14 +83,16 @@ class AccessTokenTest extends TestCase
             'value' => serialize($expectedToken)
         ]);
         // this should retrieve the now modified token from cache
-        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $actualToken = AccessToken::request($this->platform, $this->tool,
+                                            $this->scopes);
         $this->assertEquals($expectedToken, $actualToken);
     }
 
     public function testRefreshExpiredTokens()
     {
         // this should store the token into cache
-        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $actualToken = AccessToken::request($this->platform, $this->tool,
+                                            $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // expire the cached token and change its value
         $expectedToken = self::EXPECTED_ACCESS_TOKEN . "NowModified";
@@ -95,14 +101,16 @@ class AccessTokenTest extends TestCase
             'expiration' => time() - 5
         ]);
         // the token shouldn't the one from cache
-        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $actualToken = AccessToken::request($this->platform, $this->tool,
+                                            $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // change the cached token again, this time we expect it to get the
         // the cached token
         $nonceResult = DB::table('cache_access_tokens')->update([
             'value' => serialize($expectedToken),
         ]);
-        $actualToken = AccessToken::request($this->platform, $this->scopes);
+        $actualToken = AccessToken::request($this->platform, $this->tool,
+                                            $this->scopes);
         $this->assertEquals($expectedToken, $actualToken);
     }
 
@@ -117,7 +125,8 @@ class AccessTokenTest extends TestCase
             ])
         ]);
         // hopefully doesn't store the token into cache
-        $actualToken = AccessToken::request($platform, $this->scopes);
+        $actualToken = AccessToken::request($platform, $this->tool,
+                                            $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // modify all tokens stored in cache
         $expectedToken = self::EXPECTED_ACCESS_TOKEN . "NowModified";
@@ -125,7 +134,8 @@ class AccessTokenTest extends TestCase
             'value' => serialize($expectedToken)
         ]);
         // this should still retrieve the unmodified token
-        $actualToken = AccessToken::request($platform, $this->scopes);
+        $actualToken = AccessToken::request($platform, $this->tool,
+                                            $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
     }
 
@@ -141,22 +151,32 @@ class AccessTokenTest extends TestCase
         ]);
         $this->expectException(LTIException::class);
         // hopefully doesn't store the token into cache
-        AccessToken::request($platform, $this->scopes);
+        AccessToken::request($platform, $this->tool, $this->scopes);
+    }
+
+    public function testRejectUnregisteredTool()
+    {
+        $badTool = factory(Tool::class)->create();
+        $this->expectException(LTIException::class);
+        AccessToken::request($this->platform, $badTool, $this->scopes);
     }
 
     private function validateRequestJwt($token)
     {
         $shimTool = Tool::getOwnTool();
         $key = $shimTool->keys()->first();
-        $clientId = $this->platform->clients()->first()->client_id;
+        $platformClient = PlatformClient::firstWhere([
+            'tool_id' => $this->tool->id,
+            'platform_id' => $this->platform->id
+        ]);
 
         $jwt = Load::jws($token)
             ->algs(['RS256']) // The algorithms allowed to be used
             ->exp() // We check the "exp" claim
             ->iat(1000) // We check the "iat" claim. Leeway is 1000ms (1s)
             ->aud($this->platform->access_token_url) // Allowed audience
-            ->sub($clientId)
-            ->iss($clientId) // Allowed issuer
+            ->sub($platformClient->client_id)
+            ->iss($platformClient->client_id) // Allowed issuer
             ->key($key->key) // Key used to verify the signature
             ->run(); // Go!
         $this->assertNotEmpty($jwt);

@@ -39,7 +39,7 @@ class NrpsTest extends TestCase
         parent::setUp();
         // setup the database
         $this->seed();
-        $this->tool = Tool::find(2); // php test tool
+        $this->tool = Tool::find(2);
         $this->platform = Platform::find(3); // canvas test
         $this->deployment = factory(Deployment::class)->create([
             'platform_id' => $this->platform->id

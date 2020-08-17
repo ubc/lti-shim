@@ -88,8 +88,11 @@ class AccessToken
      * access token so that we don't have to send an access token request for
      * every service call.
      */
-    public static function request(Platform $platform, array $scopes): string
-    {
+    public static function request(
+        Platform $platform,
+        Tool $tool,
+        array $scopes
+    ): string {
         self::checkScopes($scopes);
 
         // see if we can get from cache
@@ -99,7 +102,7 @@ class AccessToken
         if ($token) return $token;
 
         // not in cache, request an access token
-        $requestJwt = self::getRequestJwt($platform, $scopes);
+        $requestJwt = self::getRequestJwt($platform, $tool, $scopes);
         $params = [
             Param::GRANT_TYPE => Param::GRANT_TYPE_VALUE,
             Param::CLIENT_ASSERTION_TYPE => Param::CLIENT_ASSERTION_TYPE_VALUE,
@@ -162,17 +165,19 @@ class AccessToken
      */
     private static function getRequestJwt(
         Platform $platform,
+        Tool $tool,
         array $scopes
     ): string {
         $ownTool = Tool::getOwnTool();
         $key = $ownTool->keys()->first();
         $time = time();
-        $clientId = $platform->clients()->first()->client_id;
+        $platformClient = $tool->getPlatformClient($platform->id);
+        if (!$platformClient) throw new LTIException('Unregistered client');
         return Build::jws()
             ->typ(Param::JWT)
             ->alg(Param::RS256)
-            ->iss($clientId)
-            ->sub($clientId)
+            ->iss($platformClient->client_id)
+            ->sub($platformClient->client_id)
             // the audience is often just the token endpoint url
             ->aud($platform->access_token_url)
             ->iat($time) // automatically set issued at time

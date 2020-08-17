@@ -33,6 +33,7 @@ class ToolNrps
     {
         $accessToken = AccessToken::request(
             $this->nrps->deployment->platform,
+            $this->nrps->tool,
             [Param::NRPS_SCOPE_URI]
         );
 
