@@ -45,16 +45,17 @@ class AuthRespTest extends TestCase
         $realUser = factory(LtiRealUser::class)->create([
             'platform_id' => $platform->id
         ]);
+        $courseContext = factory(CourseContext::class)->create([
+            'deployment_id' => $deployment->id,
+            'tool_id' => $tool->id
+        ]);
         $fakeUser = factory(LtiFakeUser::class)->create([
             'lti_real_user_id' => $realUser->id,
+            'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id
         ]);
         $resourceLink = factory(ResourceLink::class)->create([
             'deployment_id' => $deployment->id
-        ]);
-        $courseContext = factory(CourseContext::class)->create([
-            'deployment_id' => $deployment->id,
-            'tool_id' => $tool->id
         ]);
         // prepare session
         $ltiSession = factory(LtiSession::class)->create([
@@ -69,6 +70,7 @@ class AuthRespTest extends TestCase
                 'email' => $realUser->email
             ],
             'lti_real_user_id' => $realUser->id,
+            'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id,
             'deployment_id' => $deployment->id,
         ]);

@@ -61,15 +61,20 @@ class CreateLtiUsersTable extends Migration
             $table->unsignedBigInteger('lti_real_user_id');
             $table->foreign('lti_real_user_id')->references('id')
                   ->on('lti_real_users')->onDelete('cascade');
-            // user should have a different fake id on every tool
+            // user should have a different fake id on every tool, and every
+            // course in every tool
             $table->unsignedBigInteger('tool_id');
             $table->foreign('tool_id')->references('id')->on('tools')
                   ->onDelete('cascade');
+            $table->unsignedBigInteger('course_context_id');
+            $table->foreign('course_context_id')->references('id')
+                  ->on('course_contexts')->onDelete('cascade');
 
             // we're going to do a lot of lookups via these
-            $table->unique(['lti_real_user_id', 'tool_id']);
+            $table->unique(['lti_real_user_id', 'tool_id',
+                            'course_context_id']);
             // prevent duplicates
-            $table->unique(['sub', 'tool_id']);
+            $table->unique(['sub', 'tool_id', 'course_context_id']);
 
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();

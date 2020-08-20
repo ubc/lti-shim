@@ -21,9 +21,15 @@ class CreateLtiSessionsTable extends Migration
             $table->unsignedBigInteger('deployment_id');
             $table->foreign('deployment_id')->references('id')
                   ->on('deployments')->onDelete('cascade');
+
             $table->unsignedBigInteger('tool_id');
             $table->foreign('tool_id')->references('id')->on('tools')
                   ->onDelete('cascade');
+
+            $table->unsignedBigInteger('course_context_id');
+            $table->foreign('course_context_id')->references('id')
+                  ->on('course_contexts')->onDelete('cascade');
+
             $table->unsignedBigInteger('lti_real_user_id');
             $table->foreign('lti_real_user_id')->references('id')
                   ->on('lti_real_users')->onDelete('cascade');

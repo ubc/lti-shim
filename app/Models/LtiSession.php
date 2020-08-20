@@ -30,6 +30,10 @@ class LtiSession extends Model
         return $ltiSession;
     }
 
+    public function course_context()
+    {
+        return $this->belongsTo('App\Models\CourseContext');
+    }
     public function deployment()
     {
         return $this->belongsTo('App\Models\Deployment');

@@ -9,6 +9,7 @@ use Jose\Easy\Build;
 use Jose\Easy\JWT;
 use Jose\Easy\Load;
 
+use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\LtiSession;
 use App\Models\LtiRealUser;
@@ -20,6 +21,7 @@ use UBC\LTI\EncryptedState;
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\JwsUtil;
+use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\Nonce;
 
@@ -149,11 +151,18 @@ class ToolLaunch
             $state->claims->get(Param::LOGIN_HINT),
             $idToken->claims->all()
         );
+        $courseId = CourseContextFilter::getContextId($idToken->claims->all());
+        $courseContext = CourseContext::createOrGet(
+            $deployment->id,
+            $tool->id,
+            $courseId
+        );
         // persist the session in the database
         $ltiSession = new LtiSession();
         $ltiSession->deployment_id = $deployment->id;
         $ltiSession->tool_id = $tool->id;
         $ltiSession->lti_real_user_id = $user->id;
+        $ltiSession->course_context_id = $courseContext->id;
         $ltiSession->token = $idToken->claims->all();
         $ltiSession->save();
         // generate the session token to be passed on to the shim's tool side

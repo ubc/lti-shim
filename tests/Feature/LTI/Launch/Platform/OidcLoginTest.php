@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Jose\Easy\Build;
 
+use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiSession;
@@ -30,7 +31,7 @@ class OidcLoginTest extends TestCase
      */
     public function testGetLoginParams()
     {
-		$baseUrl = '/lti/launch/platform/login';
+        $baseUrl = '/lti/launch/platform/login';
         // known good request
         $tool = factory(Tool::class)->create();
         $shimPlatform = factory(Platform::class)->create(['id' => 1]);
@@ -42,8 +43,13 @@ class OidcLoginTest extends TestCase
         $realUser = factory(LtiRealUser::class)->create([
             'platform_id' => $platform->id
         ]);
+        $courseContext = factory(CourseContext::class)->create([
+            'deployment_id' => $deployment->id,
+            'tool_id' => $tool->id
+        ]);
         $fakeUser = factory(LtiFakeUser::class)->create([
             'lti_real_user_id' => $realUser->id,
+            'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id
         ]);
         // prepare session
@@ -53,6 +59,7 @@ class OidcLoginTest extends TestCase
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => []
             ],
             'lti_real_user_id' => $realUser->id,
+            'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id,
             'deployment_id' => $deployment->id,
         ]);

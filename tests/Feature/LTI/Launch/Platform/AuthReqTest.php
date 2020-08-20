@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Jose\Easy\Build;
 
+use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiSession;
@@ -44,11 +45,16 @@ class AuthReqTest extends TestCase
         $deployment = factory(Deployment::class)->create([
             'platform_id' => $shimPlatform->id
         ]);
+        $courseContext = factory(CourseContext::class)->create([
+            'tool_id' => $tool->id,
+            'deployment_id' => $deployment->id
+        ]);
         $realUser = factory(LtiRealUser::class)->create([
             'platform_id' => $platform->id
         ]);
         $fakeUser = factory(LtiFakeUser::class)->create([
             'lti_real_user_id' => $realUser->id,
+            'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id
         ]);
         // prepare session
@@ -60,6 +66,7 @@ class AuthReqTest extends TestCase
                     ['id' => 'resourceLinkId']
             ],
             'lti_real_user_id' => $realUser->id,
+            'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id,
             'deployment_id' => $deployment->id,
         ]);

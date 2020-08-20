@@ -12,8 +12,8 @@ class UserFilter implements FilterInterface
 {
     public function filter(array $params, LtiSession $session): array
     {
-        $fakeUser = LtiFakeUser::getByRealUser($session->tool_id,
-            $session->lti_real_user);
+        $fakeUser = LtiFakeUser::getByRealUser($session->course_context_id,
+            $session->tool_id, $session->lti_real_user);
         if (isset($params[Param::LOGIN_HINT])) {
             $params[Param::LOGIN_HINT] = $fakeUser->login_hint;
         }

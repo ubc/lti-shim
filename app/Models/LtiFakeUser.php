@@ -48,16 +48,19 @@ class LtiFakeUser extends Model
     }
 
     public static function getByRealUser(
+        int $courseContextId,
         int $toolId,
         LtiRealUser $realUser
     ): self {
-        $fakeUsers = self::getByRealUsers($toolId, collect([$realUser]));
+        $fakeUsers = self::getByRealUsers($courseContextId, $toolId,
+                                          collect([$realUser]));
         return $fakeUsers->first();
     }
 
     // Get the fake users associated with the given tool based on the given list
     // of real users. Will create a fake user if they don't exist already.
     public static function getByRealUsers(
+        int $courseContextId,
         int $toolId,
         Collection $realUsers
     ): Collection {
@@ -67,9 +70,8 @@ class LtiFakeUser extends Model
             $realUserIds[] = $realUser->id;
         }
         // get existing users
-        $existingUsers = self::whereIn('lti_real_user_id', $realUserIds)
-                               ->where('tool_id', $toolId)
-                               ->get();
+        $existingUsers = self::getByRealUserIds($courseContextId, $toolId,
+                                                $realUserIds);
         // figure out which real users needs a new fake user
         $existingUserIds = [];
         foreach ($existingUsers as $user)
@@ -83,6 +85,7 @@ class LtiFakeUser extends Model
             foreach ($newUserIds as $newUserId) {
                 $userInfo = [
                     'lti_real_user_id' => $newUserId,
+                    'course_context_id' => $courseContextId,
                     'tool_id' => $toolId,
                     'login_hint' => $faker->uuid,
                     'sub' => $faker->uuid,
@@ -94,17 +97,20 @@ class LtiFakeUser extends Model
             self::insert($newUsersInfo);
             // can't find an easy way to get the bulk inserted rows back,
             // so have to do another query to get the new rows
-            $newUsers = self::getByRealUserIds($toolId, $newUserIds);
+            $newUsers = self::getByRealUserIds($courseContextId, $toolId,
+                                               $newUserIds);
         }
 
         return $existingUsers->merge($newUsers);
     }
 
     public static function getByRealUserIds(
+        int $courseContextId,
         int $toolId,
         array $realUserIds
     ): Collection {
         return self::whereIn('lti_real_user_id', $realUserIds)
+                     ->where('course_context_id', $courseContextId)
                      ->where('tool_id', $toolId)
                      ->get();
     }

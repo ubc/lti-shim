@@ -14,11 +14,11 @@ class CourseContextFilter implements FilterInterface
 {
     public function filter(array $params, LtiSession $session): array
     {
-        // check required fields exist
+        // don't do anything if field doesn't even exist
         if (!isset($params[Param::CONTEXT_URI])) return $params;
-        if (!isset($params[Param::CONTEXT_URI]['id'])) {
-            Log::error('Course context missing missing required id: ' .
-                print_r($params, true));
+
+        $courseId = self::getContextId($params);
+        if (!$courseId) {
             $params[Param::CONTEXT_URI] = [];
             return $params;
         }
@@ -26,10 +26,22 @@ class CourseContextFilter implements FilterInterface
         $courseContext = CourseContext::createOrGet(
             $session->deployment_id,
             $session->tool_id,
-            $params[Param::CONTEXT_URI]['id']
+            $courseId
         );
         $newContext = ['id' => $courseContext->fake_context_id];
         $params[Param::CONTEXT_URI] = $newContext;
         return $params;
+    }
+
+    public static function getContextId(array $params): string
+    {
+        // check required fields exist
+        if (!isset($params[Param::CONTEXT_URI])) return "";
+        if (!isset($params[Param::CONTEXT_URI]['id'])) {
+            Log::error('Course context missing missing required id: ' .
+                print_r($params, true));
+            return "";
+        }
+        return $params[Param::CONTEXT_URI]['id'];
     }
 }
