@@ -9,9 +9,9 @@ use League\Uri\Components\Query;
 use League\Uri\Uri;
 use League\Uri\UriModifier;
 
-use App\Models\AbstractLtiService;
+use App\Models\AbstractLtiEntity;
 
-class Tool extends AbstractLtiService
+class Tool extends AbstractLtiEntity
 {
     public const TARGET_TOOL_PARAM = 'target_tool_id';
 

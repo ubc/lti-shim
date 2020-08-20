@@ -16,7 +16,7 @@ use UBC\LTI\LTIException;
 use UBC\LTI\Param;
 
 // parent class for Tool and Platform models
-abstract class AbstractLtiService extends Model
+abstract class AbstractLtiEntity extends Model
 {
     public function setJwksUrlAttribute($url)
     {

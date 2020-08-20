@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
-use App\Models\AbstractLtiService;
+use App\Models\AbstractLtiEntity;
 
-class Platform extends AbstractLtiService
+class Platform extends AbstractLtiEntity
 {
     protected $fillable = ['name', 'iss', 'auth_req_url', 'jwks_url'];
     protected $with = ['clients', 'keys']; // eage load clients and keys

@@ -3,7 +3,7 @@ namespace UBC\LTI\Specs\Security;
 
 use Illuminate\Support\Facades\Log;
 
-use App\Models\AbstractLtiService;
+use App\Models\AbstractLtiEntity;
 
 use Jose\Component\Core\JWKSet;
 
@@ -13,7 +13,7 @@ use UBC\LTI\Param;
 class JwksUpdater
 {
     // grab JWKS from the jwks_url and save them to the database
-    public static function update(AbstractLtiService $service)
+    public static function update(AbstractLtiEntity $service)
     {
         if (empty($service->jwks_url)) return; // no url to update with
 
