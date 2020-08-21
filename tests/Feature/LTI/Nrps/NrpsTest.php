@@ -25,10 +25,11 @@ class NrpsTest extends TestCase
 
     private string $baseUrl = '/lti/nrps/platform/';
     private string $accessToken;
-    private Tool $tool;
-    private Platform $platform;
+    private CourseContext $courseContext;
     private Deployment $deployment;
     private Nrps $nrps;
+    private Platform $platform;
+    private Tool $tool;
 
     private array $fakeNrps; // holds the fake NRPS response that the platform
                             // sends back, that needs to be filtered
@@ -44,7 +45,12 @@ class NrpsTest extends TestCase
         $this->deployment = factory(Deployment::class)->create([
             'platform_id' => $this->platform->id
         ]);
+        $this->courseContext = factory(CourseContext::class)->create([
+            'deployment_id' => $this->deployment->id,
+            'tool_id' => $this->tool->id
+        ]);
         $this->nrps = factory(Nrps::class)->create([
+            'course_context_id' => $this->courseContext->id,
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id
         ]);
@@ -60,7 +66,7 @@ class NrpsTest extends TestCase
         $this->fakeNrps = [
             "id" => "http://192.168.55.182:8900/api/lti/courses/1/names_and_roles",
             "context" => [
-                "id" => "4dde05e8ca1973bcca9bffc13e1548820eee93a3",
+                "id" => $this->courseContext->real_context_id,
                 "label" => "TEST100",
                 "title" => "TEST100",
             ],
@@ -130,11 +136,7 @@ class NrpsTest extends TestCase
             'members'
         ]);
         // make sure the the course has been filtered
-        $courseContext = CourseContext::firstWhere(
-            'real_context_id',
-            $this->fakeNrps['context']['id']
-        );
-        $expectedContext = ['id' => $courseContext->fake_context_id];
+        $expectedContext = ['id' => $this->courseContext->fake_context_id];
         $actualContext = $resp['context'];
         $this->assertEquals($expectedContext, $actualContext);
         // make sure that the users we got back have been entered into database
@@ -209,6 +211,7 @@ class NrpsTest extends TestCase
     public function testPaginationHeaderFiltering()
     {
         $nrps = factory(Nrps::class)->create([
+            'course_context_id' => $this->courseContext->id,
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id
         ]);

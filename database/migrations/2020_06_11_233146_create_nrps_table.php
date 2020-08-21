@@ -24,8 +24,11 @@ class CreateNrpsTable extends Migration
 
             // we need to know what's the platform and tool pairing of this nrps
             // endpoint
+            $table->unsignedBigInteger('course_context_id');
             $table->unsignedBigInteger('deployment_id');
             $table->unsignedBigInteger('tool_id');
+            $table->foreign('course_context_id')->references('id')
+                  ->on('course_contexts')->onDelete('cascade');
             $table->foreign('deployment_id')->references('id')
                   ->on('deployments')->onDelete('cascade');
             $table->foreign('tool_id')->references('id')->on('tools')

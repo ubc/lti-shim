@@ -41,7 +41,8 @@ class MemberFilter implements FilterInterface
         }
 
         $realUsers = $this->getRealUsers($platformId, $toolId, $membersByIds);
-        $fakeUsers = LtiFakeUser::getByRealUsers($toolId, $realUsers);
+        $fakeUsers = LtiFakeUser::getByRealUsers($nrps->course_context_id,
+                                                 $toolId, $realUsers);
 
         // some info can be passed straight through, I want to index them
         // by lti_real_users.id for easier lookup

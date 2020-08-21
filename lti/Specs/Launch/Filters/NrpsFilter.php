@@ -29,6 +29,7 @@ class NrpsFilter implements FilterInterface
         // service call.
         $nrps = Nrps::createOrGet(
             $origClaim[Param::CONTEXT_MEMBERSHIPS_URL],
+            $session->course_context_id,
             $deployment->id,
             $tool->id
         );

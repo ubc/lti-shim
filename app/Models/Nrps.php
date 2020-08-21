@@ -13,6 +13,11 @@ use League\Uri\UriModifier;
 // request to the one that the shim provides
 class Nrps extends Model
 {
+    public function course_context()
+    {
+        return $this->belongsTo('App\Models\CourseContext');
+    }
+
     public function deployment()
     {
         return $this->belongsTo('App\Models\Deployment');
@@ -54,11 +59,13 @@ class Nrps extends Model
 
     public static function getByUrl(
         string $url,
+        int $courseContextId,
         int $deploymentId,
         int $toolId
     ): ?self {
         $nrps = self::where([
             'context_memberships_url' => $url,
+            'course_context_id' => $courseContextId,
             'deployment_id' => $deploymentId,
             'tool_id' => $toolId
         ])->first();
@@ -67,14 +74,16 @@ class Nrps extends Model
 
     public static function createOrGet(
         string $url,
+        int $courseContextId,
         int $deploymentId,
         int $toolId
     ): self {
-        $nrps = self::getByUrl($url, $deploymentId, $toolId);
+        $nrps = self::getByUrl($url, $courseContextId, $deploymentId, $toolId);
         if (!$nrps) {
             // no existing entry, create a new one
             $nrps = new self;
             $nrps->context_memberships_url = $url;
+            $nrps->course_context_id = $courseContextId;
             $nrps->deployment_id = $deploymentId;
             $nrps->tool_id = $toolId;
             $nrps->save();

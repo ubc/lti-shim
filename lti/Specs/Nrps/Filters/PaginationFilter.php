@@ -35,8 +35,8 @@ class PaginationFilter implements FilterInterface
         foreach ($links as $key => $link) {
             // the url is bracketed by <>, remove them
             $url = trim($link[0], '<>');
-            $linkNrps = Nrps::createOrGet(
-                $url, $nrps->deployment_id, $nrps->tool_id);
+            $linkNrps = Nrps::createOrGet($url, $nrps->course_context_id,
+                $nrps->deployment_id, $nrps->tool_id);
             $links[$key]['nrps'] = $linkNrps;
         }
 
