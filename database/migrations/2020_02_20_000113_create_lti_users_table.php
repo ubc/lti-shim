@@ -71,8 +71,8 @@ class CreateLtiUsersTable extends Migration
                   ->on('course_contexts')->onDelete('cascade');
 
             // we're going to do a lot of lookups via these
-            $table->unique(['lti_real_user_id', 'tool_id',
-                            'course_context_id']);
+            $table->unique(['course_context_id', 'tool_id',
+                            'lti_real_user_id']);
             // prevent duplicates
             $table->unique(['sub', 'tool_id', 'course_context_id']);
 

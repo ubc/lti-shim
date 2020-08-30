@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Faker\Factory as Faker;
@@ -18,6 +17,8 @@ class LtiFakeUser extends Model
         'name',
         'tool_id'
     ];
+    protected $with = ['lti_real_user'];
+
     private static $faker;
 
     public function tool()
@@ -45,6 +46,16 @@ class LtiFakeUser extends Model
         }
         $this->email = $email;
         $this->save();
+    }
+
+    public static function getByCourseContext(
+        int $courseContextId,
+        int $toolId
+    ): Collection {
+        return self::where('course_context_id', $courseContextId)
+                     ->where('tool_id', $toolId)
+                     ->get();
+
     }
 
     public static function getByRealUser(
