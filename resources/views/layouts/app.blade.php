@@ -4,10 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'LTI Shim') }}</title>
 
     <!-- Scripts -->
     <script src="{{ mix('js/app.js') }}" defer></script>
@@ -30,7 +27,7 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
                         @auth
-                        <li class="nav-item 
+                        <li class="nav-item
                             {{ Request::is('admin') ? 'active' : '' }}">
                             <a class='nav-link' href='{{ route('admin') }}'>
                                 {{ __('Admin') }}

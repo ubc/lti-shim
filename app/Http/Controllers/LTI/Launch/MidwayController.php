@@ -12,7 +12,7 @@ use App\Models\Tool;
 
 use UBC\LTI\LTIException;
 use UBC\LTI\Param;
-use UBC\LTI\Specs\Launch\ToolLaunch;
+use UBC\LTI\Specs\Launch\MidwayLaunch;
 
 /**
  * Transfers the user from the shim's tool side to the platform side.
@@ -29,11 +29,13 @@ class MidwayController extends Controller
      */
     public function arrival(Request $request)
     {
-        $response = [
-            Param::LTI_MESSAGE_HINT => $request->input(Param::LTI_MESSAGE_HINT)
-        ];
-
-        return view('lti/launch/midway', $response);
+        try {
+            $midwayLaunch = new MidwayLaunch($request);
+            return $midwayLaunch->getArrivalResponse();
+        } catch (LTIException $e) {
+            report($e);
+            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
+        }
     }
 
     /**

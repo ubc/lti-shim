@@ -1,19 +1,19 @@
-@extends('layouts.autosubmitform')
+@extends('layouts.basicvue')
 
 @section('title', 'Midway Transfer Station')
 
 @section('content')
-  <p>Working, please wait...</p>
-
-  <form action='/lti/launch/midway/departure' method='post' id='autoSubmitForm'>
-      <div>
-        <label for='lti_message_hint'>LTI Session Token</label>
-        <input type='hidden' id='lti_message_hint'
-               name='lti_message_hint' value='{{ $lti_message_hint }}' />
-      </div>
-
-    <button type='submit'>
-      Continue
-    </button>
-  </form>
+  <timed-submit-form action='/lti/launch/midway/departure' method='post'
+      class='mt-3'>
+      <template #inputs>
+          <div class='d-none'>
+              <label for='lti_message_hint'>LTI Session Token</label>
+              <input type='hidden' id='lti_message_hint'
+                     name='lti_message_hint' value='{{ $lti_message_hint }}' />
+          </div>
+      </template>
+      <template #users>
+          <user-list :users='@json($users)'></user-list>
+      </template>
+  </timed-submit-form>
 @endsection
