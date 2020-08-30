@@ -9,6 +9,7 @@ use App\Models\LtiFakeUser;
 use App\Models\LtiSession;
 
 use UBC\LTI\Param;
+use UBC\LTI\Specs\RoleVocabulary;
 
 class MidwayLaunch
 {
@@ -34,6 +35,12 @@ class MidwayLaunch
             'users' => $users
         ];
 
-        return response()->view('lti/launch/midway', $response);
+        $roleVo = new RoleVocabulary();
+        if ($roleVo->canLookupRealUsers($ltiSession->token[Param::ROLES_URI])) {
+            return response()->view('lti/launch/midway/lookup', $response);
+        }
+        else {
+            return response()->view('lti/launch/midway/auto', $response);
+        }
     }
 }

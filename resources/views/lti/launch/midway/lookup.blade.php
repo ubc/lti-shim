@@ -1,6 +1,6 @@
 @extends('layouts.basicvue')
 
-@section('title', 'Midway Transfer Station')
+@section('title', 'Midway Lookup Tool')
 
 @section('content')
   <timed-submit-form action='/lti/launch/midway/departure' method='post'
