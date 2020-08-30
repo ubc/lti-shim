@@ -31,23 +31,6 @@ class LtiFakeUser extends Model
         return $this->belongsTo('App\Models\LtiRealUser');
     }
 
-    public function fillFakeFields()
-    {
-        $faker = self::faker();
-        $this->login_hint = $faker->uuid;
-        $this->name = $faker->name;
-        $this->sub = $faker->uuid;
-        $email = $faker->email;
-        $count = 0;
-        // try to reasonably ensure a unique fake email
-        while (self::where('email', $email)->exists() && $count <= 10) {
-            $email = $faker->email;
-            $count++;
-        }
-        $this->email = $email;
-        $this->save();
-    }
-
     public static function getByCourseContext(
         int $courseContextId,
         int $toolId
@@ -101,7 +84,8 @@ class LtiFakeUser extends Model
                     'login_hint' => $faker->uuid,
                     'sub' => $faker->uuid,
                     'name' => $faker->name,
-                    'email' => $faker->email
+                    'email' => $faker->email,
+                    'student_number' => $faker->ean13
                 ];
                 $newUsersInfo[] = $userInfo;
             }

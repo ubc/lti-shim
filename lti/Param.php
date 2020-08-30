@@ -46,6 +46,7 @@ class Param
     public const FAMILY_NAME = 'family_name';
     public const NAME = 'name';
     public const EMAIL = 'email';
+    public const PERSON_SOURCEDID = 'person_sourcedid';
     // LTI defined URIs
     public const MESSAGE_TYPE_URI =
         'https://purl.imsglobal.org/spec/lti/claim/message_type';
@@ -65,6 +66,8 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
     public const CONTEXT_URI =
         'https://purl.imsglobal.org/spec/lti/claim/context';
+    public const LIS_URI =
+        'https://purl.imsglobal.org/spec/lti/claim/lis';
     // LTI service oauth token request
     public const GRANT_TYPE = 'grant_type';
     public const GRANT_TYPE_VALUE = 'client_credentials';
@@ -84,6 +87,7 @@ class Param
     public const STATUS = 'status';
     public const ROLES = 'roles';
     public const LINK = 'link';
+    public const LIS_PERSON_SOURCEDID = 'lis_person_sourcedid';
     // NRPS get params
     public const ROLE = 'role';
     public const LIMIT = 'limit';

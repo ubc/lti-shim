@@ -11,7 +11,14 @@ use UBC\LTI\Param;
 
 class LtiRealUser extends Model
 {
-    protected $fillable = ['sub', 'platform_id', 'login_hint', 'name', 'email'];
+    protected $fillable = [
+        'sub',
+        'platform_id',
+        'login_hint',
+        'name',
+        'email',
+        'student_number'
+    ];
 
     public function platform()
     {
@@ -27,7 +34,7 @@ class LtiRealUser extends Model
     // Eloquent doesn't have a bulk create method, so we have to use the DB
     // abstraction's insert(). This assumes that the given list of users are all
     // new users.
-    public static function createFromNRPS(
+    public static function createFromNrps(
         int $platformId,
         int $toolId,
         array $newUsers
@@ -38,10 +45,17 @@ class LtiRealUser extends Model
         foreach ($newUsers as $user) {
             $info = [
                 'sub' => $user[Param::USER_ID],
-                'platform_id' => $platformId
+                'platform_id' => $platformId,
+                'name' => null,
+                'email' => null,
+                'student_number' => null
             ];
             if (isset($user[Param::NAME])) $info['name'] = $user[Param::NAME];
             if (isset($user[Param::EMAIL])) $info['email'] =$user[Param::EMAIL];
+            if (isset($user[Param::LIS_PERSON_SOURCEDID])) {
+                $info['student_number'] =
+                    $user[Param::LIS_PERSON_SOURCEDID];
+            }
             $userInfos[] = $info;
             $subs[] = $user[Param::USER_ID];
         }
@@ -71,6 +85,12 @@ class LtiRealUser extends Model
         $info = ['login_hint' => $loginHint];
         if (isset($claims[Param::NAME])) $info['name'] = $claims[Param::NAME];
         if (isset($claims[Param::EMAIL])) $info['email'] =$claims[Param::EMAIL];
+        if (isset($claims[Param::LIS_URI]) &&
+            isset($claims[Param::LIS_URI][Param::PERSON_SOURCEDID])
+        ) {
+            $info['student_number'] =
+                $claims[Param::LIS_URI][Param::PERSON_SOURCEDID];
+        }
         // updating user info on every launch, in case they change
         $user = self::updateOrCreate(
             [

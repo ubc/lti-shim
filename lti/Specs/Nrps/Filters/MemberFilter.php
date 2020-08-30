@@ -104,7 +104,7 @@ class MemberFilter implements FilterInterface
         foreach ($newUserSubs as $newUserSub) {
             $newUsersInfo[] = $usersBySub[$newUserSub];
         }
-        $newUsers = LtiRealUser::createFromNRPS($platformId, $toolId,
+        $newUsers = LtiRealUser::createFromNrps($platformId, $toolId,
                                                     $newUsersInfo);
         return $existingUsers->merge($newUsers);
     }

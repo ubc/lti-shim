@@ -26,6 +26,8 @@ class CreateLtiUsersTable extends Migration
                   ->comment('Real name received from the platform.');
             $table->string('email', 1024)->nullable()
                   ->comment('Real email received from the platform.');
+            $table->string('student_number', 1024)->nullable()
+                  ->comment('Real student number received from the platform.');
 
             $table->string('sub', 1024)
                   ->comment("The real 'sub' param in the id_token JWT, since it might differ from login_hint.");
@@ -54,6 +56,8 @@ class CreateLtiUsersTable extends Migration
                   ->comment('Fake name we should send to tools.');
             $table->string('email', 1024)->unique()
                   ->comment('Fake email we should send to tools.');
+            $table->string('student_number', 1024)->nullable()
+                  ->comment('Fake student number we should send to tools.');
             $table->string('sub', 1024)
                   ->comment("Fake sub param we send to tools.");
 

@@ -30,19 +30,19 @@
             <tr>
               <th scope='col'></th>
               <th scope='col'>Name</th>
-              <th scope='col'>Email</th>
+              <th scope='col'>Student Number</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <th scope='row'>Fake</th>
               <td>{{ userInfo.fakeName }}</td>
-              <td>{{ userInfo.fakeEmail }}</td>
+              <td>{{ userInfo.fakeStudentNumber }}</td>
             </tr>
             <tr>
               <th scope='row'>Real</th>
               <td>{{ userInfo.realName }}</td>
-              <td>{{ userInfo.realEmail }}</td>
+              <td>{{ userInfo.realStudentNumber }}</td>
             </tr>
           </tbody>
         </table>
@@ -78,24 +78,24 @@ export default {
         field: 'name'
       },
       {
-        label: 'Email',
-        field: 'email'
+        label: 'StudentNumber',
+        field: 'student_number'
       }
     ],
     userInfo: {
       fakeName: '',
-      fakeEmail: '',
+      fakeStudentNumber: '',
       realName: '',
-      realEmail: ''
+      realStudentNumber: ''
     },
     showUserInfo: false
   }},
   methods: {
     showRealUser(params) {
       this.userInfo.fakeName = params.row.name
-      this.userInfo.fakeEmail = params.row.email
+      this.userInfo.fakeStudentNumber = params.row.student_number
       this.userInfo.realName =  params.row.lti_real_user.name
-      this.userInfo.realEmail = params.row.lti_real_user.email
+      this.userInfo.realStudentNumber = params.row.lti_real_user.student_number
       this.showUserInfo = true
     },
     hideRealUser() {
