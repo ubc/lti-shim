@@ -58,8 +58,6 @@ class JwsUtil
         if (
             isset($this->jws->getSignature(0)->getProtectedHeader()[Param::KID])
         ) {
-            Log::debug('here');
-            Log::debug($this->jws->getSignature(0)->getProtectedHeader());
             return $this->jws->getSignature(0)->getProtectedHeader()[Param::KID];
         }
         return '';

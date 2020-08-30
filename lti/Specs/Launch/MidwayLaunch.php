@@ -29,6 +29,14 @@ class MidwayLaunch
             $ltiSession->tool_id
         );
 
+        // hide some fields we send out
+        $users->makeHidden(['login_hint', 'sub', 'lti_real_user_id', 'tool_id',
+            'course_context_id', 'created_at', 'updated_at']);
+        foreach ($users as $user) {
+            $user->lti_real_user->makeHidden(['login_hint', 'email', 'sub',
+                'non_lti_id', 'platform_id', 'created_at', 'updated_at']);
+        }
+
         $response = [
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT),
