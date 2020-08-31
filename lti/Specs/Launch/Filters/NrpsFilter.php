@@ -36,8 +36,7 @@ class NrpsFilter implements FilterInterface
 
         // replace the original endpoint with the one on the shim
         $filteredClaim = [
-            Param::CONTEXT_MEMBERSHIPS_URL =>
-                route('nrps', ['nrps' => $nrps->id]),
+            Param::CONTEXT_MEMBERSHIPS_URL => $nrps->getShimUrl(),
             Param::SERVICE_VERSIONS => ['2.0']
         ];
         $params[Param::NRPS_CLAIM_URI] = $filteredClaim;
