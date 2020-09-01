@@ -31,7 +31,7 @@ class SeedLtiInfo extends Command
     protected $description = "Seed the database with the shim's own LTI platform and client info.";
 
     private $faker;
-    
+
     /**
      * Create a new command instance.
      *
@@ -60,13 +60,11 @@ class SeedLtiInfo extends Command
         $platform = Platform::find(config('lti.own_platform_id'));
         if ($platform) return; // we only want to seed empty databases
         $platform = new Platform;
-        $platform->name = 'LTI Shim Platform Side'; 
+        $platform->name = 'LTI Shim Platform Side';
         $platform->iss = config('lti.iss');
-        $platform->auth_req_url = config('app.url') .
-            config('lti.platform_launch_auth_req_path');
-        $platform->jwks_url = config('app.url') .
-            config('lti.platform_jwks_path');
-        $platform->shim_client_id = 'Not used for shim';
+        $platform->auth_req_url = route('lti.launch.platform.authReq');
+        $platform->jwks_url = route('lti.jwks.platform');
+        $platform->access_token_url = route('lti.token');
         $platform->save();
         // correct the id if needed
         if ($platform->id != config('lti.own_platform_id')) {
@@ -86,15 +84,12 @@ class SeedLtiInfo extends Command
         $tool = Tool::find(config('lti.own_tool_id'));
         if ($tool) return; // we only want to seed empty databases
         $tool = new Tool;
-        $tool->name = 'LTI Shim Tool Side'; 
+        $tool->name = 'LTI Shim Tool Side';
         $tool->client_id = 'Not used for shim, look up in platform_client';
-        $tool->oidc_login_url = config('app.url') .
-            config('lti.tool_launch_login_path');
-        $tool->auth_resp_url = config('app.url') .
-            config('lti.tool_launch_auth_resp_path');
-        $tool->target_link_uri = config('app.url') .
-            config('lti.platform_launch_login_path');
-        $tool->jwks_url = config('app.url') .  config('lti.tool_jwks_path');
+        $tool->oidc_login_url = route('lti.launch.tool.login');
+        $tool->auth_resp_url = route('lti.launch.tool.authResp');
+        $tool->target_link_uri = route('lti.launch.platform.login');
+        $tool->jwks_url = route('lti.jwks.tool');
         $tool->save();
         // correct the id if needed
         if ($tool->id != config('lti.own_tool_id')) {
