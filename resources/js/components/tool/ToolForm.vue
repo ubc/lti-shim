@@ -15,7 +15,7 @@
                v-model='tool.client_id' aria-describedby='clientIdHelp'>
         <small id="clientIdHelp" class="form-text text-muted">
           Give this tool a client ID. When the tool talks to the shim, they
-          must provide this ID to identity themselves.
+          must provide this ID to identify themselves.
         </small>
       </div>
       <div class="form-group">

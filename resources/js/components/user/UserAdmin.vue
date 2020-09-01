@@ -8,7 +8,7 @@
         @done='showUserForm = false'></UserForm>
       <div v-else>
         <p class='text-muted'>
-        Admin users only, LTI users are not managed here.
+        Admin users only. LTI users are not managed here.
         </p>
         <button type='button' class='btn btn-outline-primary mb-3'
           @click='add'>
@@ -56,4 +56,4 @@ export default {
 </script>
 
 <style scoped>
-</style> 
+</style>

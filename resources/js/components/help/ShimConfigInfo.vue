@@ -6,32 +6,9 @@
     </div>
     <div class='card-body' v-else>
       <p>
-      When you need to add the shim to other LTI platforms or tools, use these
-      configuration information.
+      Information to help configure LTI platforms or tools to use the shim.
       </p>
-      <h4>Shim as an LTI Platform</h4>
-      <p>When adding the shim to an LTI Tool (e.g. Webwork).</p>
-      <table class='table'>
-        <tbody>
-          <tr>
-            <th scope="row">ISS</th>
-            <td>{{config.platform.iss}}</td>
-          </tr>
-          <tr>
-            <th scope="row">Auth Request URL</th>
-            <td>{{config.platform.auth_req_url}}</td>
-          </tr>
-          <tr>
-            <th scope="row">JWKS URL</th>
-            <td>{{config.platform.jwks_url}}</td>
-          </tr>
-          <tr>
-            <th scope="row">Access Token URL</th>
-            <td>{{config.platform.access_token_url}}</td>
-          </tr>
-        </tbody>
-      </table>
-      <h4>Shim as an LTI Tool</h4>
+      <h4>Add shim to a platform</h4>
       <p>When adding the shim to an LTI Platform (e.g. Canvas). Choose the target tool the user should end up in.</p>
 
       <form class='form-inline mb-3'>
@@ -69,6 +46,51 @@
           </tr>
         </tbody>
       </table>
+
+
+      <h4>Add shim to a tool</h4>
+      <p>When adding the shim to an LTI Tool (e.g. Webwork). Choose the tool
+      you're configuring.</p>
+
+      <form class='form-inline mb-3'>
+        <label for='selectedToolSelect' class='mr-2'>Tool</label>
+        <select v-model='selectedTool' id='selectedToolSelect'
+          class='custom-select'>
+          <option v-for='tool in tools' :value='tool'>
+          {{ tool.name }}
+          </option>
+        </select>
+      </form>
+
+      <div class='alert alert-primary'
+        v-if="!selectedTool.hasOwnProperty('id')">
+        Please select a tool
+      </div>
+
+      <table class='table' v-if="selectedTool.hasOwnProperty('id')">
+        <tbody>
+          <tr>
+            <th scope="row">ISS</th>
+            <td>{{config.platform.iss}}</td>
+          </tr>
+          <tr>
+            <th scope="row">Client ID</th>
+            <td>{{selectedTool.client_id}}</td>
+          </tr>
+          <tr>
+            <th scope="row">Auth Request URL</th>
+            <td>{{config.platform.auth_req_url}}</td>
+          </tr>
+          <tr>
+            <th scope="row">JWKS URL</th>
+            <td>{{config.platform.jwks_url}}</td>
+          </tr>
+          <tr>
+            <th scope="row">Access Token URL</th>
+            <td>{{config.platform.access_token_url}}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -82,6 +104,7 @@ export default {
   data() { return {
     config: {},
     isLoading: true,
+    selectedTool: {},
     targetTool: {}
   }},
   mounted() {

@@ -1,15 +1,15 @@
 <template>
-	<div class='card'>
+  <div class='card'>
 
-		<h2 class='card-header'>Platforms</h2>
-    
+    <h2 class='card-header'>Platforms</h2>
+
     <div class='card-body'>
-      <PlatformForm v-if='showForm' :platformId='editPlatformId' 
+      <PlatformForm v-if='showForm' :platformId='editPlatformId'
         @done='showForm = false'/>
       <div v-else>
         <p class='text-muted'>
-        LTI platforms are usually Learning Management Systems, platforms send
-        out LTI launches and information to tools.
+        LTI platforms are usually Learning Management Systems (e.g.: Canvas),
+        platforms send out LTI launches and information to tools.
         </p>
         <button type='button' class='btn btn-outline-primary mb-3' @click='add'>
           <AddIcon /> Add Platform
@@ -18,7 +18,7 @@
       </div>
     </div>
 
-	</div>
+  </div>
 </template>
 
 <script>
@@ -28,7 +28,7 @@ import PlatformForm from './PlatformForm'
 import PlatformList from './PlatformList'
 
 export default {
-	name: "PlatformAdmin",
+  name: "PlatformAdmin",
   components: {
     AddIcon,
     PlatformForm,
