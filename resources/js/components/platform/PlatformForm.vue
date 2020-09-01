@@ -34,8 +34,6 @@
         </small>
       </div>
 
-      <ClientList v-model='platform.clients' @delete='deleteClient' />
-
       <JwkForm @deleteJwk='deleteJwk'
         :url='platform.jwks_url' @url='platform.jwks_url = $event'
         :keys='platform.keys'  @keys='platform.keys = $event' />
@@ -60,14 +58,12 @@
 import CancelIcon from 'icons/Cancel'
 import SaveIcon from 'icons/ContentSave'
 
-import ClientList from './ClientList'
 import JwkForm from '../jwk/JwkForm'
 
 export default {
 	name: 'PlatformForm',
   components: {
     CancelIcon,
-    ClientList,
     JwkForm,
     SaveIcon,
   },
@@ -90,7 +86,6 @@ export default {
       iss: '',
       auth_req_url: '',
       jwks_url: '',
-      clients: [],
       keys: []
     },
     isWaiting: false,
@@ -108,18 +103,6 @@ export default {
         })
         .catch(() => {
           this.isWaiting = false
-        })
-    },
-    deleteClient(clientId) {
-      this.$store.dispatch('platform/deleteClient',
-        {'platformId': this.platformId, 'clientId': clientId})
-        .then(response => {
-          for (const [index, client] of this.platform.clients.entries()) {
-            if (client.id == clientId) {
-              this.platform.clients.splice(index, 1)
-              break
-            }
-          }
         })
     },
     deleteJwk(keyId) {

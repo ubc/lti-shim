@@ -11,7 +11,7 @@ use App\Models\AbstractLtiEntity;
 class Platform extends AbstractLtiEntity
 {
     protected $fillable = ['name', 'iss', 'auth_req_url', 'jwks_url'];
-    protected $with = ['clients', 'keys']; // eage load clients and keys
+    protected $with = ['keys']; // eage load clients and keys
 
     public function clients()
     {
@@ -36,14 +36,9 @@ class Platform extends AbstractLtiEntity
     public function updateWithRelations($info)
     {
         $this->update($info);
-        $new = [];
-        // we're cheating a bit here, as the ui doesn't implement editing
-        // clients/keys, and deletes are handled by another call, so we
-        // only have to worry about adding in new clients/keys
-        foreach ($info['clients'] as $client) {
-            if (!isset($client['id'])) array_push($new, $client);
-        }
-        $this->clients()->createMany($new);
+        // we're cheating a bit here, as the ui doesn't implement editing keys,
+        // and deletes are handled by another call, so we only have to worry
+        // about adding in new keys
         $new = [];
         foreach ($info['keys'] as $key) {
             if (!isset($key['id'])) array_push($new, $key);
