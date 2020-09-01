@@ -15,13 +15,10 @@ class ToolSeeder extends Seeder
         DB::table('tools')->insert([
             'name' => 'LTI Shim Tool Side',
             'client_id' => 'Not used for shim, look up in platform_client',
-            'oidc_login_url' => config('app.url') .
-                config('lti.tool_launch_login_path'),
-            'auth_resp_url' => config('app.url') .
-                config('lti.tool_launch_auth_resp_path'),
-            'target_link_uri' => config('app.url') .
-                config('lti.platform_launch_login_path'),
-            'jwks_url' => config('app.url') . config('lti.tool_jwks_path')
+            'oidc_login_url' => route('lti.launch.tool.login'),
+            'auth_resp_url' => route('lti.launch.tool.authResp'),
+            'target_link_uri' => route('lti.launch.platform.login'),
+            'jwks_url' => route('lti.jwks.tool')
         ]);
         DB::table('tool_keys')->insert([
             'kid' => 'MyDummyKey',

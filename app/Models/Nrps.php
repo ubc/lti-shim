@@ -30,7 +30,7 @@ class Nrps extends Model
 
     public function getShimUrlAttribute()
     {
-        return route('nrps', ['nrps' => $this->id]);
+        return route('lti.nrps', ['nrps' => $this->id]);
     }
 
     public function getContextMembershipsUrl(array $params = []): string

@@ -25,7 +25,7 @@ class PlatformAccessTokenTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 
-    private string $baseUrl;
+    private string $baseUrl = '/lti/security/platform/token';
     private string $scope = 'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
     private Tool $tool; // the tool that is requesting an access token
     private array $goodParams;
@@ -33,7 +33,6 @@ class PlatformAccessTokenTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->baseUrl = config('lti.platform_security_token_path');
         $this->tool = factory(Tool::class)->create();
         // we just need to make sure there's an encryption key in the database
         factory(EncryptionKey::class)->create();
