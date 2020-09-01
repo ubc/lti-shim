@@ -1,7 +1,7 @@
 <template>
-	<div>
-		<h3 v-if='isEdit'>Edit Platform</h3>
-		<h3 v-else>Add Platform</h3>
+  <div>
+    <h3 v-if='isEdit'>Edit Platform</h3>
+    <h3 v-else>Add Platform</h3>
     <form @submit.prevent='save'>
       <div class='form-group'>
         <label for='name'>Name</label>
@@ -34,6 +34,19 @@
         </small>
       </div>
 
+      <div class='form-group'>
+        <label for='access_token_url'>Access Token URL</label>
+        <input id='access_token_url' type='access_token_url'
+               class='form-control' aria-describedby='accessTokenUrlHelp'
+               v-model='platform.access_token_url'
+               placeholder='https://ubc.test.instructure.com/login/oauth2/token'
+               />
+        <small id="accessTokenUrlHelp" class="form-text text-muted">
+          Platform endpoint for OAuth2 access token requests, only required to
+          enable LTI services (get class roster, grades sync, etc).
+        </small>
+      </div>
+
       <JwkForm @deleteJwk='deleteJwk'
         :url='platform.jwks_url' @url='platform.jwks_url = $event'
         :keys='platform.keys'  @keys='platform.keys = $event' />
@@ -51,7 +64,7 @@
         Cancel
       </button>
     </form>
-	</div>
+  </div>
 </template>
 
 <script>
@@ -61,7 +74,7 @@ import SaveIcon from 'icons/ContentSave'
 import JwkForm from '../jwk/JwkForm'
 
 export default {
-	name: 'PlatformForm',
+  name: 'PlatformForm',
   components: {
     CancelIcon,
     JwkForm,
@@ -85,6 +98,7 @@ export default {
       name: '',
       iss: '',
       auth_req_url: '',
+      access_token_url: '',
       jwks_url: '',
       keys: []
     },

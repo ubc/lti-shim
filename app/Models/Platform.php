@@ -10,7 +10,13 @@ use App\Models\AbstractLtiEntity;
 
 class Platform extends AbstractLtiEntity
 {
-    protected $fillable = ['name', 'iss', 'auth_req_url', 'jwks_url'];
+    protected $fillable = [
+        'name',
+        'iss',
+        'auth_req_url',
+        'access_token_url',
+        'jwks_url'
+    ];
     protected $with = ['keys']; // eage load clients and keys
 
     public function clients()
