@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class PlatformClient extends Model
 {
-    protected $fillable = ['client_id'];
+    protected $fillable = ['platform_id', 'tool_id', 'client_id'];
 
     public function platform()
     {

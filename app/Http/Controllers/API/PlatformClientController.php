@@ -14,9 +14,9 @@ class PlatformClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index($platformId)
+    public function index()
     {
-        return PlatformClient::where('platform_id', $platformId)->get();
+        return PlatformClient::all();
     }
 
     /**
@@ -25,9 +25,15 @@ class PlatformClientController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store($platformId, Request $request)
+    public function store(Request $request)
     {
-        abort(501);
+        $newPlatformClient = $request->validate([
+            'platform_id' => ['required', 'integer', 'exists:platforms,id'],
+            'tool_id' => ['required', 'integer', 'exists:tools,id'],
+            'client_id' => ['required', 'string', 'max:255']
+        ]);
+        $platformClient = PlatformClient::create($newPlatformClient);
+        return $platformClient;
     }
 
     /**
@@ -36,9 +42,9 @@ class PlatformClientController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($platformId, PlatformClient $client)
+    public function show(PlatformClient $platformClient)
     {
-        abort(501);
+        return $platformClient;
     }
 
     /**
@@ -48,9 +54,15 @@ class PlatformClientController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update($platformId, Request $request, PlatformClient $client)
+    public function update(Request $request, PlatformClient $platformClient)
     {
-        abort(501);
+        $info = $request->validate([
+            'platform_id' => ['required', 'integer', 'exists:platforms,id'],
+            'tool_id' => ['required', 'integer', 'exists:tools,id'],
+            'client_id' => ['required', 'string', 'max:255']
+        ]);
+        $platformClient->update($info);
+        return $platformClient;
     }
 
     /**
@@ -59,8 +71,8 @@ class PlatformClientController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($platformId, PlatformClient $client)
+    public function destroy(PlatformClient $platformClient)
     {
-        return $client->delete();
+        return $platformClient->delete();
     }
 }

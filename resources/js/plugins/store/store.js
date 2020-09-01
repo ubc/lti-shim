@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 import { auth } from './authStore'
 import user from './userStore'
 import platform from './platformStore'
+import platformClient from './platformClientStore'
 import tool from './toolStore'
 
 
@@ -15,6 +16,7 @@ export default new Vuex.Store({
   modules: {
     auth,
     platform,
+    platformClient,
     tool,
     user,
   },
