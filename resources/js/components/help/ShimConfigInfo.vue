@@ -1,6 +1,6 @@
 <template>
-	<div class='card'>
-		<h2 class='card-header'>Shim Configuration Info</h2>
+  <div class='card'>
+    <h2 class='card-header'>Shim Configuration Info</h2>
     <div class='card-body' v-if='isLoading'>
       Loading...
     </div>
@@ -25,11 +25,31 @@
             <th scope="row">JWKS URL</th>
             <td>{{config.platform.jwks_url}}</td>
           </tr>
+          <tr>
+            <th scope="row">Access Token URL</th>
+            <td>{{config.platform.access_token_url}}</td>
+          </tr>
         </tbody>
       </table>
       <h4>Shim as an LTI Tool</h4>
-      <p>When adding the shim to an LTI Platform (e.g. Canvas).</p>
-      <table class='table'>
+      <p>When adding the shim to an LTI Platform (e.g. Canvas). Choose the target tool the user should end up in.</p>
+
+      <form class='form-inline mb-3'>
+        <label for='targetToolSelect' class='mr-2'>Target Tool</label>
+        <select v-model='targetTool' id='targetToolSelect'
+          class='custom-select'>
+          <option v-for='tool in tools' :value='tool'>
+          {{ tool.name }}
+          </option>
+        </select>
+      </form>
+
+      <div class='alert alert-primary'
+        v-if="!targetTool.hasOwnProperty('id')">
+        Please select a target tool
+      </div>
+
+      <table class='table' v-else="targetTool.hasOwnProperty('id')">
         <tbody>
           <tr>
             <th scope="row">OIDC Login URL</th>
@@ -41,7 +61,7 @@
           </tr>
           <tr>
             <th scope="row">Target Link URI</th>
-            <td>{{config.tool.target_link_uri}}</td>
+            <td>{{targetTool.shim_target_link_uri}}</td>
           </tr>
           <tr>
             <th scope="row">JWKS URL</th>
@@ -50,15 +70,19 @@
         </tbody>
       </table>
     </div>
-	</div>
+  </div>
 </template>
 
 <script>
 export default {
-	name: "ShimConfigInfo",
+  name: "ShimConfigInfo",
+  computed: {
+    tools() { return this.$store.state.tool.items }
+  },
   data() { return {
     config: {},
-    isLoading: true
+    isLoading: true,
+    targetTool: {}
   }},
   mounted() {
     this.isLoading = true

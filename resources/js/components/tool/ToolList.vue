@@ -1,11 +1,11 @@
 <template>
-	<div>
+  <div>
     <table class="table table-hover">
       <thead class="thead-light">
         <tr>
           <th scope="col">ID</th>
           <th scope="col">Name</th>
-          <th scope="col">Client ID</th>
+          <th scope="col">Shim Client ID</th>
           <th scope="col"></th>
         </tr>
       </thead>
@@ -19,7 +19,7 @@
               @click="$emit('edit', tool.id)">
               <EditIcon /> Edit
             </button>
-            <AreYouSureButton 
+            <AreYouSureButton
               :css="'btn btn-outline-danger'"
               :warning="'Delete tool ' + tool.name + '?'"
               @yes='deleteTool(tool.id)'>
@@ -29,7 +29,7 @@
         </tr>
       </tbody>
     </table>
-	</div>
+  </div>
 </template>
 
 <script>
@@ -39,7 +39,7 @@ import EditIcon from 'icons/Pencil'
 import AreYouSureButton from '../util/AreYouSureButton'
 
 export default {
-	name: "ToolList",
+  name: "ToolList",
   components: {
     AreYouSureButton,
     DeleteIcon,

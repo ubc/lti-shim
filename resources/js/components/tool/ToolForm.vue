@@ -1,5 +1,5 @@
 <template>
-	<div>
+  <div>
     <h3 v-if='isEdit'>Edit Tool</h3>
     <h3 v-else>Add Tool</h3>
 
@@ -10,7 +10,7 @@
           v-model='tool.name'>
       </div>
       <div class="form-group">
-        <label for="clientId">Client ID</label>
+        <label for="clientId">Shim Client ID</label>
         <input type="text" class="form-control" id="clientId" required
                v-model='tool.client_id' aria-describedby='clientIdHelp'>
         <small id="clientIdHelp" class="form-text text-muted">
@@ -46,7 +46,7 @@
       <JwkForm @deleteJwk='deleteJwk'
         :url='tool.jwks_url' @url='tool.jwks_url = $event'
         :keys='tool.keys'  @keys='tool.keys = $event' />
-      
+
       <button type='submit' class='btn btn-outline-primary'
         :disabled='isWaiting'>
         <span class="spinner-border spinner-border-sm" role="status"
@@ -61,7 +61,7 @@
       </button>
 
     </form>
-	</div>
+  </div>
 </template>
 
 <script>
@@ -71,7 +71,7 @@ import SaveIcon from 'icons/ContentSave'
 import JwkForm from '../jwk/JwkForm'
 
 export default {
-	name: "ToolForm",
+  name: "ToolForm",
   components: {
     CancelIcon,
     JwkForm,
