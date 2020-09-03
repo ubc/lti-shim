@@ -6,11 +6,7 @@ wait-for-it -t 60 "${DB_HOST}:${DB_PORT}"
 echo 'Regenerate config in case .env changed...'
 php artisan config:cache
 echo 'Running database migrations...'
-# Since migrations are still in flux, we want to drop old tables so migrations
-# won't fail
-php artisan migrate:fresh
-# Switch to regular migrate once we're in production
-#php artisan migrate
+php artisan migrate
 echo 'Generating OAuth keys & clients...'
 php artisan passport:custominstall
 echo 'Creating admin user if not exists...'
