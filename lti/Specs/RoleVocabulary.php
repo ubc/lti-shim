@@ -4,7 +4,7 @@ namespace UBC\LTI\Specs;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 
 // Parses, validates, constructs Role URIs as defined by the LIS spec

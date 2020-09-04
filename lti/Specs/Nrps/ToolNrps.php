@@ -12,7 +12,7 @@ use Jose\Easy\Build;
 use App\Models\Nrps;
 use App\Models\Tool;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Security\AccessToken;
 
@@ -54,11 +54,11 @@ class ToolNrps
         $resp = $req->get($this->nrps->getContextMembershipsUrl($queries));
 
         if ($resp->serverError()) {
-            throw new LTIException('NRPS platform error: ' . $resp->status()
+            throw new LtiException('NRPS platform error: ' . $resp->status()
                 . ' ' . $resp->body());
         }
         if ($resp->clientError()) {
-            throw new LTIException('NRPS client error: ' . $resp->status() . ' '
+            throw new LtiException('NRPS client error: ' . $resp->status() . ' '
                 . $resp->body());
         }
 

@@ -7,7 +7,7 @@ use App\Models\AbstractLtiEntity;
 
 use Jose\Component\Core\JWKSet;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 
 class JwksUpdater
@@ -19,7 +19,7 @@ class JwksUpdater
 
         $jwks = file_get_contents($service->jwks_url);
         if ($jwks === false)
-            throw new LTIException('Failed to get data from JWKS URL.');
+            throw new LtiException('Failed to get data from JWKS URL.');
 
         try {
             $jwks = JWKSet::createFromJson($jwks);
@@ -39,7 +39,7 @@ class JwksUpdater
             $service->keys()->insertOrIgnore($keys);
         }
         catch(\InvalidArgumentException $e) {
-            throw new LTIException(
+            throw new LtiException(
                 "Failed to get keys from JWKS URL.", 0, $e);
         }
     }

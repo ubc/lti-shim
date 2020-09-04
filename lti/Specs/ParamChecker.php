@@ -3,7 +3,7 @@ namespace UBC\LTI\Specs;
 
 use Illuminate\Support\Facades\Log;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 
 class ParamChecker
 {
@@ -15,12 +15,12 @@ class ParamChecker
     }
 
     // check that the required params are in the request and is not empty
-    // throw LTIException if params missing
+    // throw LtiException if params missing
     public function requireParams(array $requiredParams)
     {
         foreach ($requiredParams as $requiredParam) {
             if (!$this->hasParam($requiredParam)) {
-                throw new LTIException(
+                throw new LtiException(
                     "Missing required parameter '$requiredParam'");
             }
         }
@@ -28,16 +28,16 @@ class ParamChecker
 
     // more strict than requireParams, not only do the params have to be
     // present, they have to match the value given, otherwise, throw
-    // LTIException
+    // LtiException
     public function requireValues(array $requiredValues)
     {
         foreach ($requiredValues as $key => $val) {
             if (!$this->hasParam($key)) {
-                throw new LTIException(
+                throw new LtiException(
                     "Missing required parameter '$key'");
             }
             if ($this->params[$key] != $val) {
-                throw new LTIException(
+                throw new LtiException(
                     "Required parameter '$key' must be set to '$val'");
             }
         }

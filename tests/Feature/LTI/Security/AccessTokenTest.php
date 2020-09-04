@@ -12,7 +12,7 @@ use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\Tool;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Specs\Security\AccessToken;
 
 use Tests\TestCase;
@@ -67,7 +67,7 @@ class AccessTokenTest extends TestCase
 
     public function testRequestAccessTokenFailsWithEmptyScope()
     {
-        $this->expectException(LTIException::class);
+        $this->expectException(LtiException::class);
         AccessToken::request($this->platform, $this->tool, []);
     }
 
@@ -149,7 +149,7 @@ class AccessTokenTest extends TestCase
                 'expires_in' => "Shouldn'tBeString"
             ])
         ]);
-        $this->expectException(LTIException::class);
+        $this->expectException(LtiException::class);
         // hopefully doesn't store the token into cache
         AccessToken::request($platform, $this->tool, $this->scopes);
     }
@@ -157,7 +157,7 @@ class AccessTokenTest extends TestCase
     public function testRejectUnregisteredTool()
     {
         $badTool = factory(Tool::class)->create();
-        $this->expectException(LTIException::class);
+        $this->expectException(LtiException::class);
         AccessToken::request($this->platform, $badTool, $this->scopes);
     }
 

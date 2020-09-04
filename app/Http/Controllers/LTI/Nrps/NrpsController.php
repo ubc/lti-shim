@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
 use App\Models\Nrps;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Specs\Nrps\PlatformNrps;
 
 class NrpsController extends Controller
@@ -25,7 +25,7 @@ class NrpsController extends Controller
         $platformNrps = new PlatformNrps($request, $nrps);
         try {
             return $platformNrps->getNrps();
-        } catch (LTIException $e) {
+        } catch (LtiException $e) {
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }

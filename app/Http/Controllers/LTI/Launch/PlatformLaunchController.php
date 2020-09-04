@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use App\Http\Controllers\Controller;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Specs\Launch\PlatformLaunch;
 
 class PlatformLaunchController extends Controller
@@ -23,7 +23,7 @@ class PlatformLaunchController extends Controller
         $launch = new PlatformLaunch($request);
         try {
             $response = $launch->getloginParams();
-        } catch (LTIException $e) {
+        } catch (LtiException $e) {
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
@@ -43,7 +43,7 @@ class PlatformLaunchController extends Controller
         try {
             $launch->checkAuthRequest();
             $response = $launch->getAuthResponse();
-        } catch (LTIException $e) {
+        } catch (LtiException $e) {
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }

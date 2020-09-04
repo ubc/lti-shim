@@ -13,7 +13,7 @@ use App\Models\EncryptionKey;
 use App\Models\Platform;
 use App\Models\Tool;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\Nonce;
@@ -78,7 +78,7 @@ class AccessToken
         }
         catch(\Exception $e) {
             Log::error("Unable to verify access token.");
-            throw new LTIException('Invalid access token: ' . $e->getMessage(),
+            throw new LtiException('Invalid access token: ' . $e->getMessage(),
                                    0, $e);
         }
     }
@@ -114,17 +114,17 @@ class AccessToken
         $timeTaken = time() - $timeBefore;
 
         if ($resp->failed())
-            throw new LTIException('Unable to get access token: '.$resp->body());
+            throw new LtiException('Unable to get access token: '.$resp->body());
 
         // make sure the response has the parameters we need
         try {
             $checker = new ParamChecker($resp->json());
             $checker->requireParams([self::ACCESS_TOKEN, self::EXPIRES_IN]);
             if (!is_numeric($resp[self::EXPIRES_IN]))
-                throw new LTIException('expires_in must be a number');
+                throw new LtiException('expires_in must be a number');
         }
-        catch(LTIException $e) {
-            throw new LTIException("Invalid access token response: " .
+        catch(LtiException $e) {
+            throw new LtiException("Invalid access token response: " .
                 $e->getMessage(), 0, $e);
         }
 
@@ -172,7 +172,7 @@ class AccessToken
         $key = $ownTool->keys()->first();
         $time = time();
         $platformClient = $tool->getPlatformClient($platform->id);
-        if (!$platformClient) throw new LTIException('Unregistered client');
+        if (!$platformClient) throw new LtiException('Unregistered client');
         return Build::jws()
             ->typ(Param::JWT)
             ->alg(Param::RS256)
@@ -193,10 +193,10 @@ class AccessToken
     private static function checkScopes(array $scopes)
     {
         if (!$scopes)
-            throw new LTIException("Access token request scope can't be empty");
+            throw new LtiException("Access token request scope can't be empty");
         foreach ($scopes as $scope) {
             if (!array_key_exists($scope, self::VALID_SCOPES)) {
-                throw new LTIException('Unsupported scope: ' . $scope);
+                throw new LtiException('Unsupported scope: ' . $scope);
             }
         }
     }

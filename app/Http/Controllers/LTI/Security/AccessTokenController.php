@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use App\Http\Controllers\Controller;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Specs\Security\PlatformAccessToken;
 
 class AccessTokenController extends Controller
@@ -23,7 +23,7 @@ class AccessTokenController extends Controller
         $oauthToken = new PlatformAccessToken($request);
         try {
             return $oauthToken->processTokenRequest();
-        } catch (LTIException $e) {
+        } catch (LtiException $e) {
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }

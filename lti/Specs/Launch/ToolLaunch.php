@@ -18,7 +18,7 @@ use App\Models\PlatformClient;
 use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
@@ -57,11 +57,11 @@ class ToolLaunch
         // check that the request is coming from a platform we know
         $iss = $this->request->input(Param::ISS);
         $platform = Platform::getByIss($iss);
-        if (!$platform) throw new LTIException("Unknown platform iss: $iss");
+        if (!$platform) throw new LtiException("Unknown platform iss: $iss");
         // make sure that target_link_uri is pointing to us
         $target = $this->request->input(Param::TARGET_LINK_URI);
         if (strpos($target, config('app.url')) !== 0)
-            throw new LTIException("target_link_uri is some other site: $target");
+            throw new LtiException("target_link_uri is some other site: $target");
 
         $this->hasLogin = true;
     }
@@ -100,10 +100,10 @@ class ToolLaunch
         else {
             $targetLinkUri = $this->request->input(Param::TARGET_LINK_URI);
             $targetTool = Tool::getByTargetLinkUri($targetLinkUri);
-            if (!$targetTool) throw new LTIException('Unknown target tool');
+            if (!$targetTool) throw new LtiException('Unknown target tool');
             $platformClient = $targetTool->getPlatformClient($platform->id);
         }
-        if (!$platformClient) throw new LTIException('Unregistered client');
+        if (!$platformClient) throw new LtiException('Unregistered client');
         $resp[Param::CLIENT_ID] = $platformClient->client_id;
 
         // lti_message_hint needs to be passed back as is to the platform
@@ -186,7 +186,7 @@ class ToolLaunch
             $jwsUtil = new JwsUtil($token);
             $kid = $jwsUtil->getKid();
         } catch(InvalidArgumentException $e) {
-            throw new LTIException('id_token invalid: ', 0, $e);
+            throw new LtiException('id_token invalid: ', 0, $e);
         }
         $jwk = $platformClient->platform->getKey($kid)->public_key;
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
@@ -218,22 +218,22 @@ class ToolLaunch
             // check nonce
             $nonce = $jwt->claims->get(Param::NONCE);
             if (Nonce::isValid($nonce)) Nonce::used($nonce);
-            else throw new LTIException('Invalid nonce');
+            else throw new LtiException('Invalid nonce');
         } catch(\Exception $e) { // invalid signature throws a bare Exception
-            throw new LTIException('Invalid id_token: '.$e->getMessage(),0,$e);
+            throw new LtiException('Invalid id_token: '.$e->getMessage(),0,$e);
         }
 
         return $jwt;
     }
 
-    // decrypt the state and return the JWT, throws LTIException if state invalid
+    // decrypt the state and return the JWT, throws LtiException if state invalid
     private function processState(string $token): JWT
     {
         try {
             $jwt = EncryptedState::decrypt($token);
             return $jwt;
         } catch(\Exception $e) {
-            throw new LTIException('Invalid state in auth response: ' .
+            throw new LtiException('Invalid state in auth response: ' .
                 $e->getMessage(), 0, $e);
         }
     }

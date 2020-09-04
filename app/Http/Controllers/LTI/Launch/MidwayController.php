@@ -10,7 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LtiSession;
 use App\Models\Tool;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Launch\MidwayLaunch;
 
@@ -32,7 +32,7 @@ class MidwayController extends Controller
         try {
             $midwayLaunch = new MidwayLaunch($request);
             return $midwayLaunch->getArrivalResponse();
-        } catch (LTIException $e) {
+        } catch (LtiException $e) {
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }

@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use App\Http\Controllers\Controller;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Launch\ToolLaunch;
 
@@ -25,7 +25,7 @@ class ToolLaunchController extends Controller
         try {
             $toolLaunch->checkLogin();
             $response = $toolLaunch->getLoginResponse();
-        } catch (LTIException $e) {
+        } catch (LtiException $e) {
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
@@ -47,7 +47,7 @@ class ToolLaunchController extends Controller
             $ltiSession = $toolLaunch->processAuth();
             return redirect()->action('LTI\Launch\MidwayController@arrival',
                                       [Param::LTI_MESSAGE_HINT => $ltiSession]);
-        } catch (LTIException $e) {
+        } catch (LtiException $e) {
             report($e);
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }

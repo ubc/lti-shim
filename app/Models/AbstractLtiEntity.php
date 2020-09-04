@@ -12,7 +12,7 @@ use Jose\Component\Core\JWK;
 use App\Models\AbstractRsaKey;
 
 use UBC\LTI\Specs\Security\JwksUpdater;
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 
 // parent class for Tool and Platform models
@@ -27,7 +27,7 @@ abstract class AbstractLtiEntity extends Model
             'jwks_url' => ['url', 'nullable']
         ]);
         if ($validator->fails()) {
-            throw new LTIException("JWKS URL not recognized as a valid URL.");
+            throw new LtiException("JWKS URL not recognized as a valid URL.");
         }
         $this->attributes['jwks_url'] = $url;
     }

@@ -13,7 +13,7 @@ use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 

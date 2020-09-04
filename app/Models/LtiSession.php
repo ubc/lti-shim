@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 use UBC\LTI\EncryptedState;
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 
 class LtiSession extends Model
@@ -18,14 +18,14 @@ class LtiSession extends Model
     public static function getSession($request): self
     {
         if (!$request->has(Param::LTI_MESSAGE_HINT)) {
-            throw new LTIException('No LTI session found.');
+            throw new LtiException('No LTI session found.');
         }
         $state = EncryptedState::decrypt(
             $request->input(Param::LTI_MESSAGE_HINT));
         $ltiSession = self::find($state->claims->get('lti_session'));
         if (!$ltiSession) {
             // TODO: actually expire sessions
-            throw new LTIException('Invalid LTI session, is it expired?');
+            throw new LtiException('Invalid LTI session, is it expired?');
         }
         return $ltiSession;
     }

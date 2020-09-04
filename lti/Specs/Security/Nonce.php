@@ -4,7 +4,7 @@ namespace UBC\LTI\Specs\Security;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 
 class Nonce
 {
@@ -33,7 +33,7 @@ class Nonce
         }
         Log::error("Generated a duplicate nonce, is this even possible? " .
                    $nonce);
-        throw new LTIException("Error generating a nonce.");
+        throw new LtiException("Error generating a nonce.");
     }
 
     /**

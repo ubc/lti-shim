@@ -10,7 +10,7 @@ use Jose\Easy\Load;
 
 use App\Models\EncryptionKey;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 
 class EncryptedState
@@ -49,7 +49,7 @@ class EncryptedState
             return $jwt;
         }
         catch(\Exception $e) {
-            throw new LTIException('Unable to decrypt encrypted state.', 0, $e);
+            throw new LtiException('Unable to decrypt encrypted state.', 0, $e);
         }
     }
 }

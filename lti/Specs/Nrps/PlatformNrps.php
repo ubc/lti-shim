@@ -7,7 +7,7 @@ use Illuminate\Http\Response;
 
 use App\Models\Nrps;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Nrps\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Nrps\Filters\MemberFilter;
@@ -78,11 +78,11 @@ class PlatformNrps
     private function getAccessToken()
     {
         $authHeader = $this->request->header('authorization');
-        if (!$authHeader) throw new LTIException('Missing authorization header');
+        if (!$authHeader) throw new LtiException('Missing authorization header');
         // make sure we have a bearer token, no matter how it's capitalized
         $tokenType = substr($authHeader, 0, 6);
         if (strcasecmp(Param::TOKEN_TYPE_VALUE, $tokenType) != 0)
-            throw new LTIException('Unknown authorization token type: ' .
+            throw new LtiException('Unknown authorization token type: ' .
                 $tokenType);
         return substr($authHeader, 7);
     }

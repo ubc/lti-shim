@@ -8,7 +8,7 @@ use Jose\Easy\Load;
 
 use App\Models\Tool;
 
-use UBC\LTI\LTIException;
+use UBC\LTI\LtiException;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
@@ -77,10 +77,10 @@ class PlatformAccessToken
             Nonce::store($jti,
                 ($jwt->claims->exp() + JwsUtil::TOKEN_LEEWAY) - time());
             if (Nonce::isValid($jti)) Nonce::used($jti);
-            else throw new LTIException('Replayed JTI');
+            else throw new LtiException('Replayed JTI');
             // TODO: verify aud
         } catch(\Exception $e) { // invalid signature throws a bare Exception
-            throw new LTIException(
+            throw new LtiException(
                 'Invalid client assertion JWT: ' . $e->getMessage(), 0, $e);
         }
         // scopes are space delimited
