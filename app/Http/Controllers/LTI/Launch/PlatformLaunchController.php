@@ -20,8 +20,8 @@ class PlatformLaunchController extends Controller
     public function login(Request $request)
     {
         $response = [];
-        $launch = new PlatformLaunch($request);
         try {
+            $launch = new PlatformLaunch($request);
             $response = $launch->getloginParams();
         } catch (LtiException $e) {
             report($e);
@@ -39,8 +39,8 @@ class PlatformLaunchController extends Controller
     public function auth(Request $request)
     {
         $response = [];
-        $launch = new PlatformLaunch($request);
         try {
+            $launch = new PlatformLaunch($request);
             $launch->checkAuthRequest();
             $response = $launch->getAuthResponse();
         } catch (LtiException $e) {
