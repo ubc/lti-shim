@@ -29,6 +29,15 @@ class CourseContextFilter implements FilterInterface
             $courseId
         );
         $newContext = ['id' => $courseContext->fake_context_id];
+        // we can pass through the course label and title as is
+        if (isset($params[Param::CONTEXT_URI][Param::LABEL])) {
+            $newContext[Param::LABEL] =
+                $params[Param::CONTEXT_URI][Param::LABEL];
+        }
+        if (isset($params[Param::CONTEXT_URI][Param::TITLE])) {
+            $newContext[Param::TITLE] =
+                $params[Param::CONTEXT_URI][Param::TITLE];
+        }
         $params[Param::CONTEXT_URI] = $newContext;
         return $params;
     }

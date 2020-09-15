@@ -136,7 +136,8 @@ class NrpsTest extends TestCase
             'members'
         ]);
         // make sure the the course has been filtered
-        $expectedContext = ['id' => $this->courseContext->fake_context_id];
+        $expectedContext = $this->fakeNrps['context'];
+        $expectedContext['id'] = $this->courseContext->fake_context_id;
         $actualContext = $resp['context'];
         $this->assertEquals($expectedContext, $actualContext);
         // make sure that the users we got back have been entered into database
