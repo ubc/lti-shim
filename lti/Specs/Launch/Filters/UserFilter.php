@@ -5,13 +5,17 @@ namespace UBC\LTI\Specs\Launch\Filters;
 use App\Models\LtiSession;
 use App\Models\LtiFakeUser;
 
+use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Param;
 
-class UserFilter implements FilterInterface
+class UserFilter extends AbstractFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'User Filter';
+
     public function filter(array $params, LtiSession $session): array
     {
+        $this->ltiLog->debug('Trying', $session);
         $fakeUser = LtiFakeUser::getByRealUser($session->course_context_id,
             $session->tool_id, $session->lti_real_user);
         if (isset($params[Param::LOGIN_HINT])) {
@@ -22,6 +26,12 @@ class UserFilter implements FilterInterface
         }
         if (isset($params[Param::NAME])) {
             $params[Param::NAME] = $fakeUser->name;
+            $this->ltiLog->info(
+                'Real user(' . $session->lti_real_user->id . '): ' .
+                $session->lti_real_user->name . ' using fake user(' .
+                $fakeUser->id . '): ' . $fakeUser->name,
+                $session
+            );
         }
         if (isset($params[Param::EMAIL])) {
             $params[Param::EMAIL] = $fakeUser->email;

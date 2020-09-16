@@ -50,7 +50,7 @@ return [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => 'debug',
-            'days' => 14,
+            'days' => 366,
         ],
 
         'slack' => [
@@ -88,6 +88,20 @@ return [
         'errorlog' => [
             'driver' => 'errorlog',
             'level' => 'debug',
+        ],
+
+        'request' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/request.log'),
+            'level' => 'info',
+            'days' => 366,
+        ],
+
+        'lti' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/lti.log'),
+            'level' => 'debug',
+            'days' => 366,
         ],
     ],
 

@@ -45,6 +45,8 @@ class MidwayController extends Controller
      */
     public function departure(Request $request)
     {
+        Log::channel('lti')->debug("Launch (Midway) From " . $request->ip() .
+            " Depart to Platform Side");
         return redirect()->action(
             'LTI\Launch\PlatformLaunchController@login',
             [Param::LTI_MESSAGE_HINT=> $request->input(Param::LTI_MESSAGE_HINT)]

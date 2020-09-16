@@ -8,20 +8,24 @@ use Illuminate\Http\Response;
 use App\Models\LtiFakeUser;
 use App\Models\LtiSession;
 
+use UBC\LTI\LtiLog;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\RoleVocabulary;
 
 class MidwayLaunch
 {
+    private LtiLog $ltiLog;
     private Request $request;
 
     public function __construct(Request $request)
     {
         $this->request = $request;
+        $this->ltiLog = new LtiLog('Launch (Midway)');
     }
 
     public function getArrivalResponse(): Response
     {
+        $this->ltiLog->debug('Arrived from Tool Side', $this->request);
         $ltiSession = LtiSession::getSession($this->request);
 
         $users = LtiFakeUser::getByCourseContext(
@@ -45,9 +49,11 @@ class MidwayLaunch
 
         $roleVo = new RoleVocabulary();
         if ($roleVo->canLookupRealUsers($ltiSession->token[Param::ROLES_URI])) {
+            $this->ltiLog->debug('Access lookup tool', $this->request);
             return response()->view('lti/launch/midway/lookup', $response);
         }
         else {
+            $this->ltiLog->debug('No lookup, continue', $this->request);
             return response()->view('lti/launch/midway/auto', $response);
         }
     }

@@ -12,6 +12,8 @@ use UBC\LTI\Param;
 // parameter values at all, only looking at the parameter name.
 class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'Whitelist Filter';
+
     // list of params that show up in oidc login
     // needs to be an associative array instead of regular array for faster
     // lookups, not sure if it matters though given the small arrays
@@ -34,7 +36,7 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         Param::RESPONSE_MODE => 7,
         Param::NONCE => 8,
         Param::PROMPT => 9,
-        Param::LTI_MESSAGE_HINT => 10 
+        Param::LTI_MESSAGE_HINT => 10
     ];
     // list of params that show up in auth responses
     public const AUTH_RESP_PARAMS = [
@@ -73,9 +75,10 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         self::AUTH_RESP_PARAMS,
         self::ID_TOKEN_PARAMS
     ];
-    
+
     public function filter(array $params, LtiSession $session): array
     {
+        $this->ltiLog->debug('Running');
         return $this->apply($params);
     }
 }

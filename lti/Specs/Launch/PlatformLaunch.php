@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Jose\Easy\Build;
 
 use App\Models\Deployment;
+use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\LtiSession;
 use App\Models\Platform;
@@ -14,6 +15,7 @@ use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
 use UBC\LTI\LtiException;
+use UBC\LTI\LtiLog;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\ParamChecker;
 
@@ -32,6 +34,7 @@ class PlatformLaunch
 {
     private Request $request; // laravel request object
     private ParamChecker $checker;
+    private LtiLog $ltiLog;
     private LtiSession $ltiSession;
     private array $filters;
 
@@ -51,12 +54,14 @@ class PlatformLaunch
             new NrpsFilter()
         ];
         $this->ltiSession = LtiSession::getSession($this->request);
+        $this->ltiLog = new LtiLog('Launch (Platform Side)');
     }
 
     // first stage of the LTI launch on the platform side, we need to send the
     // login params to the tool.
     public function getLoginParams(): array
     {
+        $this->ltiLog->debug("Send Login", $this->request, $this->ltiSession);
 
         $deployment = $this->ltiSession->deployment;
         $tool = $this->ltiSession->tool;
@@ -72,7 +77,11 @@ class PlatformLaunch
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT)
         ];
+        $this->ltiLog->debug('Pre-filter: ' . json_encode($params),
+            $this->request, $this->ltiSession);
         $params = $this->applyFilters($params);
+        $this->ltiLog->debug('Post-filter: ' . json_encode($params),
+            $this->request, $this->ltiSession);
         return [
             'response' => $params,
             'oidc_login_url' => $tool->oidc_login_url
@@ -83,6 +92,8 @@ class PlatformLaunch
     // the authentication request sent by the tool.
     public function checkAuthRequest()
     {
+        $this->ltiLog->debug("Receive Auth Request",
+            $this->request, $this->ltiSession);
         $tool = $this->ltiSession->tool;
         $user = $this->ltiSession->lti_real_user;
 
@@ -96,7 +107,11 @@ class PlatformLaunch
             Param::LOGIN_HINT => $user->login_hint,
             Param::CLIENT_ID => $tool->client_id
         ];
+        $this->ltiLog->debug('Pre-filter: ' . json_encode($requiredValues),
+            $this->request, $this->ltiSession);
         $requiredValues = $this->applyFilters($requiredValues);
+        $this->ltiLog->debug('Post-filter: ' . json_encode($requiredValues),
+            $this->request, $this->ltiSession);
         // TODO: validate redirect_uri, valid redirect_uri is supposed to be
         // pre-registered and we need to make sure it matches what we have
 
@@ -109,6 +124,8 @@ class PlatformLaunch
     // to generate the id_token JWT
     public function getAuthResponse(): array
     {
+        $this->ltiLog->debug("Send Auth Response",
+            $this->request, $this->ltiSession);
         // cannot generate the auth response without an auth request
         if (!$this->hasAuthRequest) $this->checkAuthRequest();
 
@@ -155,10 +172,16 @@ class PlatformLaunch
                     $this->ltiSession->token[$optionalParam];
             }
         }
+        $this->ltiLog->debug('Pre-filter id_token: ' . json_encode($payload),
+            $this->request, $this->ltiSession);
         // filter all params
         $payload = $this->applyFilters($payload);
+        $this->ltiLog->debug('Post-filter id_token: ' . json_encode($payload),
+            $this->request, $this->ltiSession);
         // header params (typ, alg, kid) cannot be loaded using the payload()
         // function so has to be specified separately (and won't be filtered)
+        $this->ltiLog->debug('id_token: key: '. $key->id .' kid: ' . $key->kid,
+            $this->request, $this->ltiSession);
         $token = Build::jws()
             ->typ(Param::JWT)
             ->alg(Param::RS256)
@@ -167,7 +190,23 @@ class PlatformLaunch
             ->sign($key->key);
         $resp['id_token'] = $token;
 
+        $this->ltiLog->debug('Pre-filter params: ' . json_encode($resp),
+            $this->request, $this->ltiSession);
         $resp = $this->applyFilters($resp);
+        $this->ltiLog->debug('Post-filter params: ' . json_encode($resp),
+            $this->request, $this->ltiSession);
+
+        $fakeUser = LtiFakeUser::getByRealUser(
+            $this->ltiSession->course_context_id,
+            $this->ltiSession->tool_id,
+            $this->ltiSession->lti_real_user
+        );
+
+        $this->ltiLog->notice(
+            'Real user ' . $this->ltiSession->lti_real_user_id .
+            ' launched into course ' . $this->ltiSession->course_context_id .
+            ' as fake user ' . $fakeUser->id
+        );
 
         return [
             'response' => $resp,
@@ -177,6 +216,8 @@ class PlatformLaunch
 
     private function applyFilters(array $params): array
     {
+        $this->ltiLog->debug("Applying Filters", $this->request,
+            $this->ltiSession);
         foreach ($this->filters as $filter) {
             $params = $filter->filter($params, $this->ltiSession);
         }

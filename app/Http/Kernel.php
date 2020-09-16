@@ -28,6 +28,7 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
+            \App\Http\Middleware\RequestLogger::class,
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
@@ -38,14 +39,16 @@ class Kernel extends HttpKernel
         ],
 
         'lti' => [
+            \App\Http\Middleware\RequestLogger::class,
             'throttle:60,1',
             'bindings',
         ],
 
         'api' => [
+            \App\Http\Middleware\RequestLogger::class,
             'throttle:60,1',
             'bindings',
-            'auth:api'
+            'auth:api',
         ],
     ];
 

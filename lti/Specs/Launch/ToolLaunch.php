@@ -19,6 +19,7 @@ use App\Models\Tool;
 
 use UBC\LTI\EncryptedState;
 use UBC\LTI\LtiException;
+use UBC\LTI\LtiLog;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
@@ -32,6 +33,7 @@ class ToolLaunch
 {
     public const PLATFORM_CLIENT_ID_PARAM = 'platform_client_id';
 
+    private LtiLog $ltiLog;
     private Request $request; // laravel request object
     private ParamChecker $checker;
 
@@ -41,12 +43,15 @@ class ToolLaunch
     {
         $this->request = $request;
         $this->checker = new ParamChecker($request->input());
+        $this->ltiLog = new LtiLog('Launch (Tool Side)');
     }
 
     // first stage of the LTI launch on the tool side, we need to check that
     // the platform has sent us all the information we need
     public function checkLogin()
     {
+        $this->ltiLog->info('Launch started: ' .
+            json_encode($this->request->input()), $this->request);
         $requiredParams = [
             Param::ISS,
             Param::LOGIN_HINT,
@@ -57,11 +62,14 @@ class ToolLaunch
         // check that the request is coming from a platform we know
         $iss = $this->request->input(Param::ISS);
         $platform = Platform::getByIss($iss);
-        if (!$platform) throw new LtiException("Unknown platform iss: $iss");
+        if (!$platform)
+            throw new LtiException($this->ltiLog->msg(
+                "Unknown platform iss: $iss", $this->request));
         // make sure that target_link_uri is pointing to us
         $target = $this->request->input(Param::TARGET_LINK_URI);
         if (strpos($target, config('app.url')) !== 0)
-            throw new LtiException("target_link_uri is some other site: $target");
+            throw new LtiException($this->ltiLog->msg(
+                "target_link_uri is some other site: $target", $this->request));
 
         $this->hasLogin = true;
     }
@@ -71,6 +79,7 @@ class ToolLaunch
     // should be sent
     public function getLoginResponse(): array
     {
+        $this->ltiLog->debug('Send Auth Request', $this->request);
         $ownTool = Tool::getOwnTool();
         // cannot generate the login response if we don't have a valid login
         if (!$this->hasLogin) $this->checkLogin();
@@ -100,10 +109,12 @@ class ToolLaunch
         else {
             $targetLinkUri = $this->request->input(Param::TARGET_LINK_URI);
             $targetTool = Tool::getByTargetLinkUri($targetLinkUri);
-            if (!$targetTool) throw new LtiException('Unknown target tool');
+            if (!$targetTool) throw new LtiException(
+                $this->ltiLog->msg('Unknown target tool', $this->request));
             $platformClient = $targetTool->getPlatformClient($platform->id);
         }
-        if (!$platformClient) throw new LtiException('Unregistered client');
+        if (!$platformClient) throw new LtiException($this->ltiLog->msg(
+            'Unregistered client', $this->request));
         $resp[Param::CLIENT_ID] = $platformClient->client_id;
 
         // lti_message_hint needs to be passed back as is to the platform
@@ -116,6 +127,8 @@ class ToolLaunch
         // to do on our side, so I'm putting values that requires verification
         // against the id_token into the state.
         $resp[Param::STATE] = $this->createState($platformClient->id);
+        $this->ltiLog->debug('Generated state: ' .  $resp[Param::STATE],
+            $this->request);
 
         $resp[Param::NONCE] = Nonce::create();
 
@@ -126,11 +139,16 @@ class ToolLaunch
     // authentication response sent back by the platform
     public function processAuth()
     {
+        $this->ltiLog->debug('Receive Auth Response', $this->request);
         $requiredParams = [
             Param::STATE,
             Param::ID_TOKEN
         ];
         $this->checker->requireParams($requiredParams);
+        $this->ltiLog->debug('Received state: ' .
+            $this->request->input(Param::STATE), $this->request);
+        $this->ltiLog->debug('Received id_token: ' .
+            $this->request->input(Param::ID_TOKEN), $this->request);
         $state = $this->processState($this->request->input(Param::STATE));
         $platformClient = PlatformClient::find(
             $state->claims->get(self::PLATFORM_CLIENT_ID_PARAM));
@@ -165,6 +183,9 @@ class ToolLaunch
         $ltiSession->course_context_id = $courseContext->id;
         $ltiSession->token = $idToken->claims->all();
         $ltiSession->save();
+        $this->ltiLog->debug('Auth Resp: ' . 'context: ' . $courseContext->id .
+            ' real user: ' . $user->id . ' session: ' . $ltiSession->id,
+            $this->request);
         // generate the session token to be passed on to the shim's tool side
         $state = EncryptedState::encrypt([
             'lti_session' => $ltiSession->id
@@ -182,17 +203,21 @@ class ToolLaunch
         $jwt;
         $kid = '';
         try {
+            $this->ltiLog->debug('Decode id_token', $this->request);
             $jwt = Load::jws($token);
             $jwsUtil = new JwsUtil($token);
             $kid = $jwsUtil->getKid();
+            $this->ltiLog->debug('id_token: kid: ' . $kid, $this->request);
         } catch(InvalidArgumentException $e) {
-            throw new LtiException('id_token invalid: ', 0, $e);
+            throw new LtiException(
+                $this->ltiLog->msg('invalid id_token',$this->request,$e),0,$e);
         }
-        $jwk = $platformClient->platform->getKey($kid)->public_key;
+        $jwk = $platformClient->platform->getKey($kid);
+        $this->ltiLog->debug('id_token: key: ' . $jwk->id, $this->request);
         $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
                    ->aud($platformClient->client_id)
                    ->iss($platformClient->platform->iss)
-                   ->key($jwk); // Key used to verify the signature
+                   ->key($jwk->public_key); // Key used to verify the signature
         try {
             // check signature
             $jwt = $jwt->run();
@@ -218,9 +243,11 @@ class ToolLaunch
             // check nonce
             $nonce = $jwt->claims->get(Param::NONCE);
             if (Nonce::isValid($nonce)) Nonce::used($nonce);
-            else throw new LtiException('Invalid nonce');
+            else throw new LtiException($this->ltiLog->msg('Invalid nonce',
+                                                           $this->request));
         } catch(\Exception $e) { // invalid signature throws a bare Exception
-            throw new LtiException('Invalid id_token: '.$e->getMessage(),0,$e);
+            throw new LtiException(
+                $this->ltiLog->msg('Invalid id_token',$this->request,$e),0,$e);
         }
 
         return $jwt;
@@ -233,8 +260,8 @@ class ToolLaunch
             $jwt = EncryptedState::decrypt($token);
             return $jwt;
         } catch(\Exception $e) {
-            throw new LtiException('Invalid state in auth response: ' .
-                $e->getMessage(), 0, $e);
+            throw new LtiException($this->ltiLog->msg(
+                'Invalid state in auth response', $this->request, $e), 0, $e);
         }
     }
 

@@ -3,8 +3,10 @@ namespace UBC\LTI\Filters;
 
 use Illuminate\Support\Facades\Log;
 
+use UBC\LTI\Filters\AbstractFilter;
+
 // general whitelist implementation since each spec needs its own whitelist
-abstract class AbstractWhitelistFilter
+abstract class AbstractWhitelistFilter extends AbstractFilter
 {
     // Array of arrays, so we can have multiple whitelists. To allow fast
     // lookup, each whitelist needs to be an associative array, they should

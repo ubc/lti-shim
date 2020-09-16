@@ -8,17 +8,24 @@ use App\Models\LtiSession;
 use App\Models\Deployment;
 use App\Models\Nrps;
 
+use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 // Names and Role Provisioning Service (NRPS)
 // rewrites the NRPS urls provided by the original platform into the shim's urls
-class NrpsFilter implements FilterInterface
+class NrpsFilter extends AbstractFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'Nrps Filter';
+
     public function filter(array $params, LtiSession $session): array
     {
         // do nothing if platform doesn't support NRPS
-        if (!isset($params[Param::NRPS_CLAIM_URI])) return $params;
+        if (!isset($params[Param::NRPS_CLAIM_URI])) {
+            $this->ltiLog->debug('Skipping', $session);
+            return $params;
+        }
+        $this->ltiLog->debug('Running', $session);
 
         $deployment = $session->deployment;
         $tool = $session->tool;
@@ -33,6 +40,7 @@ class NrpsFilter implements FilterInterface
             $deployment->id,
             $tool->id
         );
+        $this->ltiLog->debug('Nrps: ' . $nrps->id, $session);
 
         // replace the original endpoint with the one on the shim
         $filteredClaim = [

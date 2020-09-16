@@ -47,6 +47,9 @@ class Param
     public const NAME = 'name';
     public const EMAIL = 'email';
     public const PERSON_SOURCEDID = 'person_sourcedid';
+    // course context claims
+    public const LABEL = 'label';
+    public const TITLE = 'title';
     // LTI defined URIs
     public const MESSAGE_TYPE_URI =
         'https://purl.imsglobal.org/spec/lti/claim/message_type';
