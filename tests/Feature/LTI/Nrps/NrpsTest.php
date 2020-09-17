@@ -67,8 +67,8 @@ class NrpsTest extends TestCase
             "id" => "http://192.168.55.182:8900/api/lti/courses/1/names_and_roles",
             "context" => [
                 "id" => $this->courseContext->real_context_id,
-                "label" => "TEST100",
-                "title" => "TEST100",
+                "label" => "TEST100Label",
+                "title" => "TEST100Title",
             ],
             "members" => [
                 [
@@ -180,6 +180,10 @@ class NrpsTest extends TestCase
             $this->assertEquals($expectedRoles,
                                 $actualFakeUser['roles']);
         }
+        // make sure that the course context title and label were updated
+        $this->courseContext->refresh();
+        $this->assertEquals($this->courseContext->title, $actualContext['title']);
+        $this->assertEquals($this->courseContext->label, $actualContext['label']);
     }
 
     /**

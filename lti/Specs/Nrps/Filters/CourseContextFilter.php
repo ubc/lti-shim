@@ -25,20 +25,24 @@ class CourseContextFilter implements FilterInterface
             $params[Param::CONTEXT] = [];
             return $params;
         }
+        $courseTitle = null;
+        if (isset($params[Param::CONTEXT][Param::TITLE]))
+            $courseTitle = $params[Param::CONTEXT][Param::TITLE];
+        $courseLabel = null;
+        if (isset($params[Param::CONTEXT][Param::LABEL]))
+            $courseLabel = $params[Param::CONTEXT][Param::LABEL];
         // get the course mapping so we can give the fake id
         $courseContext = CourseContext::createOrGet(
             $nrps->deployment_id,
             $nrps->tool_id,
-            $params[Param::CONTEXT]['id']
+            $params[Param::CONTEXT]['id'],
+            $courseTitle,
+            $courseLabel
         );
         $newContext = ['id' => $courseContext->fake_context_id];
-        // we can pass through the course label and title as is
-        if (isset($params[Param::CONTEXT][Param::LABEL])) {
-            $newContext[Param::LABEL] = $params[Param::CONTEXT][Param::LABEL];
-        }
-        if (isset($params[Param::CONTEXT][Param::TITLE])) {
-            $newContext[Param::TITLE] = $params[Param::CONTEXT][Param::TITLE];
-        }
+        // we can pass through the course title and label as is
+        if ($courseTitle) $newContext[Param::TITLE] = $courseTitle;
+        if ($courseLabel) $newContext[Param::LABEL] = $courseLabel;
         $params[Param::CONTEXT] = $newContext;
         return $params;
     }

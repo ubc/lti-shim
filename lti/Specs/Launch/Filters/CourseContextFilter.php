@@ -30,23 +30,26 @@ class CourseContextFilter extends AbstractFilter implements FilterInterface
             $params[Param::CONTEXT_URI] = [];
             return $params;
         }
+        $courseTitle = null;
+        if (isset($params[Param::CONTEXT_URI][Param::TITLE]))
+            $courseTitle = $params[Param::CONTEXT_URI][Param::TITLE];
+        $courseLabel = null;
+        if (isset($params[Param::CONTEXT_URI][Param::LABEL]))
+            $courseLabel = $params[Param::CONTEXT_URI][Param::LABEL];
         // replace real values with fake
         $courseContext = CourseContext::createOrGet(
             $session->deployment_id,
             $session->tool_id,
-            $courseId
+            $courseId,
+            $courseTitle,
+            $courseLabel
         );
         $this->ltiLog->debug('Course Context: ' . $courseContext->id, $session);
         $newContext = ['id' => $courseContext->fake_context_id];
-        // we can pass through the course label and title as is
-        if (isset($params[Param::CONTEXT_URI][Param::LABEL])) {
-            $newContext[Param::LABEL] =
-                $params[Param::CONTEXT_URI][Param::LABEL];
-        }
-        if (isset($params[Param::CONTEXT_URI][Param::TITLE])) {
-            $newContext[Param::TITLE] =
-                $params[Param::CONTEXT_URI][Param::TITLE];
-        }
+        // we can pass through the course title and label as is
+        if ($courseLabel) $newContext[Param::TITLE] = $courseTitle;
+        if ($courseTitle) $newContext[Param::LABEL] = $courseLabel;
+
         $params[Param::CONTEXT_URI] = $newContext;
         return $params;
     }

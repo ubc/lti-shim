@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Log;
+
 use Faker\Factory as Faker;
 
 use Illuminate\Database\Eloquent\Model;
@@ -15,11 +17,14 @@ class CourseContext extends Model
     ];
 
     // get the given CourseContext by tool_id, deployment_id and real_context_id
-    // will create one if it doesn't already exist
+    // will create one if it doesn't already exist, will update title and label
+    // if they've changed
     public static function createOrGet(
         int $deploymentId,
         int $toolId,
-        string $realContextId
+        string $realContextId,
+        ?string $title = null,
+        ?string $label = null
     ): self {
         $courseContext = self::firstOrCreate([
             'tool_id' => $toolId,
@@ -28,6 +33,12 @@ class CourseContext extends Model
         ]);
         if (!$courseContext->fake_context_id)
             $courseContext->fillFakeFields();
+        if ($title && $courseContext->title != $title)
+            $courseContext->title = $title;
+        if ($label && $courseContext->label != $label)
+            $courseContext->label = $label;
+        if ($courseContext->isDirty())
+            $courseContext->save();
         return $courseContext;
     }
 
@@ -35,6 +46,5 @@ class CourseContext extends Model
     {
         $faker = Faker::create();
         $this->fake_context_id = $faker->sha256;
-        $this->save();
     }
 }
