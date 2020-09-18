@@ -11,14 +11,21 @@ use App\Models\LtiRealUser;
 use App\Models\LtiFakeUser;
 use App\Models\Nrps;
 
+use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
 use UBC\LTI\Param;
 
-class MemberFilter implements FilterInterface
+class MemberFilter extends AbstractFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'Member Filter';
+
     public function filter(array $params, Nrps $nrps): array
     {
-        if (!isset($params[Param::MEMBERS])) return $params;
+        if (!isset($params[Param::MEMBERS])) {
+            $this->ltiLog->debug('Skipping', $nrps);
+            return $params;
+        }
+        $this->ltiLog->debug('Trying', $nrps);
         $toolId = $nrps->tool_id;
         $deployment = Deployment::find($nrps->deployment_id);
         $platformId = $deployment->platform_id;
@@ -32,8 +39,8 @@ class MemberFilter implements FilterInterface
                 !isset($member[Param::ROLES])) {
                 // user_id and roles are required by spec, skip if missing
                 // TODO: maybe should throw exception instead?
-                Log::warn('NRPS member does not have a required field:');
-                Log::warn($member);
+                $this->ltiLog->warning('Entry missing user id or role: ' .
+                    json_encode($member), $nrps);
             }
             else {
                 $membersByIds[$member[Param::USER_ID]] = $member;
@@ -73,6 +80,10 @@ class MemberFilter implements FilterInterface
                 $fakeMember[Param::STATUS] = $passthrough[Param::STATUS];
             }
             $fakeMembers[] = $fakeMember;
+            $this->ltiLog->info('Status: ' . $passthrough[Param::STATUS] .
+                ' Role: ' . json_encode($passthrough[Param::ROLES]),
+                $nrps, $fakeUser->lti_real_user, $fakeUser
+            );
         }
         $params[Param::MEMBERS] = $fakeMembers;
 

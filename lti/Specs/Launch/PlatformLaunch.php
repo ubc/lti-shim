@@ -202,10 +202,9 @@ class PlatformLaunch
             $this->ltiSession->lti_real_user
         );
 
-        $this->ltiLog->notice(
-            'Real user ' . $this->ltiSession->lti_real_user_id .
-            ' launched into course ' . $this->ltiSession->course_context_id .
-            ' as fake user ' . $fakeUser->id
+        $this->ltiLog->notice('Launch completed', $this->request,
+            $this->ltiSession, $this->ltiSession->course_context,
+            $this->ltiSession->lti_real_user, $fakeUser
         );
 
         return [

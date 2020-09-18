@@ -4,6 +4,9 @@ namespace UBC\LTI;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
+use App\Models\CourseContext;
+use App\Models\LtiFakeUser;
+use App\Models\LtiRealUser;
 use App\Models\LtiSession;
 use App\Models\Nrps;
 
@@ -26,6 +29,7 @@ use UBC\LTI\LtiException;
  */
 class LtiLog
 {
+    private const DELIMITER = ' ~ ';
     private const DEBUG = 1;
     private const INFO = 2;
     private const NOTICE = 3;
@@ -113,6 +117,16 @@ class LtiLog
             elseif ($obj instanceof Nrps) {
                 $components[] = 'Nrps: ' . $obj->id;
             }
+            elseif ($obj instanceof CourseContext) {
+                $components[] = 'Course: ' . $obj->id . ' ' . $obj->label .
+                    ' - ' . $obj->title;
+            }
+            elseif ($obj instanceof LtiRealUser) {
+                $components[] = 'Real User: ' . $obj->id . ' ' . $obj->name;
+            }
+            elseif ($obj instanceof LtiFakeUser) {
+                $components[] = 'Fake User: ' . $obj->id . ' ' . $obj->name;
+            }
             elseif ($obj instanceof \Exception) {
                 $components[] = 'Exception: ' . $obj->getMessage();
             }
@@ -121,7 +135,7 @@ class LtiLog
             }
         }
         $components[] = $params[0];
-        return implode(' ', $components);
+        return implode(self::DELIMITER, $components);
     }
 
     private function log($level, $params)

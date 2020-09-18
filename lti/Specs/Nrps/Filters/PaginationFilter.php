@@ -14,6 +14,7 @@ use App\Models\LtiSession;
 use App\Models\Deployment;
 use App\Models\Nrps;
 
+use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
 use UBC\LTI\Param;
 
@@ -21,11 +22,17 @@ use UBC\LTI\Param;
 // to find a nice PHP library to deal with this, but couldn't find any. So this
 // is only a very basic implementation, with support for only the 'rel' link
 // param.
-class PaginationFilter implements FilterInterface
+class PaginationFilter extends AbstractFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'Pagination Filter';
+
     public function filter(array $params, Nrps $nrps): array
     {
-        if (!isset($params[Param::LINK])) return $params;
+        if (!isset($params[Param::LINK])) {
+            $this->ltiLog->debug('Skipping', $nrps);
+            return $params;
+        }
+        $this->ltiLog->debug('Trying', $nrps);
 
         // there could be multiple links in the header, so we want to parse them
         // out into an array of individual links
@@ -45,9 +52,14 @@ class PaginationFilter implements FilterInterface
         foreach ($links as $link) {
             $linkNrps = $link['nrps'];
             $linkHeader .= '<' . $linkNrps->getShimUrl() . '>;';
-            if (isset($link['rel']))
-                $linkHeader .= ' rel="' . $link['rel'] . '"';
+            $rel = '';
+            if (isset($link['rel'])) {
+                $rel = $link['rel'];
+                $linkHeader .= ' rel="' . $rel . '"';
+            }
             $linkHeader .= ',';
+            $this->ltiLog->debug("Pagination Nrps $rel: " . $linkNrps->id .
+                ' for url: ' . $url, $nrps);
         }
         // remove last comma
         $linkHeader = trim($linkHeader, ',');

@@ -40,7 +40,8 @@ class NrpsFilter extends AbstractFilter implements FilterInterface
             $deployment->id,
             $tool->id
         );
-        $this->ltiLog->debug('Nrps: ' . $nrps->id, $session);
+        $this->ltiLog->debug('Nrps: ' . $nrps->id . ' URL: ' .
+            $nrps->context_membership_url, $session);
 
         // replace the original endpoint with the one on the shim
         $filteredClaim = [

@@ -12,18 +12,25 @@ use App\Models\LtiSession;
 use App\Models\Deployment;
 use App\Models\Nrps;
 
+use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
 use UBC\LTI\Param;
 
 // Names and Role Provisioning Service (NRPS)
 // rewrites the NRPS urls provided by the original platform into the shim's urls
-class NrpsUrlFilter implements FilterInterface
+class NrpsUrlFilter extends AbstractFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'NRPS URL Filter';
+
     public function filter(array $params, Nrps $nrps): array
     {
         // the NRPS url is written in the Param::ID field in the NRPS response
         // nothing to do if field doesn't exist
-        if (!isset($params[Param::ID])) return $params;
+        if (!isset($params[Param::ID])) {
+            $this->ltiLog->debug('Skipping', $nrps);
+            return $params;
+        }
+        $this->ltiLog->debug('Trying', $nrps);
 
         // note that the NRPS spec doesn't explicitly say that the NRPS
         // endpoint is put into Param::ID field. However, the example puts the
@@ -45,8 +52,10 @@ class NrpsUrlFilter implements FilterInterface
             }
         }
         catch (UriException $e) {
-            Log::warning("NRPS Result Not Using URL: " . $url);
+            $this->ltiLog->error("Invalid NRPS URL response: " . $url, $nrps);
         }
+
+        $this->ltiLog->debug('Queries used: ' . json_encode($queries), $nrps);
 
         // replace the original endpoint with the one on the shim
         $params[Param::ID] = $nrps->getShimUrl($queries);

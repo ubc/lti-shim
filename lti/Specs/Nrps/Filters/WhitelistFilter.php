@@ -12,6 +12,8 @@ use UBC\LTI\Param;
 // parameter values at all, only looking at the parameter name.
 class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'Whitelist Filter';
+
     // list of params that show up in NRPS responses
     public const NRPS_PARAMS = [
         Param::ID => 1,
@@ -23,9 +25,10 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
     protected array $whitelists = [
         self::NRPS_PARAMS
     ];
-    
+
     public function filter(array $params, Nrps $nrps): array
     {
+        $this->ltiLog->debug('Running');
         return $this->apply($params);
     }
 }

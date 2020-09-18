@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use App\Models\Nrps;
 
 use UBC\LTI\LtiException;
+use UBC\LTI\LtiLog;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Nrps\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Nrps\Filters\MemberFilter;
@@ -19,8 +20,9 @@ use UBC\LTI\Specs\Security\AccessToken;
 
 class PlatformNrps
 {
-    private Request $request;
+    private LtiLog $ltiLog;
     private Nrps $nrps;
+    private Request $request;
     private array $filters;
 
     public function __construct(Request $request, Nrps $nrps)
@@ -34,20 +36,28 @@ class PlatformNrps
             new PaginationFilter,
             new WhitelistFilter
         ];
+        $this->ltiLog = new LtiLog('NRPS (Platform)');
     }
 
     public function getNrps(): Response
     {
+        $this->ltiLog->info('NRPS request received at ' .
+            $this->request->fullUrl(), $this->request, $this->nrps);
         AccessToken::verify($this->getAccessToken());
 
         // access token good, proxy the request
         $toolNrps = new ToolNrps($this->request, $this->nrps);
         $nrpsData = $toolNrps->getNrps();
 
+        $this->ltiLog->debug('Pre-filter data: ' . json_encode($nrpsData),
+            $this->request, $this->nrps);
+        $this->ltiLog->debug('Applying filters', $this->request, $this->nrps);
         // apply all filters to the nrpsData
         foreach ($this->filters as $filter) {
             $nrpsData = $filter->filter($nrpsData, $this->nrps);
         }
+        $this->ltiLog->debug('Post-filter data: ' . json_encode($nrpsData),
+            $this->request, $this->nrps);
 
         // the link param is special, it contains NRPS result pagination links
         // and is filtered by the PaginationFilter, it needs to be sent in the
@@ -61,6 +71,9 @@ class PlatformNrps
 
         $response = response($nrpsData);
         if ($linkHeader) $response->header(Param::LINK, $linkHeader);
+
+        $this->ltiLog->notice('NRPS request completed', $this->request,
+                            $this->nrps, $this->nrps->course_context);
 
         return $response;
     }
@@ -78,12 +91,21 @@ class PlatformNrps
     private function getAccessToken()
     {
         $authHeader = $this->request->header('authorization');
-        if (!$authHeader) throw new LtiException('Missing authorization header');
+        if (!$authHeader) {
+            throw new LtiException($this->ltiLog->msg(
+                'Missing authorization header',
+                $this->request, $this->nrps
+            ));
+        }
+        $this->ltiLog->debug("Authorization: $authHeader", $this->request);
         // make sure we have a bearer token, no matter how it's capitalized
         $tokenType = substr($authHeader, 0, 6);
-        if (strcasecmp(Param::TOKEN_TYPE_VALUE, $tokenType) != 0)
-            throw new LtiException('Unknown authorization token type: ' .
-                $tokenType);
+        if (strcasecmp(Param::TOKEN_TYPE_VALUE, $tokenType) != 0) {
+            throw new LtiException($this->ltiLog->msg(
+                'Unknown authorization token type: ' . $tokenType,
+                $this->request, $this->nrps
+            ));
+        }
         return substr($authHeader, 7);
     }
 }

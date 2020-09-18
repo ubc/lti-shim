@@ -8,20 +8,26 @@ use App\Models\CourseContext;
 use App\Models\LtiSession;
 use App\Models\Nrps;
 
+use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
 use UBC\LTI\Param;
 
-class CourseContextFilter implements FilterInterface
+class CourseContextFilter extends AbstractFilter implements FilterInterface
 {
+    protected const LOG_HEADER = 'Course Context Filter';
+
     public function filter(array $params, Nrps $nrps): array
     {
         // check required fields exist
-        if (!isset($params[Param::CONTEXT])) return $params;
+        if (!isset($params[Param::CONTEXT])) {
+            $this->ltiLog->debug('Skipping', $nrps);
+            return $params;
+        }
         if (!isset($params[Param::CONTEXT]['id'])) {
             // the id is required by spec, if it doesn't exist, then we have
             // a problem. For now, just log the error and drop the section.
-            Log::error('NRPS response missing context id: ' .
-                print_r($params, true));
+            $this->ltiLog->error('NRPS response missing context id: ' .
+                json_encode($params), $nrps);
             $params[Param::CONTEXT] = [];
             return $params;
         }
@@ -39,6 +45,7 @@ class CourseContextFilter implements FilterInterface
             $courseTitle,
             $courseLabel
         );
+        $this->ltiLog->debug('Rewrite course context', $nrps, $courseContext);
         $newContext = ['id' => $courseContext->fake_context_id];
         // we can pass through the course title and label as is
         if ($courseTitle) $newContext[Param::TITLE] = $courseTitle;

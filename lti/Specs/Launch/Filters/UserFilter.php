@@ -26,12 +26,8 @@ class UserFilter extends AbstractFilter implements FilterInterface
         }
         if (isset($params[Param::NAME])) {
             $params[Param::NAME] = $fakeUser->name;
-            $this->ltiLog->info(
-                'Real user(' . $session->lti_real_user->id . '): ' .
-                $session->lti_real_user->name . ' using fake user(' .
-                $fakeUser->id . '): ' . $fakeUser->name,
-                $session
-            );
+            $this->ltiLog->debug('User mapped', $session,
+                $session->lti_real_user, $fakeUser);
         }
         if (isset($params[Param::EMAIL])) {
             $params[Param::EMAIL] = $fakeUser->email;

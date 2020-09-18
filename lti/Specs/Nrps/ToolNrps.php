@@ -13,6 +13,7 @@ use App\Models\Nrps;
 use App\Models\Tool;
 
 use UBC\LTI\LtiException;
+use UBC\LTI\LtiLog;
 use UBC\LTI\Param;
 use UBC\LTI\Specs\Security\AccessToken;
 
@@ -20,6 +21,7 @@ use GuzzleHttp\Client;
 
 class ToolNrps
 {
+    private LtiLog $ltiLog;
     private Request $request;
     private Nrps $nrps;
 
@@ -27,15 +29,20 @@ class ToolNrps
     {
         $this->request = $request;
         $this->nrps = $nrps;
+        $this->ltiLog = new LtiLog('NRPS (Tool)');
     }
 
     public function getNrps(): array
     {
+        $this->ltiLog->debug('Requesting access token', $this->request,
+                             $this->nrps);
         $accessToken = AccessToken::request(
             $this->nrps->deployment->platform,
             $this->nrps->tool,
             [Param::NRPS_SCOPE_URI]
         );
+        $this->ltiLog->debug("Access token: $accessToken", $this->request,
+                             $this->nrps);
 
         $req = Http::withHeaders([
             'Accept' =>
@@ -51,15 +58,22 @@ class ToolNrps
         if ($this->request->input(Param::ROLE)) {
             $queries[Param::ROLE] = $this->request->input(Param::ROLE);
         }
+        $this->ltiLog->debug('Using queries: ' . json_encode($queries),
+            $this->request, $this->nrps);
+        $this->ltiLog->debug('Requesting NRPS from target platform');
         $resp = $req->get($this->nrps->getContextMembershipsUrl($queries));
 
         if ($resp->serverError()) {
-            throw new LtiException('NRPS platform error: ' . $resp->status()
-                . ' ' . $resp->body());
+            throw new LtiException($this->ltiLog->msg('NRPS platform error: ' .
+                $resp->status() . ' ' . $resp->body(),
+                $this->request, $this-nrps
+            ));
         }
         if ($resp->clientError()) {
-            throw new LtiException('NRPS client error: ' . $resp->status() . ' '
-                . $resp->body());
+            throw new LtiException($this->ltiLog->msg('NRPS client error: ' .
+                $resp->status() . ' ' . $resp->body(),
+                $this->request, $this->nrps
+            ));
         }
 
         // pagination URLs, if they exist, are in the header
@@ -67,6 +81,9 @@ class ToolNrps
 
         $ret = $resp->json();
         if ($link) $ret[Param::LINK] = $link;
+
+        $this->ltiLog->debug('Target platform NRPS response: ' .
+            json_encode($ret), $this->request, $this->nrps);
 
         return $ret;
     }
