@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Deployment extends Model
 {
     protected $fillable = ['lti_deployment_id', 'platform_id', 'tool_id'];
+    protected $with = ['platform'];
 
     public function platform()
     {

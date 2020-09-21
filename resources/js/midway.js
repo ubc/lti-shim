@@ -14,8 +14,8 @@ import 'vue-material-design-icons/styles.css';
 // vue-good-table
 import './plugins/vue-good-table/vue-good-table';
 
-Vue.component('timed-submit-form',
-  require('./midway/TimedSubmitForm.vue').default);
+Vue.component('midway-main',
+  require('./midway/MidwayMain.vue').default);
 Vue.component('user-list', require('./midway/UserList.vue').default);
 
 /**

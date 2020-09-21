@@ -44,6 +44,8 @@ class MidwayLaunch
         $response = [
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT),
+            'tool' => $ltiSession->tool->name,
+            'platform' => $ltiSession->deployment->platform->name,
             'users' => $users
         ];
 
