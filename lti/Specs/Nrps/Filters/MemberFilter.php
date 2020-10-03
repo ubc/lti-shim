@@ -13,7 +13,7 @@ use App\Models\Nrps;
 
 use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 class MemberFilter extends AbstractFilter implements FilterInterface
 {

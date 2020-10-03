@@ -1,7 +1,7 @@
 <?php
 namespace UBC\LTI\Filters;
 
-use UBC\LTI\LtiLog;
+use UBC\LTI\Utils\LtiLog;
 
 class AbstractFilter
 {

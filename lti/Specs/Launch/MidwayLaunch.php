@@ -8,8 +8,8 @@ use Illuminate\Http\Response;
 use App\Models\LtiFakeUser;
 use App\Models\LtiSession;
 
-use UBC\LTI\LtiLog;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiLog;
+use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\RoleVocabulary;
 
 class MidwayLaunch

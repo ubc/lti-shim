@@ -7,7 +7,7 @@ use App\Models\ResourceLink;
 
 use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 class ResourceLinkFilter extends AbstractFilter implements FilterInterface
 {

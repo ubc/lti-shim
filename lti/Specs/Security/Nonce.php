@@ -4,7 +4,7 @@ namespace UBC\LTI\Specs\Security;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-use UBC\LTI\LtiException;
+use UBC\LTI\Utils\LtiException;
 
 class Nonce
 {

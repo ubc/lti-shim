@@ -7,7 +7,7 @@ use App\Models\LtiFakeUser;
 
 use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 class UserFilter extends AbstractFilter implements FilterInterface
 {

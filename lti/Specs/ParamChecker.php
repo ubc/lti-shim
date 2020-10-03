@@ -3,7 +3,7 @@ namespace UBC\LTI\Specs;
 
 use Illuminate\Support\Facades\Log;
 
-use UBC\LTI\LtiException;
+use UBC\LTI\Utils\LtiException;
 
 class ParamChecker
 {

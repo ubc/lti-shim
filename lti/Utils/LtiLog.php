@@ -1,5 +1,5 @@
 <?php
-namespace UBC\LTI;
+namespace UBC\LTI\Utils;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -10,7 +10,7 @@ use App\Models\LtiRealUser;
 use App\Models\LtiSession;
 use App\Models\Nrps;
 
-use UBC\LTI\LtiException;
+use UBC\LTI\Utils\LtiException;
 
 /**
  * A wrapper around Laravel logging that takes care of some of the log header

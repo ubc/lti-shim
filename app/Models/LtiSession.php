@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-use UBC\LTI\EncryptedState;
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\EncryptedState;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 
 class LtiSession extends Model
 {

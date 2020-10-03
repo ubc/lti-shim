@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use App\Http\Controllers\Controller;
 
-use UBC\LTI\LtiException;
+use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Specs\Security\PlatformAccessToken;
 
 class AccessTokenController extends Controller

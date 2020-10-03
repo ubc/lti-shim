@@ -14,7 +14,7 @@ use App\Models\Nrps;
 
 use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 // Names and Role Provisioning Service (NRPS)
 // rewrites the NRPS urls provided by the original platform into the shim's urls

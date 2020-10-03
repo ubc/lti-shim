@@ -7,9 +7,9 @@ use Illuminate\Http\Response;
 
 use App\Models\Nrps;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\LtiLog;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\LtiLog;
+use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Nrps\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Nrps\Filters\MemberFilter;
 use UBC\LTI\Specs\Nrps\Filters\NrpsUrlFilter;

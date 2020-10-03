@@ -6,7 +6,7 @@ use App\Models\LtiSession;
 
 use UBC\LTI\Filters\AbstractWhitelistFilter;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 // Remove any parameters that we do not recognize. This does not check the
 // parameter values at all, only looking at the parameter name.

@@ -8,8 +8,8 @@ use Jose\Easy\Load;
 
 use App\Models\Tool;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\AccessToken;

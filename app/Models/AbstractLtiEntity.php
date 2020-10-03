@@ -12,8 +12,8 @@ use Jose\Component\Core\JWK;
 use App\Models\AbstractRsaKey;
 
 use UBC\LTI\Specs\Security\JwksUpdater;
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 
 // parent class for Tool and Platform models
 abstract class AbstractLtiEntity extends Model

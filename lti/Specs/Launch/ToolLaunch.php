@@ -17,10 +17,10 @@ use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\Tool;
 
-use UBC\LTI\EncryptedState;
-use UBC\LTI\LtiException;
-use UBC\LTI\LtiLog;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\EncryptedState;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\LtiLog;
+use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
 use UBC\LTI\Specs\ParamChecker;

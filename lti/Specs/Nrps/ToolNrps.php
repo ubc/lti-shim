@@ -12,9 +12,9 @@ use Jose\Easy\Build;
 use App\Models\Nrps;
 use App\Models\Tool;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\LtiLog;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\LtiLog;
+use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Security\AccessToken;
 
 use GuzzleHttp\Client;

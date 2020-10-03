@@ -1,5 +1,5 @@
 <?php
-namespace UBC\LTI;
+namespace UBC\LTI\Utils;
 
 class Param
 {

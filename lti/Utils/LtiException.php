@@ -1,5 +1,5 @@
 <?php
-namespace UBC\LTI;
+namespace UBC\LTI\Utils;
 
 use \Exception;
 use Illuminate\Support\Facades\Log;

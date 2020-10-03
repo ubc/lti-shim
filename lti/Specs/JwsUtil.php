@@ -7,8 +7,8 @@ use Jose\Component\Signature\JWS;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\JWT;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 
 // the JWT framework only offers easy access to the JWS claims *after* it has
 // been verified, but sometimes, we need access to the claims in order to

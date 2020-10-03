@@ -1,5 +1,5 @@
 <?php
-namespace UBC\LTI;
+namespace UBC\LTI\Utils;
 
 use Illuminate\Support\Facades\Log;
 
@@ -10,8 +10,8 @@ use Jose\Easy\Load;
 
 use App\Models\EncryptionKey;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 
 class EncryptedState
 {

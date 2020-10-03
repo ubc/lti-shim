@@ -7,8 +7,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 use App\Http\Controllers\Controller;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Launch\ToolLaunch;
 
 class ToolLaunchController extends Controller

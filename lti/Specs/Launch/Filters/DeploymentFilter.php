@@ -7,7 +7,7 @@ use App\Models\Deployment;
 
 use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 class DeploymentFilter extends AbstractFilter implements FilterInterface
 {

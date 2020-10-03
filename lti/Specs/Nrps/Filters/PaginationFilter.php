@@ -16,7 +16,7 @@ use App\Models\Nrps;
 
 use UBC\LTI\Filters\AbstractFilter;
 use UBC\LTI\Specs\Nrps\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 // NRPS pagination is passed in the Link header following RFC5988. I was hoping
 // to find a nice PHP library to deal with this, but couldn't find any. So this

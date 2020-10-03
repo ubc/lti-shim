@@ -12,7 +12,7 @@ use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\Tool;
 
-use UBC\LTI\LtiException;
+use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Specs\Security\AccessToken;
 
 use Tests\TestCase;

@@ -8,9 +8,9 @@ use App\Models\CourseContext;
 use App\Models\LtiSession;
 
 use UBC\LTI\Filters\AbstractFilter;
-use UBC\LTI\LtiLog;
+use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Specs\Launch\Filters\FilterInterface;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\Param;
 
 class CourseContextFilter extends AbstractFilter implements FilterInterface
 {

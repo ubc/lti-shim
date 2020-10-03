@@ -7,8 +7,8 @@ use App\Models\AbstractLtiEntity;
 
 use Jose\Component\Core\JWKSet;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 
 class JwksUpdater
 {

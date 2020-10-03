@@ -13,8 +13,8 @@ use App\Models\EncryptionKey;
 use App\Models\Platform;
 use App\Models\Tool;
 
-use UBC\LTI\LtiException;
-use UBC\LTI\Param;
+use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\Nonce;
 

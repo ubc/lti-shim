@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
 use App\Models\Nrps;
 
-use UBC\LTI\LtiException;
+use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Specs\Nrps\PlatformNrps;
 
 class NrpsController extends Controller
