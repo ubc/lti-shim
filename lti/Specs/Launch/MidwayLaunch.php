@@ -16,21 +16,23 @@ class MidwayLaunch
 {
     private LtiLog $ltiLog;
     private Request $request;
+    private LtiSession $ltiSession;
 
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->ltiLog = new LtiLog('Launch (Midway)');
+        $this->ltiSession = LtiSession::getSession($this->request);
+        $this->ltiLog = new LtiLog('Launch (Midway)',
+                                   $this->ltiSession->log_stream);
     }
 
     public function getArrivalResponse(): Response
     {
         $this->ltiLog->debug('Arrived from Tool Side', $this->request);
-        $ltiSession = LtiSession::getSession($this->request);
 
         $users = LtiFakeUser::getByCourseContext(
-            $ltiSession->course_context_id,
-            $ltiSession->tool_id
+            $this->ltiSession->course_context_id,
+            $this->ltiSession->tool_id
         );
 
         // hide some fields we send out
@@ -44,13 +46,15 @@ class MidwayLaunch
         $response = [
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT),
-            'tool' => $ltiSession->tool->name,
-            'platform' => $ltiSession->deployment->platform->name,
+            'tool' => $this->ltiSession->tool->name,
+            'platform' => $this->ltiSession->deployment->platform->name,
             'users' => $users
         ];
 
         $roleVo = new RoleVocabulary();
-        if ($roleVo->canLookupRealUsers($ltiSession->token[Param::ROLES_URI])) {
+        if ($roleVo->canLookupRealUsers(
+                $this->ltiSession->token[Param::ROLES_URI])
+        ) {
             $this->ltiLog->debug('Access lookup tool', $this->request);
             return response()->view('lti/launch/midway/lookup', $response);
         }
@@ -58,5 +62,17 @@ class MidwayLaunch
             $this->ltiLog->debug('No lookup, continue', $this->request);
             return response()->view('lti/launch/midway/auto', $response);
         }
+    }
+
+    public function getDepartureResponse()
+    {
+        $this->ltiLog->debug('Depart to Platform Side', $this->request);
+        return redirect()->action(
+            'LTI\Launch\PlatformLaunchController@login',
+            [
+                Param::LTI_MESSAGE_HINT =>
+                    $this->request->input(Param::LTI_MESSAGE_HINT)
+            ]
+        );
     }
 }

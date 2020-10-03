@@ -9,5 +9,6 @@ use App\Models\LtiSession;
 
 $factory->define(LtiSession::class, function (Faker $faker) {
     return [
+        'log_stream' => $faker->word
     ];
 });

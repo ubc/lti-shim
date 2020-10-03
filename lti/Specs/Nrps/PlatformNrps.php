@@ -29,14 +29,14 @@ class PlatformNrps
     {
         $this->request = $request;
         $this->nrps = $nrps;
-        $this->filters = [
-            new CourseContextFilter,
-            new MemberFilter,
-            new NrpsUrlFilter,
-            new PaginationFilter,
-            new WhitelistFilter
-        ];
         $this->ltiLog = new LtiLog('NRPS (Platform)');
+        $this->filters = [
+            new CourseContextFilter($this->ltiLog),
+            new MemberFilter($this->ltiLog),
+            new NrpsUrlFilter($this->ltiLog),
+            new PaginationFilter($this->ltiLog),
+            new WhitelistFilter($this->ltiLog)
+        ];
     }
 
     public function getNrps(): Response
@@ -46,7 +46,7 @@ class PlatformNrps
         AccessToken::verify($this->getAccessToken());
 
         // access token good, proxy the request
-        $toolNrps = new ToolNrps($this->request, $this->nrps);
+        $toolNrps = new ToolNrps($this->request, $this->nrps, $this->ltiLog);
         $nrpsData = $toolNrps->getNrps();
 
         $this->ltiLog->debug('Pre-filter data: ' . json_encode($nrpsData),

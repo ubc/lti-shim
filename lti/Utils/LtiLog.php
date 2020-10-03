@@ -39,16 +39,36 @@ class LtiLog
     private const ALERT = 7;
     private const EMERGENCY = 8;
 
-    private string $prefix = ''; // string we add to all messages
+    // since there's daily log rotation, we just need enough entropy that we're
+    // unlikely to see the same stream id in the same day
+    private const STREAM_ID_LENGTH = 4;
 
-    public function __construct(string $prefix='')
+    private string $prefix = ''; // string we add to all messages
+    private string $streamId = ''; // string we can use keep track of one
+                                   // specific flow, note that this requires
+                                   // manual management
+
+    public function __construct(string $prefix='', string $streamId='')
     {
         $this->setPrefix($prefix);
+        // automatically generate a streamId if not given one
+        if ($streamId) $this->setStreamId($streamId);
+        else $this->setStreamId(bin2hex(random_bytes(self::STREAM_ID_LENGTH)));
     }
 
     public function setPrefix(string $prefix)
     {
         $this->prefix = $prefix;
+    }
+
+    public function getStreamId(): string
+    {
+        return $this->streamId;
+    }
+
+    public function setStreamId(string $streamId)
+    {
+        $this->streamId = $streamId;
     }
 
     public function debug(...$params)
@@ -104,7 +124,7 @@ class LtiLog
 
     private function getMsg(array $params)
     {
-        $components = [];
+        $components = [$this->streamId];
         if ($this->prefix) $components[] = $this->prefix;
         for ($i = 1; $i < count($params); $i++) {
             $obj = $params[$i];

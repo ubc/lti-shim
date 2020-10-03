@@ -9,8 +9,8 @@ class AbstractFilter
 
     protected LtiLog $ltiLog;
 
-    public function __construct()
+    public function __construct(LtiLog $ltiLog)
     {
-        $this->ltiLog = new LtiLog(static::LOG_HEADER);
+        $this->ltiLog = new LtiLog(static::LOG_HEADER, $ltiLog->getStreamId());
     }
 }

@@ -25,11 +25,11 @@ class ToolNrps
     private Request $request;
     private Nrps $nrps;
 
-    public function __construct(Request $request, Nrps $nrps)
+    public function __construct(Request $request, Nrps $nrps, LtiLog $ltiLog)
     {
         $this->request = $request;
         $this->nrps = $nrps;
-        $this->ltiLog = new LtiLog('NRPS (Tool)');
+        $this->ltiLog = new LtiLog('NRPS (Tool)', $ltiLog->getStreamId());
     }
 
     public function getNrps(): array

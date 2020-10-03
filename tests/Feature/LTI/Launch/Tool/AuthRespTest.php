@@ -55,6 +55,7 @@ class AuthRespTest extends TestCase
             ->exp($time + 3600)
             ->claim('platform_client_id', $this->client->id)
             ->claim('login_hint', $this->loginHint)
+            ->claim('stream', bin2hex(random_bytes(2)))
             ->encrypt($encryptionKey->public_key);
     }
 

@@ -33,6 +33,8 @@ class ToolLaunch
 {
     public const PLATFORM_CLIENT_ID_PARAM = 'platform_client_id';
 
+    private const STREAM_ID = 'stream';
+
     private LtiLog $ltiLog;
     private Request $request; // laravel request object
     private ParamChecker $checker;
@@ -139,6 +141,9 @@ class ToolLaunch
     // authentication response sent back by the platform
     public function processAuth()
     {
+        // stream id is stored in state, since we haven't processed state, it's
+        // not available yet
+        $this->ltiLog->setStreamId('Unavailable');
         $this->ltiLog->debug('Receive Auth Response', $this->request);
         $requiredParams = [
             Param::STATE,
@@ -182,6 +187,7 @@ class ToolLaunch
         $ltiSession->lti_real_user_id = $user->id;
         $ltiSession->course_context_id = $courseContext->id;
         $ltiSession->token = $idToken->claims->all();
+        $ltiSession->log_stream = $this->ltiLog->getStreamId();
         $ltiSession->save();
         $this->ltiLog->debug('Auth Resp: ' . 'context: ' . $courseContext->id .
             ' real user: ' . $user->id . ' session: ' . $ltiSession->id,
@@ -258,6 +264,7 @@ class ToolLaunch
     {
         try {
             $jwt = EncryptedState::decrypt($token);
+            $this->ltiLog->setStreamId($jwt->claims->get(self::STREAM_ID));
             return $jwt;
         } catch(\Exception $e) {
             throw new LtiException($this->ltiLog->msg(
@@ -270,7 +277,8 @@ class ToolLaunch
     {
         $claims = [
             self::PLATFORM_CLIENT_ID_PARAM => $platformClientId,
-            Param::LOGIN_HINT => $this->request->input(Param::LOGIN_HINT)
+            Param::LOGIN_HINT => $this->request->input(Param::LOGIN_HINT),
+            self::STREAM_ID => $this->ltiLog->getStreamId()
         ];
         if ($this->request->has(Param::LTI_DEPLOYMENT_ID)) {
             $claims[Param::LTI_DEPLOYMENT_ID] =

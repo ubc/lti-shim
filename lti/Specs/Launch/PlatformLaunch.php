@@ -44,17 +44,18 @@ class PlatformLaunch
     {
         $this->request = $request;
         $this->checker = new ParamChecker($request->input());
-        $this->filters = [
-            new DeploymentFilter(),
-            new WhitelistFilter(),
-            new UserFilter(),
-            new ResourceLinkFilter(),
-            new LaunchPresentationFilter(),
-            new CourseContextFilter(),
-            new NrpsFilter()
-        ];
         $this->ltiSession = LtiSession::getSession($this->request);
-        $this->ltiLog = new LtiLog('Launch (Platform Side)');
+        $this->ltiLog = new LtiLog('Launch (Platform Side)',
+                                   $this->ltiSession->log_stream);
+        $this->filters = [
+            new DeploymentFilter($this->ltiLog),
+            new WhitelistFilter($this->ltiLog),
+            new UserFilter($this->ltiLog),
+            new ResourceLinkFilter($this->ltiLog),
+            new LaunchPresentationFilter($this->ltiLog),
+            new CourseContextFilter($this->ltiLog),
+            new NrpsFilter($this->ltiLog)
+        ];
     }
 
     // first stage of the LTI launch on the platform side, we need to send the
