@@ -59,7 +59,7 @@ class Platform extends AbstractLtiEntity
         return self::where('id', '!=', config('lti.own_platform_id'))->get();
     }
 
-    public static function getByIss(string $iss): self
+    public static function getByIss(string $iss): ?self
     {
         return self::firstWhere('iss', $iss);
     }

@@ -86,12 +86,11 @@ class PlatformAccessToken
         // scopes are space delimited
         $scopes = explode(' ', $this->request->input(Param::SCOPE));
         // create access token
-        $expiresIn = time();
         $token = AccessToken::create($tool, $scopes);
         return [
             Param::ACCESS_TOKEN => $token,
             Param::TOKEN_TYPE => Param::TOKEN_TYPE_VALUE,
-            Param::EXPIRES_IN => $expiresIn,
+            Param::EXPIRES_IN => AccessToken::EXPIRY_TIME,
             Param::SCOPE => $this->request->input(Param::SCOPE)
         ];
     }

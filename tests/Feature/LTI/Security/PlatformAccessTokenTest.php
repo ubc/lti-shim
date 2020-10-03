@@ -93,7 +93,8 @@ class PlatformAccessTokenTest extends TestCase
         ]);
         $goodData = [
             'token_type' => 'bearer',
-            'scope' => $this->scope
+            'scope' => $this->scope,
+            'expires_in' => 3600
         ];
         $resp->assertJson($goodData);
         $token = $resp->getOriginalContent()['access_token'];
