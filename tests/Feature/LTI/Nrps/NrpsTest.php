@@ -178,6 +178,10 @@ class NrpsTest extends TestCase
             $this->assertNotEmpty($expectedFakeUser);
             $this->assertEquals($expectedFakeUser->name,
                                 $actualFakeUser['name']);
+            $this->assertEquals($expectedFakeUser->first_name,
+                                $actualFakeUser['given_name']);
+            $this->assertEquals($expectedFakeUser->last_name,
+                                $actualFakeUser['family_name']);
             $this->assertEquals($expectedFakeUser->email,
                                 $actualFakeUser['email']);
             $this->assertEquals($expectedRoles,

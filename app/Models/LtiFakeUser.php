@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 
 class LtiFakeUser extends Model
 {
+    private const NAME_DELIMITER = ' ';
+
     protected $fillable = [
         'email',
         'login_hint',
@@ -29,6 +31,16 @@ class LtiFakeUser extends Model
     public function lti_real_user()
     {
         return $this->belongsTo('App\Models\LtiRealUser');
+    }
+
+    public function getFirstNameAttribute(): string
+    {
+        return explode(self::NAME_DELIMITER, $this->name)[0];
+    }
+
+    public function getLastNameAttribute(): string
+    {
+        return explode(self::NAME_DELIMITER, $this->name)[1];
     }
 
     public static function getByCourseContext(
@@ -83,7 +95,8 @@ class LtiFakeUser extends Model
                     'tool_id' => $toolId,
                     'login_hint' => $faker->uuid,
                     'sub' => $faker->uuid,
-                    'name' => $faker->name,
+                    'name' => $faker->firstName . self::NAME_DELIMITER .
+                              $faker->lastName,
                     'email' => $faker->email,
                     'student_number' => $faker->ean13
                 ];

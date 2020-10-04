@@ -118,6 +118,10 @@ class AuthRespTest extends TestCase
         $response->assertViewMissing('response.state');
         // test filters
         $this->assertEquals($fakeUser->name, $jwt->claims->get('name'));
+        $this->assertEquals($fakeUser->first_name,
+                            $jwt->claims->get('given_name'));
+        $this->assertEquals($fakeUser->last_name,
+                            $jwt->claims->get('family_name'));
         $this->assertEquals($fakeUser->email, $jwt->claims->get('email'));
         // test required params
         $this->assertEquals($nonce, $jwt->claims->get('nonce'));
@@ -153,7 +157,7 @@ class AuthRespTest extends TestCase
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/roles')
         );
-        // test optional params 
+        // test optional params
         $this->assertEquals(
             $courseContext->fake_context_id,
             $jwt->claims->get(

@@ -72,6 +72,8 @@ class MemberFilter extends AbstractFilter implements FilterInterface
             $fakeMember = [
                 Param::USER_ID => $fakeUser->sub,
                 Param::NAME => $fakeUser->name,
+                Param::GIVEN_NAME => $fakeUser->first_name,
+                Param::FAMILY_NAME => $fakeUser->last_name,
                 Param::EMAIL => $fakeUser->email,
                 Param::ROLES => $passthrough[Param::ROLES]
             ];
