@@ -14,6 +14,7 @@ use App\Models\Platform;
 use App\Models\Tool;
 
 use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\Nonce;
@@ -40,8 +41,14 @@ class AccessToken
     private const EXPIRES_IN = 'expires_in'; // how long the token is valid for
                                             // in seconds
 
+    private LtiLog $ltiLog;
 
-    public static function create(Tool $tool, array $scopes): string
+    public function __construct(LtiLog $ltiLog)
+    {
+        $this->ltiLog = $ltiLog;
+    }
+
+    public function create(Tool $tool, array $scopes): string
     {
         self::checkScopes($scopes);
         $time = time();
@@ -63,7 +70,7 @@ class AccessToken
         return $jwe;
     }
 
-    public static function verify(string $token): JWT
+    public function verify(string $token): JWT
     {
         // TODO enforce scope checking once we have more than 1 scope
         try {
@@ -78,8 +85,8 @@ class AccessToken
         }
         catch(\Exception $e) {
             Log::error("Unable to verify access token.");
-            throw new LtiException('Invalid access token: ' . $e->getMessage(),
-                                   0, $e);
+            throw new LtiException($this->ltiLog->msg(
+                    'Invalid access token: ' . $e->getMessage()), 0, $e);
         }
     }
 
@@ -88,7 +95,7 @@ class AccessToken
      * access token so that we don't have to send an access token request for
      * every service call.
      */
-    public static function request(
+    public function request(
         Platform $platform,
         Tool $tool,
         array $scopes
@@ -114,18 +121,20 @@ class AccessToken
         $timeTaken = time() - $timeBefore;
 
         if ($resp->failed())
-            throw new LtiException('Unable to get access token: '.$resp->body());
+            throw new LtiException($this->ltiLog->msg(
+                'Unable to get access token: '.$resp->body()));
 
         // make sure the response has the parameters we need
         try {
-            $checker = new ParamChecker($resp->json());
+            $checker = new ParamChecker($resp->json(), $this->ltiLog);
             $checker->requireParams([self::ACCESS_TOKEN, self::EXPIRES_IN]);
             if (!is_numeric($resp[self::EXPIRES_IN]))
-                throw new LtiException('expires_in must be a number');
+                throw new LtiException($this->ltiLog->msg(
+                    'expires_in must be a number'));
         }
         catch(LtiException $e) {
-            throw new LtiException("Invalid access token response: " .
-                $e->getMessage(), 0, $e);
+            throw new LtiException($this->ltiLog->msg(
+                "Invalid access token response: " . $e->getMessage()), 0, $e);
         }
 
         // store access token in cache
@@ -151,7 +160,7 @@ class AccessToken
      * This is basically a comma delimited id list, with the platform id first
      * and the scope ids following sequentially.
      */
-    private static function getCacheKey(int $platformId, array $scopes): string
+    private function getCacheKey(int $platformId, array $scopes): string
     {
         $key = $platformId . ',';
         foreach ($scopes as $scope) {
@@ -163,7 +172,7 @@ class AccessToken
     /**
      * Build the JWT needed to make the access token request.
      */
-    private static function getRequestJwt(
+    private function getRequestJwt(
         Platform $platform,
         Tool $tool,
         array $scopes
@@ -172,7 +181,8 @@ class AccessToken
         $key = $ownTool->keys()->first();
         $time = time();
         $platformClient = $tool->getPlatformClient($platform->id);
-        if (!$platformClient) throw new LtiException('Unregistered client');
+        if (!$platformClient) throw new LtiException($this->ltiLog->msg(
+                                                     'Unregistered client'));
         return Build::jws()
             ->typ(Param::JWT)
             ->alg(Param::RS256)
@@ -190,13 +200,15 @@ class AccessToken
     /**
      * Throw an exception if it's a scope we don't support.
      */
-    private static function checkScopes(array $scopes)
+    private function checkScopes(array $scopes)
     {
         if (!$scopes)
-            throw new LtiException("Access token request scope can't be empty");
+            throw new LtiException($this->ltiLog->msg(
+                "Access token request scope can't be empty"));
         foreach ($scopes as $scope) {
             if (!array_key_exists($scope, self::VALID_SCOPES)) {
-                throw new LtiException('Unsupported scope: ' . $scope);
+                throw new LtiException($this->ltiLog->msg(
+                    'Unsupported scope: ' . $scope));
             }
         }
     }

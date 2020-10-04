@@ -13,6 +13,7 @@ use App\Models\PlatformClient;
 use App\Models\Tool;
 
 use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Specs\Security\AccessToken;
 
 use Tests\TestCase;
@@ -23,17 +24,21 @@ class AccessTokenTest extends TestCase
 
     private const EXPECTED_ACCESS_TOKEN = 'SomeExpectedAccessToken';
 
+    private AccessToken $tokenHelper;
     private Platform $platform;
     private Tool $tool;
     private array $scopes = [
         'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly'
     ];
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed();
         $this->platform = Platform::find(3);
         $this->tool = Tool::find(2);
+        $ltiLog = new LtiLog('AccessTokenTest');
+        $this->tokenHelper = new AccessToken($ltiLog);
         Http::fake([
             $this->platform->access_token_url =>  Http::response([
                 'access_token' => self::EXPECTED_ACCESS_TOKEN,
@@ -44,7 +49,7 @@ class AccessTokenTest extends TestCase
 
     public function testRequestAccessToken()
     {
-        $actualToken = AccessToken::request($this->platform, $this->tool, $this->scopes);
+        $actualToken = $this->tokenHelper->request($this->platform, $this->tool, $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         Http::assertSent(function ($request) {
             // required to be a form post request
@@ -68,13 +73,13 @@ class AccessTokenTest extends TestCase
     public function testRequestAccessTokenFailsWithEmptyScope()
     {
         $this->expectException(LtiException::class);
-        AccessToken::request($this->platform, $this->tool, []);
+        $this->tokenHelper->request($this->platform, $this->tool, []);
     }
 
     public function testAccessTokenIsCached()
     {
         // this should store the token into cache
-        $actualToken = AccessToken::request($this->platform, $this->tool,
+        $actualToken = $this->tokenHelper->request($this->platform, $this->tool,
                                             $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // modify the token stored in cache
@@ -83,7 +88,7 @@ class AccessTokenTest extends TestCase
             'value' => serialize($expectedToken)
         ]);
         // this should retrieve the now modified token from cache
-        $actualToken = AccessToken::request($this->platform, $this->tool,
+        $actualToken = $this->tokenHelper->request($this->platform, $this->tool,
                                             $this->scopes);
         $this->assertEquals($expectedToken, $actualToken);
     }
@@ -91,7 +96,7 @@ class AccessTokenTest extends TestCase
     public function testRefreshExpiredTokens()
     {
         // this should store the token into cache
-        $actualToken = AccessToken::request($this->platform, $this->tool,
+        $actualToken = $this->tokenHelper->request($this->platform, $this->tool,
                                             $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // expire the cached token and change its value
@@ -101,7 +106,7 @@ class AccessTokenTest extends TestCase
             'expiration' => time() - 5
         ]);
         // the token shouldn't the one from cache
-        $actualToken = AccessToken::request($this->platform, $this->tool,
+        $actualToken = $this->tokenHelper->request($this->platform, $this->tool,
                                             $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // change the cached token again, this time we expect it to get the
@@ -109,7 +114,7 @@ class AccessTokenTest extends TestCase
         $nonceResult = DB::table('cache_access_tokens')->update([
             'value' => serialize($expectedToken),
         ]);
-        $actualToken = AccessToken::request($this->platform, $this->tool,
+        $actualToken = $this->tokenHelper->request($this->platform, $this->tool,
                                             $this->scopes);
         $this->assertEquals($expectedToken, $actualToken);
     }
@@ -125,7 +130,7 @@ class AccessTokenTest extends TestCase
             ])
         ]);
         // hopefully doesn't store the token into cache
-        $actualToken = AccessToken::request($platform, $this->tool,
+        $actualToken = $this->tokenHelper->request($platform, $this->tool,
                                             $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
         // modify all tokens stored in cache
@@ -134,7 +139,7 @@ class AccessTokenTest extends TestCase
             'value' => serialize($expectedToken)
         ]);
         // this should still retrieve the unmodified token
-        $actualToken = AccessToken::request($platform, $this->tool,
+        $actualToken = $this->tokenHelper->request($platform, $this->tool,
                                             $this->scopes);
         $this->assertEquals(self::EXPECTED_ACCESS_TOKEN, $actualToken);
     }
@@ -151,14 +156,14 @@ class AccessTokenTest extends TestCase
         ]);
         $this->expectException(LtiException::class);
         // hopefully doesn't store the token into cache
-        AccessToken::request($platform, $this->tool, $this->scopes);
+        $this->tokenHelper->request($platform, $this->tool, $this->scopes);
     }
 
     public function testRejectUnregisteredTool()
     {
         $badTool = factory(Tool::class)->create();
         $this->expectException(LtiException::class);
-        AccessToken::request($this->platform, $badTool, $this->scopes);
+        $this->tokenHelper->request($this->platform, $badTool, $this->scopes);
     }
 
     private function validateRequestJwt($token)

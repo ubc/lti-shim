@@ -15,6 +15,7 @@ use App\Models\Nrps;
 use App\Models\Platform;
 use App\Models\Tool;
 
+use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Specs\Nrps\PlatformNrps;
 use UBC\LTI\Specs\Security\AccessToken;
 
@@ -54,7 +55,9 @@ class NrpsTest extends TestCase
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id
         ]);
-        $this->accessToken = AccessToken::create(
+        $ltiLog = new LtiLog('NrpsTest');
+        $tokenHelper = new AccessToken($ltiLog);
+        $this->accessToken = $tokenHelper->create(
             $this->tool,
             ['https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly']
         );

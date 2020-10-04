@@ -9,6 +9,7 @@ use Jose\Easy\Load;
 use App\Models\Tool;
 
 use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
@@ -21,6 +22,8 @@ use UBC\LTI\Specs\Security\Nonce;
 // the JWT authentication method that LTI 1.3 requires.
 class PlatformAccessToken
 {
+    private AccessToken $tokenHelper;
+    private LtiLog $ltiLog;
     private Request $request; // laravel request object
     private ParamChecker $checker;
 
@@ -29,7 +32,9 @@ class PlatformAccessToken
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->checker = new ParamChecker($request->input());
+        $this->ltiLog = new LtiLog('Access Token (Platform)');
+        $this->tokenHelper = new AccessToken($this->ltiLog);
+        $this->checker = new ParamChecker($request->input(), $this->ltiLog);
     }
 
     /**
@@ -38,6 +43,7 @@ class PlatformAccessToken
      */
     public function processTokenRequest()
     {
+        $this->ltiLog->info('Request received', $this->request);
         $requiredParams = [
             Param::GRANT_TYPE,
             Param::CLIENT_ASSERTION,
@@ -53,11 +59,13 @@ class PlatformAccessToken
         // we can't validate the JWT's signature if we don't know what tool
         // created it, so first to try get the tool's client_id
         $jwtString = $this->request->input(Param::CLIENT_ASSERTION);
-        $jwsUtil = new JwsUtil($jwtString);
+        $jwsUtil = new JwsUtil($jwtString, $this->ltiLog);
         $kid = $jwsUtil->getKid();
+        $this->ltiLog->debug('Using kid: ' . $kid);
         $clientId = $jwsUtil->getClaim(Param::SUB);
         // now that we know the tool, we can verify the JWT
         $tool = Tool::firstWhere('client_id', $clientId);
+        $this->ltiLog->debug('Found tool requesting access token', $tool);
         $jwk = $tool->getKey($kid)->public_key;
         $jwt = Load::jws($jwtString);
         // Note that we're not validating the iss because the spec is not clear
@@ -71,28 +79,32 @@ class PlatformAccessToken
         try {
             // check signature
             $jwt = $jwt->run();
-            JwsUtil::verifyTimestamps($jwt);
+            JwsUtil::verifyTimestamps($jwt, $this->ltiLog);
             // replay protection based on jti
             $jti = $jwt->claims->jti();
             Nonce::store($jti,
                 ($jwt->claims->exp() + JwsUtil::TOKEN_LEEWAY) - time());
             if (Nonce::isValid($jti)) Nonce::used($jti);
-            else throw new LtiException('Replayed JTI');
+            else throw new LtiException($this->ltiLog->msg('Replayed JTI'));
             // TODO: verify aud
         } catch(\Exception $e) { // invalid signature throws a bare Exception
-            throw new LtiException(
-                'Invalid client assertion JWT: ' . $e->getMessage(), 0, $e);
+            throw new LtiException($this->ltiLog->msg(
+                'Invalid client assertion JWT: ' . $e->getMessage()), 0, $e);
         }
         // scopes are space delimited
         $scopes = explode(' ', $this->request->input(Param::SCOPE));
         // create access token
-        $token = AccessToken::create($tool, $scopes);
-        return [
+        $token = $this->tokenHelper->create($tool, $scopes);
+
+        $ret = [
             Param::ACCESS_TOKEN => $token,
             Param::TOKEN_TYPE => Param::TOKEN_TYPE_VALUE,
             Param::EXPIRES_IN => AccessToken::EXPIRY_TIME,
             Param::SCOPE => $this->request->input(Param::SCOPE)
         ];
+        $this->ltiLog->notice('Request complete, token issued: ' .
+                              json_encode($ret), $this->request, $tool);
+        return $ret;
     }
 
 }

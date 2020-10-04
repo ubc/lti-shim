@@ -43,10 +43,10 @@ class PlatformLaunch
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->checker = new ParamChecker($request->input());
         $this->ltiSession = LtiSession::getSession($this->request);
         $this->ltiLog = new LtiLog('Launch (Platform Side)',
                                    $this->ltiSession->log_stream);
+        $this->checker = new ParamChecker($request->input(), $this->ltiLog);
         $this->filters = [
             new DeploymentFilter($this->ltiLog),
             new WhitelistFilter($this->ltiLog),

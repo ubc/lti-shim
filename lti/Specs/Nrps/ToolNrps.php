@@ -21,6 +21,7 @@ use GuzzleHttp\Client;
 
 class ToolNrps
 {
+    private AccessToken $tokenHelper;
     private LtiLog $ltiLog;
     private Request $request;
     private Nrps $nrps;
@@ -30,13 +31,14 @@ class ToolNrps
         $this->request = $request;
         $this->nrps = $nrps;
         $this->ltiLog = new LtiLog('NRPS (Tool)', $ltiLog->getStreamId());
+        $this->tokenHelper = new AccessToken($this->ltiLog);
     }
 
     public function getNrps(): array
     {
         $this->ltiLog->debug('Requesting access token', $this->request,
                              $this->nrps);
-        $accessToken = AccessToken::request(
+        $accessToken = $this->tokenHelper->request(
             $this->nrps->deployment->platform,
             $this->nrps->tool,
             [Param::NRPS_SCOPE_URI]

@@ -20,6 +20,7 @@ use UBC\LTI\Specs\Security\AccessToken;
 
 class PlatformNrps
 {
+    private AccessToken $tokenHelper;
     private LtiLog $ltiLog;
     private Nrps $nrps;
     private Request $request;
@@ -30,6 +31,7 @@ class PlatformNrps
         $this->request = $request;
         $this->nrps = $nrps;
         $this->ltiLog = new LtiLog('NRPS (Platform)');
+        $this->tokenHelper = new AccessToken($this->ltiLog);
         $this->filters = [
             new CourseContextFilter($this->ltiLog),
             new MemberFilter($this->ltiLog),
@@ -43,7 +45,7 @@ class PlatformNrps
     {
         $this->ltiLog->info('NRPS request received at ' .
             $this->request->fullUrl(), $this->request, $this->nrps);
-        AccessToken::verify($this->getAccessToken());
+        $this->tokenHelper->verify($this->getAccessToken());
 
         // access token good, proxy the request
         $toolNrps = new ToolNrps($this->request, $this->nrps, $this->ltiLog);

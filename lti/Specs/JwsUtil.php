@@ -8,6 +8,7 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Easy\JWT;
 
 use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 
 // the JWT framework only offers easy access to the JWS claims *after* it has
@@ -21,17 +22,19 @@ class JwsUtil
     // we allow a leeway in seconds
     public const TOKEN_LEEWAY = 60;
 
+    private LtiLog $ltiLog;
     private JWS $jws;
     private array $claims;
 
-    public function __construct(string $jwtString)
+    public function __construct(string $jwtString, LtiLog $ltiLog)
     {
+        $this->ltiLog = $ltiLog;
         try {
             $this->jws = (new CompactSerializer())->unserialize($jwtString);
         }
         catch (\Exception $e) {
-            throw new LtiException(
-                'Unable to deserialized JWT: ' . $e->getMessage(),
+            throw new LtiException($this->ltiLog->msg(
+                'Unable to deserialized JWT: ' . $e->getMessage()),
                 0,
                 $e
             );
@@ -47,7 +50,8 @@ class JwsUtil
         if (isset($this->claims[$claim])) {
             return $this->claims[$claim];
         }
-        throw new LtiException("JWS missing param '$claim'.");
+        throw new LtiException(
+            $this->ltiLog->msg("JWS missing param '$claim'."));
     }
 
     // returns key id if there is one, empty string otherwise
@@ -76,38 +80,38 @@ class JwsUtil
      *
      * @throw LtiException if any of the timestamps are invalid
      */
-    public static function verifyTimestamps(JWT $jwt)
+    public static function verifyTimestamps(JWT $jwt, LtiLog $ltiLog)
     {
         $now = time();
         $exp = $jwt->claims->exp();
         if (!(is_int($exp) || is_float($exp))) {
-            throw new LtiException('exp must be numeric');
+            throw new LtiException($ltiLog->msg('exp must be numeric'));
         }
         if ($now > $exp + self::TOKEN_LEEWAY) {
-            throw new LtiException('Expired JWT');
+            throw new LtiException($ltiLog->msg('Expired JWT'));
         }
 
         $now += self::TOKEN_LEEWAY;
         $iat = $jwt->claims->iat();
         if (!(is_int($iat) || is_float($iat))) {
-            throw new LtiException('iat must be numeric');
+            throw new LtiException($ltiLog->msg('iat must be numeric'));
         }
         if ($iat > ($now + self::TOKEN_LEEWAY)) {
-            throw new LtiException('Back to the future JWT');
+            throw new LtiException($ltiLog->msg('Back to the future JWT'));
         }
         // old age should be a lot larger than the leeway, so it should be fine
         // not giving them a leeway here
         if (($now - $iat) > self::TOKEN_OLD_AGE) {
-            throw new LtiException('JWT too old');
+            throw new LtiException($ltiLog->msg('JWT too old'));
         }
 
         if ($jwt->claims->has(Param::NBF)) {
             $nbf = $jwt->claims->nbf();
             if (!(is_int($nbf) || is_float($nbf))) {
-                throw new LtiException('nbf must be numeric');
+                throw new LtiException($ltiLog->msg('nbf must be numeric'));
             }
             if ($now < $nbf) {
-                throw new LtiException('JWT not yet nbf');
+                throw new LtiException($ltiLog->msg('JWT not yet nbf'));
             }
         }
     }

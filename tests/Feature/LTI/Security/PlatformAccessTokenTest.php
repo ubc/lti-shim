@@ -15,6 +15,8 @@ use App\Models\Tool;
 use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\Security\AccessToken;
 
+use UBC\LTI\Utils\LtiLog;
+
 use Tests\TestCase;
 
 // Tests UBC\LTI\Specs\Security\PlatformAccessToken
@@ -27,6 +29,8 @@ class PlatformAccessTokenTest extends TestCase
 
     private string $baseUrl = '/lti/security/platform/token';
     private string $scope = 'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
+
+    private AccessToken $tokenHelper;
     private Tool $tool; // the tool that is requesting an access token
     private array $goodParams;
 
@@ -42,6 +46,8 @@ class PlatformAccessTokenTest extends TestCase
             'client_assertion' => $this->getRequestJwt(),
             'scope' => $this->scope
         ];
+        $ltiLog = new LtiLog('PlatformAccessTokenTest');
+        $this->tokenHelper = new AccessToken($ltiLog);
     }
 
     /**
@@ -100,7 +106,7 @@ class PlatformAccessTokenTest extends TestCase
         $token = $resp->getOriginalContent()['access_token'];
         // Maybe we should also have a separate implementation for verifying the
         // access token
-        $this->assertNotEmpty(AccessToken::verify($token));
+        $this->assertNotEmpty($this->tokenHelper->verify($token));
     }
 
     public function testInvalidGrantType()

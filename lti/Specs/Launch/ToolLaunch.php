@@ -44,8 +44,8 @@ class ToolLaunch
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->checker = new ParamChecker($request->input());
         $this->ltiLog = new LtiLog('Launch (Tool Side)');
+        $this->checker = new ParamChecker($request->input(), $this->ltiLog);
     }
 
     // first stage of the LTI launch on the tool side, we need to check that
@@ -211,7 +211,7 @@ class ToolLaunch
         try {
             $this->ltiLog->debug('Decode id_token', $this->request);
             $jwt = Load::jws($token);
-            $jwsUtil = new JwsUtil($token);
+            $jwsUtil = new JwsUtil($token, $this->ltiLog);
             $kid = $jwsUtil->getKid();
             $this->ltiLog->debug('id_token: kid: ' . $kid, $this->request);
         } catch(InvalidArgumentException $e) {
@@ -227,7 +227,7 @@ class ToolLaunch
         try {
             // check signature
             $jwt = $jwt->run();
-            JwsUtil::verifyTimestamps($jwt);
+            JwsUtil::verifyTimestamps($jwt, $this->ltiLog);
             // check required claim values
             $requiredValues = [
                 Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
@@ -237,7 +237,7 @@ class ToolLaunch
                 $requireValues[Param::DEPLOYMENT_ID_URI] =
                     $state->claims->get(Param::LTI_DEPLOYMENT_ID);
             }
-            $checker = new ParamChecker($jwt->claims->all());
+            $checker = new ParamChecker($jwt->claims->all(), $this->ltiLog);
             $checker->requireValues($requiredValues);
             $checker->requireParams([
                 Param::TARGET_LINK_URI_URI,
