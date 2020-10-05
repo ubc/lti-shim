@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
+use UBC\LTI\Utils\FakeName;
+
 class LtiFakeUser extends Model
 {
-    private const NAME_DELIMITER = ' ';
-
     protected $fillable = [
         'email',
         'login_hint',
@@ -35,12 +35,12 @@ class LtiFakeUser extends Model
 
     public function getFirstNameAttribute(): string
     {
-        return explode(self::NAME_DELIMITER, $this->name)[0];
+        return explode(FakeName::DELIMITER, $this->name)[0];
     }
 
     public function getLastNameAttribute(): string
     {
-        return explode(self::NAME_DELIMITER, $this->name)[1];
+        return explode(FakeName::DELIMITER, $this->name)[1];
     }
 
     public static function getByCourseContext(
@@ -95,8 +95,7 @@ class LtiFakeUser extends Model
                     'tool_id' => $toolId,
                     'login_hint' => $faker->uuid,
                     'sub' => $faker->uuid,
-                    'name' => $faker->firstName . self::NAME_DELIMITER .
-                              $faker->lastName,
+                    'name' => FakeName::name(),
                     'email' => $faker->email,
                     'student_number' => $faker->ean13
                 ];
