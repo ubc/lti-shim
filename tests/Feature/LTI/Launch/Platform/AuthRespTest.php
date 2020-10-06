@@ -15,6 +15,7 @@ use App\Models\EncryptionKey;
 use App\Models\LtiSession;
 use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
+use App\Models\Nrps;
 use App\Models\Platform;
 use App\Models\ResourceLink;
 use App\Models\Tool;
@@ -26,107 +27,145 @@ class AuthRespTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 
-    /**
-     * If required LTI params are missing from the login, throw a 400 error.
-     *
-     * @return void
-     */
-    public function testGetAuthResponse()
+    private string $baseUrl = '/lti/launch/platform/auth';
+    private string $ltiMessageHint;
+    private string $nonce = "someNonceHere";
+
+    private array $goodValues;
+
+    private CourseContext $courseContext;
+    private Deployment $deployment;
+    private EncryptionKey $encryptionKey;
+    private LtiFakeUser $fakeUser;
+    private LtiRealUser $realUser;
+    private LtiSession $ltiSession;
+    private Platform $shimPlatform;
+    private Platform $platform;
+    private ResourceLink $resourceLink;
+    private Tool $tool;
+
+    protected function setUp(): void
     {
-        $baseUrl = '/lti/launch/platform/auth';
-        // known good request
-        $tool = factory(Tool::class)->create();
-        $shimPlatform = factory(Platform::class)->create(['id' => 1]);
-        $platform = factory(Platform::class)->create(['id' => 2]);
-        $encryptionKey = factory(EncryptionKey::class)->create();
-        $deployment = factory(Deployment::class)->create([
-            'platform_id' => $shimPlatform->id
+        parent::setUp();
+        // set up a known good request
+        $this->tool = factory(Tool::class)->create();
+        $this->shimPlatform = factory(Platform::class)->create(['id' => 1]);
+        $this->platform = factory(Platform::class)->create(['id' => 2]);
+        $this->encryptionKey = factory(EncryptionKey::class)->create();
+        $this->deployment = factory(Deployment::class)->create([
+            'platform_id' => $this->shimPlatform->id
         ]);
-        $realUser = factory(LtiRealUser::class)->create([
-            'platform_id' => $platform->id
+        $this->realUser = factory(LtiRealUser::class)->create([
+            'platform_id' => $this->platform->id
         ]);
-        $courseContext = factory(CourseContext::class)->create([
-            'deployment_id' => $deployment->id,
-            'tool_id' => $tool->id
+        $this->courseContext = factory(CourseContext::class)->create([
+            'deployment_id' => $this->deployment->id,
+            'tool_id' => $this->tool->id
         ]);
-        $fakeUser = factory(LtiFakeUser::class)->create([
-            'lti_real_user_id' => $realUser->id,
-            'course_context_id' => $courseContext->id,
-            'tool_id' => $tool->id
+        $this->fakeUser = factory(LtiFakeUser::class)->create([
+            'lti_real_user_id' => $this->realUser->id,
+            'course_context_id' => $this->courseContext->id,
+            'tool_id' => $this->tool->id
         ]);
-        $resourceLink = factory(ResourceLink::class)->create([
-            'deployment_id' => $deployment->id
+        $this->resourceLink = factory(ResourceLink::class)->create([
+            'deployment_id' => $this->deployment->id
         ]);
         // prepare session
-        $ltiSession = factory(LtiSession::class)->create([
+        $this->ltiSession = factory(LtiSession::class)->create([
             'token' => [
-                'sub' => $realUser->sub,
+                'sub' => $this->realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => [],
                 'https://purl.imsglobal.org/spec/lti/claim/resource_link' =>
-                    ['id' => $resourceLink->real_link_id],
+                    ['id' => $this->resourceLink->real_link_id],
                 'https://purl.imsglobal.org/spec/lti/claim/context' =>
-                    ['id' => $courseContext->real_context_id],
-                'name' => $realUser->name,
-                'email' => $realUser->email
+                    ['id' => $this->courseContext->real_context_id],
+                'name' => $this->realUser->name,
+                'email' => $this->realUser->email
             ],
-            'lti_real_user_id' => $realUser->id,
-            'course_context_id' => $courseContext->id,
-            'tool_id' => $tool->id,
-            'deployment_id' => $deployment->id,
+            'lti_real_user_id' => $this->realUser->id,
+            'course_context_id' => $this->courseContext->id,
+            'tool_id' => $this->tool->id,
+            'deployment_id' => $this->deployment->id,
         ]);
+        // create an encrypted jwt to pass the LtiSession, passed as lti
+        // message hint
         $time = time();
-        $encryptedSession = Build::jwe()
+        $this->ltiMessageHint = Build::jwe()
             ->exp($time + 3600)
             ->iat($time)
             ->nbf($time)
             ->alg('RSA-OAEP-256')
             ->enc('A256GCM')
-            ->claim('lti_session', $ltiSession->id)
-            ->encrypt($encryptionKey->public_key);
-        $nonce = 'someNonce';
-
-        // check the static values first
-        $goodValues = [
+            ->claim('lti_session', $this->ltiSession->id)
+            ->encrypt($this->encryptionKey->public_key);
+        $this->goodValues = [
             'scope' => 'openid',
             'response_type' => 'id_token',
             'response_mode' => 'form_post',
-            'login_hint' => $fakeUser->login_hint,
-            'client_id' => $tool->client_id,
+            'login_hint' => $this->fakeUser->login_hint,
+            'client_id' => $this->tool->client_id,
             'prompt' => 'none',
-            'nonce' => $nonce,
-            'lti_message_hint' => $encryptedSession
+            'nonce' => $this->nonce,
+            'lti_message_hint' => $this->ltiMessageHint
         ];
-        $response = $this->call('get', $baseUrl, $goodValues);
-        $response->assertStatus(Response::HTTP_OK);
-        // make sure where we send the response is right
-        $response->assertViewHas('auth_resp_url', $shimPlatform->auth_resp_url);
-        // reconstructing the id_token is a bit difficult, so we'll decode it
-        // and verify it that way instead
+    }
+
+    // we can add additional claims to $ltiSession to test the platform's
+    // claim filtering ability
+    private function addClaims(array $claims)
+    {
+        $this->ltiSession->token = array_merge($this->ltiSession->token,
+            $claims);
+        $this->ltiSession->save();
+    }
+
+    // reconstructing the id_token is a bit difficult, so we'll decode it
+    // and check the claims instead of trying to make sure the JWT matches up
+    private function getJwtFromResponse($response)
+    {
         $token = $response->getOriginalContent()
                           ->getData()['response']['id_token'];
-        $platformKey = $shimPlatform->keys()->first();
+        $this->platformKey = $this->shimPlatform->keys()->first();
         $jwt = Load::jws($token)
             ->algs(['RS256'])
             ->exp()
             ->iat(2000)
             ->nbf()
-            ->aud($tool->client_id)
+            ->aud($this->tool->client_id)
             ->iss(config('lti.iss'))
-            ->sub($fakeUser->sub)
-            ->key($platformKey->public_key)
+            ->sub($this->fakeUser->sub)
+            ->key($this->platformKey->public_key)
             ->run();
+        return $jwt;
+    }
+
+    /**
+     * If required LTI params are missing from the login, throw a 400 error.
+     *
+     * @return void
+     */
+    public function testStandardAuthResponse()
+    {
+        // check the static values first
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        // make sure where we send the response is right
+        $response->assertViewHas('auth_resp_url',
+                                 $this->shimPlatform->auth_resp_url);
+        $jwt = $this->getJwtFromResponse($response);
+        // no state in the values we sent, so state should be empty here
         $response->assertViewMissing('response.state');
         // test filters
-        $this->assertEquals($fakeUser->name, $jwt->claims->get('name'));
-        $this->assertEquals($fakeUser->first_name,
+        $this->assertEquals($this->fakeUser->name, $jwt->claims->get('name'));
+        $this->assertEquals($this->fakeUser->first_name,
                             $jwt->claims->get('given_name'));
-        $this->assertEquals($fakeUser->last_name,
+        $this->assertEquals($this->fakeUser->last_name,
                             $jwt->claims->get('family_name'));
-        $this->assertEquals($fakeUser->email, $jwt->claims->get('email'));
+        $this->assertEquals($this->fakeUser->email, $jwt->claims->get('email'));
         // test required params
-        $this->assertEquals($nonce, $jwt->claims->get('nonce'));
+        $this->assertEquals($this->nonce, $jwt->claims->get('nonce'));
         $this->assertEquals('JWT', $jwt->claims->get('typ'));
-        $this->assertEquals($platformKey->kid, $jwt->claims->get('kid'));
+        $this->assertEquals($this->platformKey->kid, $jwt->claims->get('kid'));
         $this->assertEquals(
             'LtiResourceLinkRequest',
             $jwt->claims->get(
@@ -137,19 +176,19 @@ class AuthRespTest extends TestCase
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/version')
         );
-        $deployment = $deployment->fresh(); // reload fake_lti_deployment_id value
+        $this->deployment = $this->deployment->fresh(); // reload fake_lti_deployment_id value
         $this->assertEquals(
-            $deployment->fake_lti_deployment_id,
+            $this->deployment->fake_lti_deployment_id,
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/deployment_id')
         );
         $this->assertEquals(
-            $tool->target_link_uri,
+            $this->tool->target_link_uri,
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/target_link_uri')
         );
         $this->assertEquals(
-            $resourceLink->fake_link_id,
+            $this->resourceLink->fake_link_id,
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/resource_link')['id']
         );
@@ -159,15 +198,69 @@ class AuthRespTest extends TestCase
         );
         // test optional params
         $this->assertEquals(
-            $courseContext->fake_context_id,
+            $this->courseContext->fake_context_id,
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/context')['id']
         );
         // check state is passed properly if included
         $state = 'someFakeState';
-        $goodValues['state'] = $state;
-        $response = $this->call('get', $baseUrl, $goodValues);
+        $this->goodValues['state'] = $state;
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
         $response->assertStatus(Response::HTTP_OK);
         $response->assertViewHas('response.state', $state);
+    }
+
+    public function testStatePassthrough()
+    {
+        // add state the values we send
+        $state = 'SomeStateThatShouldBePassedBackAsIs';
+        $goodValues = $this->goodValues;
+        $goodValues['state'] = $state;
+
+        $response = $this->call('get', $this->baseUrl, $goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertViewHas('response.state', $state);
+    }
+
+    public function testNoNrpsClaim()
+    {
+        // if we don't have nrps claim in the session, none should be passed
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        // make sure where we send the response is right
+        $response->assertViewHas('auth_resp_url',
+                                 $this->shimPlatform->auth_resp_url);
+        $jwt = $this->getJwtFromResponse($response);
+        $this->assertFalse(
+            $jwt->claims->has(
+                'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice')
+        );
+    }
+
+    public function testHasNrpsClaim()
+    {
+        $claimUri = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
+        // add an nrps claim to the session
+        $expectedNrpsUrl = "https://ubc.test.instructure.com/api/lti/courses/9999999999/names_and_roles";
+        $this->addClaims([
+            $claimUri => [ "context_memberships_url" => $expectedNrpsUrl ]
+        ]);
+
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        // make sure where we send the response is right
+        $response->assertViewHas('auth_resp_url',
+                                 $this->shimPlatform->auth_resp_url);
+        $jwt = $this->getJwtFromResponse($response);
+        $this->assertTrue($jwt->claims->has($claimUri));
+        // there should be corresponding entry in the nrps table
+        $nrps = Nrps::first();
+        $this->assertEquals($nrps->context_memberships_url, $expectedNrpsUrl);
+        $this->assertNotEquals($nrps->context_memberships_url,
+                               $nrps->getShimUrl());
+        $this->assertEquals(
+            $jwt->claims->get($claimUri)['context_memberships_url'],
+            $nrps->getShimUrl()
+        );
     }
 }
