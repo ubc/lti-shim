@@ -43,8 +43,8 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         Param::STATE => 1,
         Param::ID_TOKEN => 2
     ];
-    // list of params that show up in decoded id_token
-    public const ID_TOKEN_PARAMS = [
+    // list of claims that are required to show up in decoded id_token
+    public const ID_TOKEN_REQUIRED_CLAIMS = [
         Param::TYP => 1,
         Param::ALG => 2,
         Param::KID => 3,
@@ -61,19 +61,24 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         Param::DEPLOYMENT_ID_URI => 14,
         Param::TARGET_LINK_URI_URI => 15,
         Param::RESOURCE_LINK_URI => 16,
-        Param::ROLES_URI => 17,
-        Param::NAME => 18,
-        Param::EMAIL => 19,
-        Param::LAUNCH_PRESENTATION_URI => 20,
-        Param::CONTEXT_URI => 21,
-        Param::NRPS_CLAIM_URI => 22
+        Param::ROLES_URI => 17
+    ];
+
+    // list of claims that could be in id_token
+    public const ID_TOKEN_OPTIONAL_CLAIMS = [
+        Param::NAME => 1,
+        Param::EMAIL => 2,
+        Param::LAUNCH_PRESENTATION_URI => 3,
+        Param::CONTEXT_URI => 4,
+        Param::NRPS_CLAIM_URI => 5
     ];
 
     protected array $whitelists = [
         self::LOGIN_PARAMS,
         self::AUTH_REQ_PARAMS,
         self::AUTH_RESP_PARAMS,
-        self::ID_TOKEN_PARAMS
+        self::ID_TOKEN_REQUIRED_CLAIMS,
+        self::ID_TOKEN_OPTIONAL_CLAIMS
     ];
 
     public function filter(array $params, LtiSession $session): array

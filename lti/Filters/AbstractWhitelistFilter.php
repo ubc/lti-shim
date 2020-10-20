@@ -26,7 +26,10 @@ abstract class AbstractWhitelistFilter extends AbstractFilter
                     break;
                 }
             }
-            if (!$allowed) unset($params[$key]);
+            if (!$allowed) {
+                $this->ltiLog->debug('Removed Key: ' . $key);
+                unset($params[$key]);
+            }
         }
         return $params;
     }

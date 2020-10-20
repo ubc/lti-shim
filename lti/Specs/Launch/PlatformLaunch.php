@@ -160,19 +160,18 @@ class PlatformLaunch
                 $this->ltiSession->token[Param::RESOURCE_LINK_URI]
         ];
         // pass through optional params if they exist
-        $optionalParams = [
-            Param::NAME,
-            Param::EMAIL,
-            Param::LAUNCH_PRESENTATION_URI,
-            Param::CONTEXT_URI,
-            Param::NRPS_CLAIM_URI
-        ];
-        foreach ($optionalParams as $optionalParam) {
+        foreach (
+            array_keys(WhitelistFilter::ID_TOKEN_OPTIONAL_CLAIMS)
+            as
+            $optionalParam
+        ) {
+            $this->ltiLog->debug('Including optional param: ' . $optionalParam);
             if (isset($this->ltiSession->token[$optionalParam])) {
                 $payload[$optionalParam] =
                     $this->ltiSession->token[$optionalParam];
             }
         }
+
         $this->ltiLog->debug('Pre-filter id_token: ' . json_encode($payload),
             $this->request, $this->ltiSession);
         // filter all params
