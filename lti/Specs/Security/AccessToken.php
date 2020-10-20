@@ -30,27 +30,33 @@ class AccessToken
     public const REQUEST_EXPIRY_TIME = 3600;
     // only bother caching the access token if it's valid for at least this long
     public const MINIMUM_TOKEN_VALID_TIME = 60;
-    // each scope must be mapped to an unique int as we're using it as a unique
-    // id for that scope in access token cache
-    public const VALID_SCOPES = [
-        Param::NRPS_SCOPE_URI => 0
-    ];
 
     // when we request an access token, the response must have these parameters
     private const ACCESS_TOKEN = 'access_token'; // the actual access token
     private const EXPIRES_IN = 'expires_in'; // how long the token is valid for
                                             // in seconds
 
+    // each scope must be mapped to an unique int as we're using it as a unique
+    // id for that scope in access token cache
+    public static array $VALID_SCOPES = [];
+
     private LtiLog $ltiLog;
 
     public function __construct(LtiLog $ltiLog)
     {
         $this->ltiLog = $ltiLog;
+        // initialize the valid scopes list if necessary, wish PHP was smart
+        // enough to realize that we're merging two const arrays and let us do
+        // this at compile time instead of having to do this at run time
+        if (!self::$VALID_SCOPES) {
+            self::$VALID_SCOPES = array_merge(Param::NRPS_SCOPES,
+                                              Param::AGS_SCOPES);
+        }
     }
 
     public function create(Tool $tool, array $scopes): string
     {
-        self::checkScopes($scopes);
+        $this->checkScopes($scopes);
         $time = time();
         // IETF has a draft spec for JWT access tokens that we're using as guide
         $jwe = Build::jwe() // We build a JWE
@@ -100,7 +106,7 @@ class AccessToken
         Tool $tool,
         array $scopes
     ): string {
-        self::checkScopes($scopes);
+        $this->checkScopes($scopes);
 
         // see if we can get from cache
         $store = Cache::store(self::ACCESS_TOKEN_STORE);
@@ -164,7 +170,7 @@ class AccessToken
     {
         $key = $platformId . ',';
         foreach ($scopes as $scope) {
-            $key .= self::VALID_SCOPES[$scope] . ',';
+            $key .= self::$VALID_SCOPES[$scope] . ',';
         }
         return $key;
     }
@@ -206,7 +212,7 @@ class AccessToken
             throw new LtiException($this->ltiLog->msg(
                 "Access token request scope can't be empty"));
         foreach ($scopes as $scope) {
-            if (!array_key_exists($scope, self::VALID_SCOPES)) {
+            if (!array_key_exists($scope, self::$VALID_SCOPES)) {
                 throw new LtiException($this->ltiLog->msg(
                     'Unsupported scope: ' . $scope));
             }

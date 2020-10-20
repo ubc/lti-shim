@@ -82,7 +82,9 @@ class Param
     public const TOKEN_TYPE = 'token_type';
     public const TOKEN_TYPE_VALUE = 'bearer';
     public const EXPIRES_IN = 'expires_in';
+
     // Names and Roles Provisioning Service (NRPS) response params
+    public const NRPS = 'nrps';
     public const ID = 'id';
     public const CONTEXT = 'context';
     public const MEMBERS = 'members';
@@ -102,4 +104,28 @@ class Param
         'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
     public const CONTEXT_MEMBERSHIPS_URL = 'context_memberships_url';
     public const SERVICE_VERSIONS = 'service_versions';
+
+    // Assignment and Grades Service (AGS)
+    public const AGS = 'ags';
+    public const AGS_CLAIM_URI =
+        'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
+    public const AGS_SCOPE_LINEITEM_URI =
+        'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem';
+    public const AGS_SCOPE_LINEITEM_READONLY_URI =
+        'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly';
+    public const AGS_SCOPE_RESULT_READONLY_URI =
+        'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly';
+    public const AGS_SCOPE_SCORE_URI =
+        'https://purl.imsglobal.org/spec/lti-ags/scope/score';
+    public const AGS_LINEITEM = 'lineitem';
+    public const AGS_LINEITEMS = 'lineitems';
+
+    // List of scopes that can be used to request access tokens
+    public const AGS_SCOPES = [
+        self::AGS_SCOPE_LINEITEM_URI => self::AGS . '1',
+        self::AGS_SCOPE_LINEITEM_READONLY_URI => self::AGS . '2',
+        self::AGS_SCOPE_RESULT_READONLY_URI => self::AGS . '3',
+        self::AGS_SCOPE_SCORE_URI => self::AGS . '4'
+    ];
+    public const NRPS_SCOPES = [self::NRPS_SCOPE_URI => self::NRPS . '1'];
 }

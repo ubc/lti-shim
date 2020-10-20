@@ -263,4 +263,59 @@ class AuthRespTest extends TestCase
             $nrps->getShimUrl()
         );
     }
+
+    public function testNoAgsClaim()
+    {
+        // if we don't have nrps claim in the session, none should be passed
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        // make sure where we send the response is right
+        $response->assertViewHas('auth_resp_url',
+                                 $this->shimPlatform->auth_resp_url);
+        $jwt = $this->getJwtFromResponse($response);
+        $this->assertFalse(
+            $jwt->claims->has(
+                'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint')
+        );
+    }
+
+    public function testHasAgsClaim()
+    {
+        $claimUri = 'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
+        // add an nrps claim to the session
+        $expectedScopes = [
+            'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+            'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly',
+            'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
+            'https://purl.imsglobal.org/spec/lti-ags/scope/score'
+        ];
+        $this->addClaims([$claimUri =>
+            [
+                'scope' => array_merge($expectedScopes,
+                    ['https://purl.imsglobal.org/spec/lti-ags/scope/removeme'])
+
+            ]
+        ]);
+        //fwrite(STDERR, "LTISESSION ID" . $this->ltiSession->id . "\n");
+
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        // make sure where we send the response is right
+        $response->assertViewHas('auth_resp_url',
+                                 $this->shimPlatform->auth_resp_url);
+        $jwt = $this->getJwtFromResponse($response);
+        $this->assertTrue($jwt->claims->has($claimUri));
+        // unrecognized scopes should be removed
+        $this->assertEquals($expectedScopes,
+            $jwt->claims->get($claimUri)['scope']);
+        // there should be corresponding entry in the nrps table
+        //$nrps = Nrps::first();
+        //$this->assertEquals($nrps->context_memberships_url, $expectedScopes);
+        //$this->assertNotEquals($nrps->context_memberships_url,
+        //                       $nrps->getShimUrl());
+        //$this->assertEquals(
+        //    $jwt->claims->get('https://purl.imsglobal.org/spec/lti-ags/claim/endpoint')['context_memberships_url'],
+        //    $nrps->getShimUrl()
+        //);
+    }
 }

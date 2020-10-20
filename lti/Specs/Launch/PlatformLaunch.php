@@ -19,6 +19,7 @@ use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\ParamChecker;
 
+use UBC\LTI\Specs\Launch\Filters\AgsFilter;
 use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Launch\Filters\DeploymentFilter;
 use UBC\LTI\Specs\Launch\Filters\LaunchPresentationFilter;
@@ -54,7 +55,8 @@ class PlatformLaunch
             new ResourceLinkFilter($this->ltiLog),
             new LaunchPresentationFilter($this->ltiLog),
             new CourseContextFilter($this->ltiLog),
-            new NrpsFilter($this->ltiLog)
+            new NrpsFilter($this->ltiLog),
+            new AgsFilter($this->ltiLog)
         ];
     }
 
