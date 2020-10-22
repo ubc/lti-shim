@@ -45,7 +45,8 @@ class PlatformNrps
     {
         $this->ltiLog->info('NRPS request received at ' .
             $this->request->fullUrl(), $this->request, $this->nrps);
-        $this->tokenHelper->verify($this->getAccessToken());
+        $this->tokenHelper->verify(AccessToken::fromRequestHeader(
+            $this->request, $this->ltiLog));
 
         // access token good, proxy the request
         $toolNrps = new ToolNrps($this->request, $this->nrps, $this->ltiLog);
@@ -78,36 +79,5 @@ class PlatformNrps
                             $this->nrps, $this->nrps->course_context);
 
         return $response;
-    }
-
-    /**
-     * Laravel has a convenient function to get the access token for us, in the
-     * form of request->bearerToken(). Unfortunately, it does not follow spec
-     * and requires bearer to be case sensitive, e.g. it works with:
-     *   "authorization: Bearer <access token>"
-     * But not with:
-     *   "authorization: bearer <access token>"
-     *
-     * So we have to have our own function to get the access token.
-     */
-    private function getAccessToken()
-    {
-        $authHeader = $this->request->header('authorization');
-        if (!$authHeader) {
-            throw new LtiException($this->ltiLog->msg(
-                'Missing authorization header',
-                $this->request, $this->nrps
-            ));
-        }
-        $this->ltiLog->debug("Authorization: $authHeader", $this->request);
-        // make sure we have a bearer token, no matter how it's capitalized
-        $tokenType = substr($authHeader, 0, 6);
-        if (strcasecmp(Param::TOKEN_TYPE_VALUE, $tokenType) != 0) {
-            throw new LtiException($this->ltiLog->msg(
-                'Unknown authorization token type: ' . $tokenType,
-                $this->request, $this->nrps
-            ));
-        }
-        return substr($authHeader, 7);
     }
 }

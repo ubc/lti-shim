@@ -1,6 +1,7 @@
 <?php
 namespace UBC\LTI\Specs\Security;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -217,5 +218,34 @@ class AccessToken
                     'Unsupported scope: ' . $scope));
             }
         }
+    }
+
+    /**
+     * Laravel has a convenient function to get the access token for us, in the
+     * form of request->bearerToken(). Unfortunately, it does not follow spec
+     * and requires bearer to be case sensitive, e.g. it works with:
+     *   "authorization: Bearer <access token>"
+     * But not with:
+     *   "authorization: bearer <access token>"
+     *
+     * So we have to have our own function to get the access token.
+     */
+    public static function fromRequestHeader(
+        Request $request,
+        LtiLog $ltiLog
+    ): string {
+        $authHeader = $request->header('authorization');
+        if (!$authHeader) {
+            throw new LtiException($ltiLog->msg(
+                'Missing authorization header', $request));
+        }
+        $ltiLog->debug("Authorization: $authHeader", $request);
+        // make sure we have a bearer token, no matter how it's capitalized
+        $tokenType = substr($authHeader, 0, 6);
+        if (strcasecmp(Param::TOKEN_TYPE_VALUE, $tokenType) != 0) {
+            throw new LtiException($ltiLog->msg(
+                'Unknown authorization token type: ' . $tokenType, $request));
+        }
+        return substr($authHeader, 7);
     }
 }

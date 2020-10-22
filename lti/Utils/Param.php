@@ -104,6 +104,8 @@ class Param
         'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
     public const CONTEXT_MEMBERSHIPS_URL = 'context_memberships_url';
     public const SERVICE_VERSIONS = 'service_versions';
+    public const NRPS_MEDIA_TYPE =
+        'application/vnd.ims.lti-nrps.v2.membershipcontainer+json';
 
     // Assignment and Grades Service (AGS)
     public const AGS = 'ags';

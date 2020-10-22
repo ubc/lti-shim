@@ -17,8 +17,6 @@ use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Security\AccessToken;
 
-use GuzzleHttp\Client;
-
 class ToolNrps
 {
     private AccessToken $tokenHelper;
@@ -47,8 +45,7 @@ class ToolNrps
                              $this->nrps);
 
         $req = Http::withHeaders([
-            'Accept' =>
-                'application/vnd.ims.lti-nrps.v2.membershipcontainer+json',
+            'Accept' => Param::NRPS_MEDIA_TYPE,
             'Authorization' => 'Bearer ' . $accessToken
         ]);
         // the spec allow the 'limit' and 'role' GET params for pagination and

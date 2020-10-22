@@ -19,7 +19,7 @@ use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Specs\Nrps\PlatformNrps;
 use UBC\LTI\Specs\Security\AccessToken;
 
-// only tests the incoming requests for the platform, this is just the auth req
+// tests the entire NRPS flow
 class NrpsTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
