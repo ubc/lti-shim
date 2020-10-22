@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Jose\Easy\Build;
 use Jose\Easy\Load;
 
+use App\Models\Ags;
 use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
@@ -289,16 +290,18 @@ class AuthRespTest extends TestCase
             'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
             'https://purl.imsglobal.org/spec/lti-ags/scope/score'
         ];
+        $expectedLineitemsUrl = 'https://example.com/ags/1/lineitems';
         $this->addClaims([$claimUri =>
             [
                 'scope' => array_merge($expectedScopes,
-                    ['https://purl.imsglobal.org/spec/lti-ags/scope/removeme'])
-
+                    ['https://purl.imsglobal.org/spec/lti-ags/scope/removeme']),
+                'lineitems' => $expectedLineitemsUrl
             ]
         ]);
         //fwrite(STDERR, "LTISESSION ID" . $this->ltiSession->id . "\n");
 
         $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        //$response->dump();
         $response->assertStatus(Response::HTTP_OK);
         // make sure where we send the response is right
         $response->assertViewHas('auth_resp_url',
@@ -308,14 +311,35 @@ class AuthRespTest extends TestCase
         // unrecognized scopes should be removed
         $this->assertEquals($expectedScopes,
             $jwt->claims->get($claimUri)['scope']);
-        // there should be corresponding entry in the nrps table
-        //$nrps = Nrps::first();
-        //$this->assertEquals($nrps->context_memberships_url, $expectedScopes);
-        //$this->assertNotEquals($nrps->context_memberships_url,
-        //                       $nrps->getShimUrl());
-        //$this->assertEquals(
-        //    $jwt->claims->get('https://purl.imsglobal.org/spec/lti-ags/claim/endpoint')['context_memberships_url'],
-        //    $nrps->getShimUrl()
-        //);
+        // there should be corresponding entry in the ags table
+        $ags = Ags::first();
+        $this->assertEquals($ags->lineitems, $expectedLineitemsUrl);
+        $this->assertEquals($ags->scopes, $expectedScopes);
+        $this->assertEmpty($ags->lineitem);
+        // make sure the lineitems url was replaced
+        $this->assertEquals(
+            $jwt->claims->get($claimUri)['lineitems'],
+            $ags->getShimLineitemsUrl()
+        );
+        $this->assertArrayNotHasKey('lineitem', $jwt->claims->get($claimUri));
+
+        // test that the addition of lineitem gives us a new ags entry
+        $expectedLineitemUrl = 'https://example.com/ags/1/lineitems/111';
+        $this->addClaims([$claimUri =>
+            [
+                'scope' => $expectedScopes,
+                'lineitems' => $expectedLineitemsUrl,
+                'lineitem' => $expectedLineitemUrl
+            ]
+        ]);
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        $jwt = $this->getJwtFromResponse($response);
+        $ags = Ags::find(2);
+        $this->assertEquals($ags->lineitem, $expectedLineitemUrl);
+        $this->assertEquals(
+            $jwt->claims->get($claimUri)['lineitem'],
+            $ags->getShimLineitemUrl()
+        );
     }
 }
