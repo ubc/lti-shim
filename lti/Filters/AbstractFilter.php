@@ -3,7 +3,7 @@ namespace UBC\LTI\Filters;
 
 use UBC\LTI\Utils\LtiLog;
 
-class AbstractFilter
+abstract class AbstractFilter
 {
     protected const LOG_HEADER = 'Abstract Filter';
 
