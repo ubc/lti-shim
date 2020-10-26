@@ -5,6 +5,7 @@ namespace UBC\LTI\Specs\Launch\Filters;
 use Illuminate\Support\Facades\Log;
 
 use App\Models\Ags;
+use App\Models\AgsLineitem;
 use App\Models\LtiSession;
 use App\Models\Deployment;
 
@@ -51,20 +52,25 @@ class AgsFilter extends AbstractWhitelistFilter implements FilterInterface
 
         $ags = Ags::createOrGet(
             $lineitems,
-            $lineitem,
             $session->course_context_id,
             $session->deployment_id,
             $session->tool_id,
             $scopes
         );
+        $agsLineitem = null;
+        if ($lineitem) {
+            $agsLineitem = AgsLineitem::createOrGet($lineitem, $ags->id);
+        }
         $this->ltiLog->debug('ags entry found', $session, $ags);
 
         $filteredClaim = [
             Param::SCOPE => $scopes,
             Param::AGS_LINEITEMS => $ags->getShimLineitemsUrl()
         ];
-        if ($lineitem) {
-            $filteredClaim[Param::AGS_LINEITEM] = $ags->getShimLineitemUrl();
+        if ($agsLineitem) {
+            // TODO create lineitem
+            $filteredClaim[Param::AGS_LINEITEM] =
+                $agsLineitem->getShimLineitemUrl();
         }
         $params[Param::AGS_CLAIM_URI] = $filteredClaim;
 

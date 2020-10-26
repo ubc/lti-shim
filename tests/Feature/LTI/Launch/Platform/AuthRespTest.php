@@ -10,6 +10,7 @@ use Jose\Easy\Build;
 use Jose\Easy\Load;
 
 use App\Models\Ags;
+use App\Models\AgsLineitem;
 use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
@@ -333,13 +334,14 @@ class AuthRespTest extends TestCase
             ]
         ]);
         $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        //$response->dump();
         $response->assertStatus(Response::HTTP_OK);
         $jwt = $this->getJwtFromResponse($response);
-        $ags = Ags::find(2);
-        $this->assertEquals($ags->lineitem, $expectedLineitemUrl);
+        $agsLineitem = AgsLineitem::find(1);
+        $this->assertEquals($agsLineitem->lineitem, $expectedLineitemUrl);
         $this->assertEquals(
             $jwt->claims->get($claimUri)['lineitem'],
-            $ags->getShimLineitemUrl()
+            $agsLineitem->getShimLineitemUrl()
         );
     }
 }

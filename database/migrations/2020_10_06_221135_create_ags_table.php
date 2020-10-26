@@ -22,10 +22,6 @@ class CreateAgsTable extends Migration
             // lineitems is required to be present if AGS is enabled
             $table->text('lineitems')
                   ->comment('Original AGS lineitems on the original platform.');
-            // lineitem is used only when the resource link points to only one
-            // item, so it could be empty
-            $table->text('lineitem')->nullable()
-                  ->comment('Original AGS lineitem on the original platform.');
             // the advertised scopes available for this AGS endpoint
             $table->json('scopes')->default(json_encode([]));
 
@@ -43,10 +39,32 @@ class CreateAgsTable extends Migration
 
             $table->unique([
                 'lineitems',
-                'lineitem',
                 'course_context_id',
                 'deployment_id',
                 'tool_id'
+            ]);
+
+            $table->timestampTz('created_at')->useCurrent();
+            $table->timestampTz('updated_at')->useCurrent();
+        });
+
+        Schema::create('ags_lineitems', function (Blueprint $table) {
+            $table->id();
+
+            // lineitem is used only when the resource link points to only one
+            // item, so it could be empty
+            $table->text('lineitem')
+                  ->comment('Original AGS lineitem on the original platform.');
+
+            // we need to know what's the platform and tool pairing of this ags
+            // endpoint
+            $table->unsignedBigInteger('ags_id');
+            $table->foreign('ags_id')->references('id')
+                  ->on('ags')->onDelete('cascade');
+
+            $table->unique([
+                'lineitem',
+                'ags_id'
             ]);
 
             $table->timestampTz('created_at')->useCurrent();
@@ -61,6 +79,7 @@ class CreateAgsTable extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('ags_lineitem');
         Schema::dropIfExists('ags');
     }
 }

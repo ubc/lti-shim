@@ -35,19 +35,7 @@ class Ags extends Model
 
     public function getShimLineitemsUrlAttribute()
     {
-        return route('lti.ags', ['ags' => $this->id]);
-    }
-
-    public function getShimLineitemUrlAttribute()
-    {
-        if ($this->lineitem)
-            return route('lti.ags', ['ags' => $this->id]);
-        return "";
-    }
-
-    public function getShimLineitemUrl(array $params = []): string
-    {
-        return $this->addParamsToUrl($this->shim_lineitem_url, $params);
+        return route('lti.ags.lineitems', ['ags' => $this->id]);
     }
 
     public function getShimLineitemsUrl(array $params = []): string
@@ -71,35 +59,29 @@ class Ags extends Model
 
     public static function getByLineitems(
         string $lineitemsUrl,
-        string $lineitemUrl,
         int $courseContextId,
         int $deploymentId,
         int $toolId
     ): ?self {
         $fields = [
             'lineitems' => $lineitemsUrl,
-            'lineitem' => $lineitemUrl,
             'course_context_id' => $courseContextId,
             'deployment_id' => $deploymentId,
             'tool_id' => $toolId
         ];
-        if ($lineitemUrl) {
-            $fields['lineitem'] = $lineitemUrl;
-        }
         $ags = self::where($fields)->first();
         return $ags;
     }
 
     public static function createOrGet(
         string $lineitemsUrl,
-        string $lineitemUrl,
         int $courseContextId,
         int $deploymentId,
         int $toolId,
         array $scopes = []
     ): self {
-        $ags = self::getByLineitems($lineitemsUrl, $lineitemUrl,
-            $courseContextId, $deploymentId, $toolId);
+        $ags = self::getByLineitems($lineitemsUrl, $courseContextId,
+            $deploymentId, $toolId);
         if (!$ags) {
             // no existing entry, create a new one
             $ags = new self;
@@ -107,7 +89,6 @@ class Ags extends Model
             $ags->course_context_id = $courseContextId;
             $ags->deployment_id = $deploymentId;
             $ags->tool_id = $toolId;
-            if ($lineitemUrl) $ags->lineitem = $lineitemUrl;
             if ($scopes) $ags->scopes = $scopes;
             $ags->save();
         }

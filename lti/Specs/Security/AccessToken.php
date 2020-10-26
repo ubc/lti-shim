@@ -113,7 +113,11 @@ class AccessToken
         $store = Cache::store(self::ACCESS_TOKEN_STORE);
         $cacheKey = self::getCacheKey($platform->id, $scopes);
         $token = $store->get($cacheKey);
-        if ($token) return $token;
+        if ($token) {
+            $this->ltiLog->debug('Access token loaded from cache.');
+            return $token;
+        }
+        $this->ltiLog->debug('Access token not in cache, try to get one.');
 
         // not in cache, request an access token
         $requestJwt = self::getRequestJwt($platform, $tool, $scopes);
