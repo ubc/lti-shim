@@ -121,6 +121,10 @@ class Param
         'https://purl.imsglobal.org/spec/lti-ags/scope/score';
     public const AGS_LINEITEM = 'lineitem';
     public const AGS_LINEITEMS = 'lineitems';
+    public const AGS_MEDIA_TYPE_LINEITEM =
+        'application/vnd.ims.lis.v2.lineitem+json';
+    public const AGS_MEDIA_TYPE_LINEITEMS =
+        'application/vnd.ims.lis.v2.lineitemcontainer+json';
 
     // List of scopes that can be used to request access tokens
     public const AGS_SCOPES = [
