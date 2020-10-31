@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use League\Uri\Components\Query;
@@ -13,6 +14,8 @@ use App\Models\AbstractLtiEntity;
 
 class Tool extends AbstractLtiEntity
 {
+    use HasFactory;
+
     public const TARGET_TOOL_PARAM = 'target_tool_id';
 
     protected $fillable = ['name', 'client_id', 'oidc_login_url',

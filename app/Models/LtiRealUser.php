@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Support\Collection;
@@ -11,6 +12,8 @@ use UBC\LTI\Utils\Param;
 
 class LtiRealUser extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'sub',
         'platform_id',

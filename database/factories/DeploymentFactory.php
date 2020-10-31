@@ -1,11 +1,19 @@
 <?php
-use Faker\Generator as Faker;
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 use App\Models\Deployment;
 
-$factory->define(Deployment::class, function (Faker $faker) {
-    return [
-        'lti_deployment_id' => $faker->uuid
-    ];
-});
+class DeploymentFactory extends Factory
+{
+    protected $model = Deployment::class;
 
+    public function definition()
+    {
+        return [
+            'lti_deployment_id' => $this->faker->uuid
+        ];
+    }
+}

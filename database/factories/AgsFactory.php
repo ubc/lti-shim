@@ -1,13 +1,21 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
 use Illuminate\Support\Str;
 
 use App\Models\Ags;
 
+class AgsFactory extends Factory
+{
+    protected $model = Ags::class;
 
-$factory->define(Ags::class, function (Faker $faker) {
-    return [
-        'lineitems' => $faker->url
-    ];
-});
+    public function definition()
+    {
+        return [
+            'lineitems' => $this->faker->url
+        ];
+    }
+}

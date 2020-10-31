@@ -161,7 +161,7 @@ class AccessTokenTest extends TestCase
 
     public function testRejectUnregisteredTool()
     {
-        $badTool = factory(Tool::class)->create();
+        $badTool = Tool::factory()->create();
         $this->expectException(LtiException::class);
         $this->tokenHelper->request($this->platform, $badTool, $this->scopes);
     }

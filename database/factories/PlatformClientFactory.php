@@ -1,17 +1,21 @@
 <?php
-use Faker\Generator as Faker;
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
 use Illuminate\Support\Str;
 
 use App\Models\PlatformClient;
 
-// don't use this factory directly, call the Platform factory to create a
-// platform as well as an associated PlatformClient
-$factory->define(
-    PlatformClient::class,
-    function (Faker $faker) {
+class PlatformClientFactory extends Factory
+{
+    protected $model = PlatformClient::class;
+
+    public function definition()
+    {
         return [
-            'client_id' => $faker->uuid
+            'client_id' => $this->faker->uuid
         ];
     }
-);
-
+}

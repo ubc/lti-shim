@@ -50,30 +50,30 @@ class AuthRespTest extends TestCase
     {
         parent::setUp();
         // set up a known good request
-        $this->tool = factory(Tool::class)->create();
-        $this->shimPlatform = factory(Platform::class)->create(['id' => 1]);
-        $this->platform = factory(Platform::class)->create(['id' => 2]);
-        $this->encryptionKey = factory(EncryptionKey::class)->create();
-        $this->deployment = factory(Deployment::class)->create([
+        $this->tool = Tool::factory()->create();
+        $this->shimPlatform = Platform::factory()->create(['id' => 1]);
+        $this->platform = Platform::factory()->create(['id' => 2]);
+        $this->encryptionKey = EncryptionKey::factory()->create();
+        $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->shimPlatform->id
         ]);
-        $this->realUser = factory(LtiRealUser::class)->create([
+        $this->realUser = LtiRealUser::factory()->create([
             'platform_id' => $this->platform->id
         ]);
-        $this->courseContext = factory(CourseContext::class)->create([
+        $this->courseContext = CourseContext::factory()->create([
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id
         ]);
-        $this->fakeUser = factory(LtiFakeUser::class)->create([
+        $this->fakeUser = LtiFakeUser::factory()->create([
             'lti_real_user_id' => $this->realUser->id,
             'course_context_id' => $this->courseContext->id,
             'tool_id' => $this->tool->id
         ]);
-        $this->resourceLink = factory(ResourceLink::class)->create([
+        $this->resourceLink = ResourceLink::factory()->create([
             'deployment_id' => $this->deployment->id
         ]);
         // prepare session
-        $this->ltiSession = factory(LtiSession::class)->create([
+        $this->ltiSession = LtiSession::factory()->create([
             'token' => [
                 'sub' => $this->realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => [],

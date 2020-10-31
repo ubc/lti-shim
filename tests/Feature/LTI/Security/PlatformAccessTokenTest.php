@@ -37,9 +37,9 @@ class PlatformAccessTokenTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tool = factory(Tool::class)->create();
+        $this->tool = Tool::factory()->create();
         // we just need to make sure there's an encryption key in the database
-        factory(EncryptionKey::class)->create();
+        EncryptionKey::factory()->create();
         $this->goodParams = [
             'grant_type' => 'client_credentials',
             'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',

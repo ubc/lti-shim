@@ -19,7 +19,7 @@ class JwksTest extends TestCase
     {
         $baseUrl = '/lti/platform/jwks';
         // the factory should've created at least 1 key
-        $myPlatform = factory(Platform::class)->create(['id' => 1]);
+        $myPlatform = Platform::factory()->create(['id' => 1]);
         $keys = $myPlatform->keys;
         $expectedJson = ['keys' => []];
         foreach ($keys as $key) {
@@ -28,7 +28,7 @@ class JwksTest extends TestCase
         $resp = $this->get($baseUrl);
         $resp->assertExactJson($expectedJson);
         // add a new key and see if it updates
-        $newKey = factory(PlatformKey::class)->create([
+        $newKey = PlatformKey::factory()->create([
             'platform_id' => $myPlatform->id
         ]);
         $expectedJson['keys'][] = $newKey->public_key->all();
@@ -40,7 +40,7 @@ class JwksTest extends TestCase
     {
         $baseUrl = '/lti/tool/jwks';
         // the factory should've created at least 1 key
-        $myTool = factory(Tool::class)->create(['id' => 1]);
+        $myTool = Tool::factory()->create(['id' => 1]);
         $keys = $myTool->keys;
         $expectedJson = ['keys' => []];
         foreach ($keys as $key) {
@@ -49,7 +49,7 @@ class JwksTest extends TestCase
         $resp = $this->get($baseUrl);
         $resp->assertExactJson($expectedJson);
         // add a new key and see if it updates
-        $newKey = factory(ToolKey::class)->create([
+        $newKey = ToolKey::factory()->create([
             'tool_id' => $myTool->id
         ]);
         $expectedJson['keys'][] = $newKey->public_key->all();

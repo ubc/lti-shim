@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use App\Models\AbstractRsaKey;
 
 class EncryptionKey extends AbstractRsaKey
 {
+    use HasFactory;
+
     // if we always get the newest key, this lets us do periodic key rotation
     // by just adding a new key in
     public static function getNewestKey() : self

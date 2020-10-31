@@ -6,10 +6,13 @@ use Illuminate\Support\Facades\Log;
 
 use Faker\Factory as Faker;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CourseContext extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'deployment_id',
         'real_context_id',

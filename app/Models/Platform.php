@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -10,6 +11,8 @@ use App\Models\AbstractLtiEntity;
 
 class Platform extends AbstractLtiEntity
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'iss',

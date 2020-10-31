@@ -1,14 +1,22 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 use App\Models\LtiFakeUser;
 
-$factory->define(LtiFakeUser::class, function (Faker $faker) {
-    return [
-        'login_hint' => $faker->uuid,
-        'name' => $faker->firstName . ' ' . $faker->lastName,
-        'email' => $faker->email,
-        'sub' => $faker->uuid,
-    ];
-});
+class LtiFakeUserFactory extends Factory
+{
+    protected $model = LtiFakeUser::class;
+
+    public function definition()
+    {
+        return [
+            'login_hint' => $this->faker->uuid,
+            'name' => $this->faker->firstName . ' ' . $this->faker->lastName,
+            'email' => $this->faker->email,
+            'sub' => $this->faker->uuid,
+        ];
+    }
+}

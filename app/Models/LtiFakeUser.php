@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Faker\Factory as Faker;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Support\Collection;
@@ -12,6 +13,8 @@ use UBC\LTI\Utils\FakeName;
 
 class LtiFakeUser extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'email',
         'login_hint',

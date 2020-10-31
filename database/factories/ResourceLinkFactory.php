@@ -1,12 +1,20 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 use App\Models\ResourceLink;
 
-$factory->define(ResourceLink::class, function (Faker $faker) {
-    return [
-        'real_link_id' => $faker->uuid,
-        'fake_link_id' => $faker->sha256,
-    ];
-});
+class ResourceLinkFactory extends Factory
+{
+    protected $model = ResourceLink::class;
+
+    public function definition()
+    {
+        return [
+            'real_link_id' => $this->faker->uuid,
+            'fake_link_id' => $this->faker->sha256,
+        ];
+    }
+}

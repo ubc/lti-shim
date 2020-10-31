@@ -1,5 +1,7 @@
 <?php
 
+namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 
 use App\Models\EncryptionKey;
@@ -13,6 +15,6 @@ class EncryptionKeySeeder extends Seeder
      */
     public function run()
     {
-        factory(EncryptionKey::class)->create();
+        EncryptionKey::factory()->create();
     }
 }

@@ -1,29 +1,35 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\PlatformKey;
 
+class PlatformFactory extends Factory
+{
+    protected $model = Platform::class;
 
-$factory->define(Platform::class, function (Faker $faker) {
-    $domain = $faker->domainName;
-    return [
-        'name' => $domain,
-        'iss' => 'https://' . $domain,
-        'auth_req_url' => 'https://' . $domain . '/lti/auth'
-    ];
-});
-$factory->afterCreating(
-    Platform::class,
-    function($platform, Faker $faker) {
-        // each platform needs a public key
-        $platform->keys()
-                 ->save(
-                     factory(PlatformKey::class)
-                         ->create(['platform_id' => $platform->id])
-                 );
+    public function configure()
+    {
+        return $this->afterCreating(function(Platform $platform) {
+            // each platform needs a public key
+            $platform->keys()
+                     ->save(PlatformKey::factory()
+                                     ->make(['platform_id' => $platform->id]));
+        });
     }
-);
+
+    public function definition()
+    {
+        $domain = $this->faker->domainName;
+        return [
+            'name' => $domain,
+            'iss' => 'https://' . $domain,
+            'auth_req_url' => 'https://' . $domain . '/lti/auth'
+        ];
+    }
+}

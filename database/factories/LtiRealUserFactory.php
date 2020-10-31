@@ -1,14 +1,22 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 use App\Models\LtiRealUser;
 
-$factory->define(LtiRealUser::class, function (Faker $faker) {
-    return [
-        'login_hint' => $faker->uuid,
-        'name' => $faker->name,
-        'email' => $faker->email,
-        'sub' => $faker->sha1
-    ];
-});
+class LtiRealUserFactory extends Factory
+{
+    protected $model = LtiRealUser::class;
+
+    public function definition()
+    {
+        return [
+            'login_hint' => $this->faker->uuid,
+            'name' =>       $this->faker->name,
+            'email' =>      $this->faker->email,
+            'sub' =>        $this->faker->sha1
+        ];
+    }
+}

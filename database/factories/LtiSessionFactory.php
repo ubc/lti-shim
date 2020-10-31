@@ -1,14 +1,21 @@
 <?php
 
-use Faker\Generator as Faker;
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
 use Illuminate\Support\Str;
 
-use App\Models\Tool;
 use App\Models\LtiSession;
 
+class LtiSessionFactory extends Factory
+{
+    protected $model = LtiSession::class;
 
-$factory->define(LtiSession::class, function (Faker $faker) {
-    return [
-        'log_stream' => $faker->word
-    ];
-});
+    public function definition()
+    {
+        return [
+            'log_stream' => $this->faker->word
+        ];
+    }
+}

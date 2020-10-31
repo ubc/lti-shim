@@ -46,14 +46,14 @@ class AgsTest extends TestCase
         $this->seed();
         $this->tool = Tool::find(2);
         $this->platform = Platform::find(3); // canvas test
-        $this->deployment = factory(Deployment::class)->create([
+        $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->platform->id
         ]);
-        $this->courseContext = factory(CourseContext::class)->create([
+        $this->courseContext = CourseContext::factory()->create([
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id
         ]);
-        $this->ags = factory(Ags::class)->create([
+        $this->ags = Ags::factory()->create([
             'course_context_id' => $this->courseContext->id,
             'deployment_id' => $this->deployment->id,
             'tool_id' => $this->tool->id

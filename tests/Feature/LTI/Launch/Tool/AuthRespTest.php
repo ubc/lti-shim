@@ -41,8 +41,8 @@ class AuthRespTest extends TestCase
         $this->tool = Tool::find(2);
         $this->platform = Platform::find(2);
         $this->client = $this->tool->getPlatformClient($this->platform->id);
-        $encryptionKey = factory(EncryptionKey::class)->create();
-        $this->deployment = factory(Deployment::class)->create([
+        $encryptionKey = EncryptionKey::factory()->create();
+        $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->platform->id
         ]);
         $this->createIdToken(Nonce::create());

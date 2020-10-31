@@ -34,31 +34,31 @@ class AuthReqTest extends TestCase
     {
         $baseUrl = '/lti/launch/platform/auth';
         // known good request
-        $tool = factory(Tool::class)->create();
-        $shimPlatform = factory(Platform::class)->create(['id' => 1]);
-        $platform = factory(Platform::class)->create(['id' => 2]);
-        $platformClient = factory(PlatformClient::class)->create([
+        $tool = Tool::factory()->create();
+        $shimPlatform = Platform::factory()->create(['id' => 1]);
+        $platform = Platform::factory()->create(['id' => 2]);
+        $platformClient = PlatformClient::factory()->create([
             'platform_id' => $platform->id,
             'tool_id' => $tool->id
         ]);
-        $encryptionKey = factory(EncryptionKey::class)->create();
-        $deployment = factory(Deployment::class)->create([
+        $encryptionKey = EncryptionKey::factory()->create();
+        $deployment = Deployment::factory()->create([
             'platform_id' => $shimPlatform->id
         ]);
-        $courseContext = factory(CourseContext::class)->create([
+        $courseContext = CourseContext::factory()->create([
             'tool_id' => $tool->id,
             'deployment_id' => $deployment->id
         ]);
-        $realUser = factory(LtiRealUser::class)->create([
+        $realUser = LtiRealUser::factory()->create([
             'platform_id' => $platform->id
         ]);
-        $fakeUser = factory(LtiFakeUser::class)->create([
+        $fakeUser = LtiFakeUser::factory()->create([
             'lti_real_user_id' => $realUser->id,
             'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id
         ]);
         // prepare session
-        $ltiSession = factory(LtiSession::class)->create([
+        $ltiSession = LtiSession::factory()->create([
             'token' => [
                 'sub' => $realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => [],

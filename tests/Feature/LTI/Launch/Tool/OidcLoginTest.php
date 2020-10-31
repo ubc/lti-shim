@@ -34,7 +34,7 @@ class OidcLoginTest extends TestCase
             'target_link_uri' => $this->tool->shim_target_link_uri
         ];
 
-        $encryptionKey = factory(EncryptionKey::class)->create();
+        $encryptionKey = EncryptionKey::factory()->create();
     }
 
     public function testRejectEmptyParams()

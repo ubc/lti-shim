@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Faker\Factory as Faker;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Deployment extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['lti_deployment_id', 'platform_id', 'tool_id'];
     protected $with = ['platform'];
 

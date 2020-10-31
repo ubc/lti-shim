@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use UBC\LTI\Utils\EncryptedState;
@@ -10,6 +11,8 @@ use UBC\LTI\Utils\Param;
 
 class LtiSession extends Model
 {
+    use HasFactory;
+
     // need to tell Laravel to auto decode our JSON column
     protected $casts = [
         'token' => 'array'
