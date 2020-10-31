@@ -36,6 +36,11 @@ class Ags extends Model
         return $this->belongsTo('App\Models\Tool');
     }
 
+    public function getLineitemsUrl(array $params = []): string
+    {
+        return $this->addParamsToUrl($this->lineitems, $params);
+    }
+
     public function getShimLineitemsUrlAttribute()
     {
         return route('lti.ags.lineitems', ['ags' => $this->id]);

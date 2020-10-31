@@ -12,6 +12,7 @@ use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\LtiRealUser;
 use App\Models\Ags;
+use App\Models\AgsLineitem;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -124,10 +125,19 @@ class AgsTest extends TestCase
         // do the ags call
         $resp = $this->withHeaders($this->headers)
                      ->get($this->ags->getShimLineitemsUrl());
-        $resp->dump();
+        //$resp->dump();
         // request should be successful
         $resp->assertStatus(Response::HTTP_OK);
-        $resp->assertJson($this->fakeAgs);
+        // make sure that each lineitem id's url was rewritten to shim's url and
+        // that corresponding lineitem entries were made in the database
+        $expectedLineitems = AgsLineitem::all()->take(count($this->fakeAgs));
+        $this->assertEquals(count($expectedLineitems), count($this->fakeAgs));
+        $expectedJson = $this->fakeAgs;
+        foreach ($expectedJson as $key => &$expectedEntry) {
+            $expectedEntry['id'] = $expectedLineitems[$key]->getShimLineitemUrl();
+        }
+
+        $resp->assertJson($expectedJson);
     }
 
     /**

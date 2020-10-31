@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 
 use League\Uri\Components\Query;
 use League\Uri\Uri;
@@ -13,6 +14,8 @@ use League\Uri\UriModifier;
 // request to the one that the shim provides
 class AgsLineitem extends Model
 {
+    protected $fillable = ['lineitem', 'ags_id'];
+
     public function ags()
     {
         return $this->belongsTo('App\Models\Ags');
@@ -68,5 +71,29 @@ class AgsLineitem extends Model
             $agsLineitem->save();
         }
         return $agsLineitem;
+    }
+
+    public static function createOrGetAll(
+        array $lineitemUrls,
+        int $agsId
+    ): Collection {
+        $lineitems = [];
+
+        $lineitemsInfo = [];
+        foreach ($lineitemUrls as $lineitemUrl) {
+            $lineitemsInfo[] = [
+                'lineitem' => $lineitemUrl,
+                'ags_id' => $agsId
+            ];
+        }
+
+        $res = self::insertOrIgnore($lineitemsInfo);
+        // since insertOrIgnore doesn't return the created rows,
+        // we have to do a separate query for them
+        $lineitems = self::where('ags_id', $agsId)
+                         ->whereIn('lineitem', $lineitemUrls)
+                         ->get();
+
+        return $lineitems;
     }
 }

@@ -125,6 +125,10 @@ class Param
         'application/vnd.ims.lis.v2.lineitem+json';
     public const AGS_MEDIA_TYPE_LINEITEMS =
         'application/vnd.ims.lis.v2.lineitemcontainer+json';
+    // ags lineitem query params
+    public const RESOURCE_LINK_ID = 'resource_link_id';
+    public const RESOURCE_ID = 'resource_id';
+    public const TAG = 'tag';
 
     // List of scopes that can be used to request access tokens
     public const AGS_SCOPES = [
