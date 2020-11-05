@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 use App\Models\Ags;
+use App\Models\AgsLineitem;
 use App\Models\CourseContext;
 use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
@@ -141,6 +142,9 @@ class LtiLog
             }
             elseif ($obj instanceof Ags) {
                 $components[] = 'Ags: ' . $obj->id;
+            }
+            elseif ($obj instanceof AgsLineitem) {
+                $components[] = 'AgsLineitem: ' . $obj->id;
             }
             elseif ($obj instanceof CourseContext) {
                 $components[] = 'Course: ' . $obj->id . ' ' . $obj->label .

@@ -32,8 +32,11 @@ class AgsController extends Controller
         }
     }
 
-    public function getLineitem(Request $request, Ags $ags, Lineitem $lineitem)
-    {
+    public function getLineitem(
+        Request $request,
+        Ags $ags,
+        AgsLineitem $lineitem
+    ) {
         $platformAgs = new PlatformAgs($request, $ags);
         try {
             return $platformAgs->getLineitem($lineitem);

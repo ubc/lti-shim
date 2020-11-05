@@ -36,9 +36,9 @@ class AgsTest extends TestCase
     private Platform $platform;
     private Tool $tool;
 
-    private array $fakeAgs; // holds the fake NRPS response that the platform
+    private array $fakeAgs; // holds the fake AGS response that the platform
                             // sends back, that needs to be filtered
-    private array $headers; // headers sent on each NRPS request
+    private array $headers; // headers sent on each AGS request
 
     protected function setUp(): void
     {
@@ -97,6 +97,7 @@ class AgsTest extends TestCase
         ];
         Http::fake([
             $this->ags->lineitems => Http::response($this->fakeAgs),
+            $this->fakeAgs[0]['id'] => Http::response($this->fakeAgs[0]),
             $this->platform->access_token_url => Http::response([
                 'access_token' => $this->accessToken,
                 'expires_in' => 3600
@@ -105,7 +106,7 @@ class AgsTest extends TestCase
     }
 
     /**
-     * If we try to access an NRPS endpoint on the shim that doesn't exist in
+     * If we try to access an AGS endpoint on the shim that doesn't exist in
      * the database, we should get a 404
      *
      * @return void
@@ -117,8 +118,8 @@ class AgsTest extends TestCase
     }
 
     /**
-     * Test that the users returned by the NRPS request are entered into the
-     * database and fake users created for them.
+     * Test that the users returned by the AGS request are entered into the
+     * database and each lineitem has an associated entry in the database
      */
     public function testGetLineitems()
     {
@@ -141,7 +142,37 @@ class AgsTest extends TestCase
     }
 
     /**
-     * Make sure that NRPS calls will reject invalid access tokens.
+     * Test that we can get info on a single lineitem.
+     */
+    public function testGetLineitem()
+    {
+        // first grab the list of lineitems
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->ags->getShimLineitemsUrl());
+        // request should be successful
+        $resp->assertStatus(Response::HTTP_OK);
+        // then call the first lineitem in the returned list
+        $lineitemUrl = $resp->json()[0]['id'];
+        $resp = $this->withHeaders($this->headers)
+                     ->get($lineitemUrl);
+        //$resp->dump();
+        // request should be successful
+        $resp->assertStatus(Response::HTTP_OK);
+        // make sure we get the right data back
+        $expectedJson = $this->fakeAgs[0];
+        $expectedJson['id'] = $lineitemUrl;
+
+        $resp->assertJson($expectedJson);
+        // test lineitem is protected by access token
+        $headers = $this->headers;
+        $headers['Authorization'] = 'Bearer ClearlyBadAccessToken';
+        $resp = $this->withHeaders($headers)
+                     ->get($lineitemUrl);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Make sure that AGS calls will reject invalid access tokens.
      */
     public function testRejectInvalidAccessToken()
     {

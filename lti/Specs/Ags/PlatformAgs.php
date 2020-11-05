@@ -42,24 +42,14 @@ class PlatformAgs
     {
         $this->ltiLog->info('AGS request received at ' .
             $this->request->fullUrl(), $this->request, $this->ags);
-        $this->tokenHelper->verify(AccessToken::fromRequestHeader(
-            $this->request, $this->ltiLog));
-
-        // TODO: handle AGS parameters
-
-        // access token good, proxy the request
-        $toolAgs = new ToolAgs($this->request, $this->ags, $this->ltiLog);
+        // check access token and get the Tool side
+        $toolAgs = $this->getToolAgs();
+        // proxy the request
         $toolResp = $toolAgs->getLineitems();
 
         // apply filters
         $lineitems = $toolResp->json();
-        $this->ltiLog->debug('Pre-filter: ' . json_encode($lineitems),
-            $this->request, $this->ags);
-        foreach ($this->filters as $filter) {
-            $lineitems = $filter->filter($lineitems, $this->ags);
-        }
-        $this->ltiLog->debug('Post-filter: ' . json_encode($lineitems),
-            $this->request, $this->ags);
+        $this->applyLineitemsFilters($lineitems);
 
         // pagination not in json body, but in the Link http header, so we need
         // to filter it separately
@@ -80,10 +70,41 @@ class PlatformAgs
         return $resp;
     }
 
-    public function getLineitem(Lineitem $lineitem): Response
+    public function getLineitem(AgsLineitem $lineitem): Response
     {
-        // TODO implement
-        $response = response('"blah"');
+        $this->ltiLog->info('AGS request for lineitem received at ' .
+            $this->request->fullUrl(), $this->request, $this->ags, $lineitem);
+        // check access token and get the Tool side
+        $toolAgs = $this->getToolAgs();
+        // proxy the request
+        $toolResp = $toolAgs->getLineitem($lineitem);
+        $lineitems = [ $toolResp->json() ];
+        $this->applyLineitemsFilters($lineitems);
+
+        $response = response($lineitems[0]);
         return $response;
+    }
+
+    private function applyLineitemsFilters(array &$lineitems)
+    {
+        $this->ltiLog->debug('Pre-filter: ' . json_encode($lineitems),
+            $this->request, $this->ags);
+        foreach ($this->filters as $filter) {
+            $lineitems = $filter->filter($lineitems, $this->ags);
+        }
+        $this->ltiLog->debug('Post-filter: ' . json_encode($lineitems),
+            $this->request, $this->ags);
+    }
+
+    private function getToolAgs(): ToolAgs
+    {
+        // TODO: check that token scope can carry out specified operation
+        $this->tokenHelper->verify(AccessToken::fromRequestHeader(
+            $this->request, $this->ltiLog));
+
+        // access token good, proxy the request
+        $toolAgs = new ToolAgs($this->request, $this->ags, $this->ltiLog);
+
+        return $toolAgs;
     }
 }
