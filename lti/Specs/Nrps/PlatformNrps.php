@@ -45,8 +45,11 @@ class PlatformNrps
     {
         $this->ltiLog->info('NRPS request received at ' .
             $this->request->fullUrl(), $this->request, $this->nrps);
-        $this->tokenHelper->verify(AccessToken::fromRequestHeader(
-            $this->request, $this->ltiLog));
+        $this->tokenHelper->verify(
+            AccessToken::fromRequestHeader($this->request, $this->ltiLog),
+            $this->nrps->tool,
+            [Param::NRPS_SCOPE_URI]
+        );
 
         // access token good, proxy the request
         $toolNrps = new ToolNrps($this->request, $this->nrps, $this->ltiLog);

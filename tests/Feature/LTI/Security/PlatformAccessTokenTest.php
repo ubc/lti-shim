@@ -106,7 +106,9 @@ class PlatformAccessTokenTest extends TestCase
         $token = $resp->getOriginalContent()['access_token'];
         // Maybe we should also have a separate implementation for verifying the
         // access token
-        $this->assertNotEmpty($this->tokenHelper->verify($token));
+        $this->assertNotEmpty(
+            $this->tokenHelper->verify($token, $this->tool, [$this->scope])
+        );
     }
 
     public function testInvalidGrantType()

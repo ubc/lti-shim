@@ -26,6 +26,7 @@ class NrpsTest extends TestCase
 
     private string $baseUrl = '/lti/nrps/platform/';
     private string $accessToken;
+    private AccessToken $tokenHelper;
     private CourseContext $courseContext;
     private Deployment $deployment;
     private Nrps $nrps;
@@ -56,8 +57,8 @@ class NrpsTest extends TestCase
             'tool_id' => $this->tool->id
         ]);
         $ltiLog = new LtiLog('NrpsTest');
-        $tokenHelper = new AccessToken($ltiLog);
-        $this->accessToken = $tokenHelper->create(
+        $this->tokenHelper = new AccessToken($ltiLog);
+        $this->accessToken = $this->tokenHelper->create(
             $this->tool,
             ['https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly']
         );
@@ -293,5 +294,38 @@ class NrpsTest extends TestCase
         $headers['authorization'] = 'Bearer ' . $this->accessToken;
         $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
         $resp->assertStatus(Response::HTTP_OK);
+    }
+
+    public function testRejectAccessTokenWithIncorrectScope()
+    {
+        $accessToken = $this->tokenHelper->create(
+            $this->tool,
+            ['https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly']
+        );
+        // change the access token to one that doesn't have NRPS scope
+        $headers = $this->headers;
+        $headers['Authorization'] = $accessToken;
+
+        // do the nrps call
+        $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
+        // request should fail
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testRejectAccessTokenWithIncorrectTool()
+    {
+        $tool = Tool::find(3);
+        $accessToken = $this->tokenHelper->create(
+            $tool,
+            ['https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly']
+        );
+        // change the access token to one that doesn't have NRPS scope
+        $headers = $this->headers;
+        $headers['Authorization'] = $accessToken;
+
+        // do the nrps call
+        $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
+        // request should fail
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
 }

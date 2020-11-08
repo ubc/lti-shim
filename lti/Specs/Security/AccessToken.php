@@ -71,15 +71,37 @@ class AccessToken
             ->enc(Param::A256GCM) // content encryption alg
             ->zip(Param::ZIP_ALG) // compress the data, DEFLATE alg
             ->crit(['alg', 'enc']); // mark some header parameters as critical
-        $jwe->claim(Param::SCOPE, $scopes);
+        // keep the size of the token down by shrinking the scope payload
+        $shrinkedScopes = [];
+        foreach ($scopes as $scope) {
+            $shrinkedScopes[] = self::$VALID_SCOPES[$scope];
+        }
+        $jwe->claim(Param::SCOPE, $shrinkedScopes);
         // encrypt with the public key
         $jwe = $jwe->encrypt(EncryptionKey::getNewestKey()->public_key);
         return $jwe;
     }
 
-    public function verify(string $token): JWT
-    {
-        // TODO enforce scope checking once we have more than 1 scope
+    /**
+     * Besides the cryptographic integrity of the access token,
+     * we need to make sure that the scopes we require are present in the token.
+     *
+     * Due to how AGS scopes are split into ones that only allow read only and
+     * ones that allow all operations, as long as one of the scopes is present
+     * in the access token, we treat it as having passed the check. This lets us
+     * pass in both the readonly and all access variants in the required scopes
+     * list for read only operations.
+     *
+     * We also need to make sure that a tool isn't accessing an endpoint created
+     * by another tool and hence leaking data, so need to make sure the iss
+     * match the tool that created the endpoint.
+     */
+    public function verify(
+        string $token,
+        Tool $requiredTool,
+        array $requiredScopes
+    ): JWT {
+        $jwt;
         try {
             $jwt = Load::jwe($token) // deserialize the token
                 ->algs([Param::RSA_OAEP_256]) // key encryption algo
@@ -88,19 +110,43 @@ class AccessToken
                 ->iat()
                 ->key(EncryptionKey::getNewestKey()->key) // private key decrypt
                 ->run();
-            return $jwt;
         }
         catch(\Exception $e) {
             Log::error("Unable to verify access token.");
             throw new LtiException($this->ltiLog->msg(
                     'Invalid access token: ' . $e->getMessage()), 0, $e);
         }
+        // make sure it's the right tool
+        if ($requiredTool->client_id != $jwt->claims->iss()) {
+            throw new LtiException($this->ltiLog->msg(
+                "This access token is not allowed on this endpoint"));
+        }
+        // make sure at least one of the required scopes are present
+        $scopes = $jwt->claims->get(Param::SCOPE);
+        $hasScope = false;
+        foreach ($requiredScopes as $requiredScope) {
+            if (in_array(self::$VALID_SCOPES[$requiredScope], $scopes)) {
+                $hasScope = true;
+                break;
+            }
+        }
+        if (!$hasScope) {
+            throw new LtiException($this->ltiLog->msg(
+                "This access token does not have scopes required: " .
+                json_encode($requiredScopes)));
+        }
+        return $jwt;
     }
 
     /**
      * Shim requesting an access token from a platform. We want to cache the
      * access token so that we don't have to send an access token request for
      * every service call.
+     *
+     * While technically we should be able to request multiple scopes for an
+     * access token, it's recommended to request only have 1 scope per access
+     * token as Canvas is not happy with multiple scopes. This doesn't apply
+     * to access tokens issued by the shim itself (hopefully).
      */
     public function request(
         Platform $platform,
