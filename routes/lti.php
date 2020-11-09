@@ -64,15 +64,14 @@ Route::namespace('LTI')->name('lti.')->group(function() {
             ->name('nrps');
     });
     // LTI Assignment and Grade Service
-    Route::name('ags.')->group(function() {
-        Route::namespace('Ags')->group(function() {
-            Route::get('/ags/platform/{ags}', 'AgsController@getLineitems')
-                ->name('lineitems');
-        });
-        Route::namespace('Ags')->group(function() {
-            Route::get('/ags/platform/{ags}/lineitem/{lineitem}',
-                       'AgsController@getLineitem')
-                ->name('lineitem');
-        });
+    Route::namespace('Ags')->name('ags.')->group(function() {
+        // lineitems url
+        Route::get('/ags/platform/{ags}', 'AgsController@getLineitems')
+            ->name('lineitems');
+        Route::post('/ags/platform/{ags}', 'AgsController@postLineitems');
+        // lineitem url
+        Route::get('/ags/platform/{ags}/lineitem/{lineitem}',
+                   'AgsController@getLineitem')
+            ->name('lineitem');
     });
 });

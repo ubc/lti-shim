@@ -37,43 +37,83 @@ class ToolAgs
 
     public function getLineitems(): Response
     {
-        $accessToken = $this->getAccessToken();
-
-        $req = Http::withHeaders([
-            'Accept' => [
-                Param::AGS_MEDIA_TYPE_LINEITEMS
-            ],
-            'Authorization' => 'Bearer ' . $accessToken
-        ]);
+        $req = $this->getPendingRequest(Param::AGS_MEDIA_TYPE_LINEITEMS);
 
         $filters = $this->getLineitemFilters();
         $this->ltiLog->debug('Lineitems Filters: ' . json_encode($filters),
                              $this->request, $this->ags);
 
-        $url = $this->ags->getLineitemsUrl($filters);
-        return $this->makeGetRequest($req, $url);
+        $resp = $req->get($this->ags->getLineitemsUrl($filters));
+        $this->checkResponseErrors($resp);
+        return $resp;
+    }
+
+    public function postLineitems(): Response
+    {
+        $req = $this->getPendingRequest(Param::AGS_MEDIA_TYPE_LINEITEM,
+                                        Param::AGS_MEDIA_TYPE_LINEITEM);
+        $this->ltiLog->debug('POST: ' .
+            json_encode($this->request->all()),
+            $this->request, $this->ags);
+        $resp = $req->post($this->ags->getLineitemsUrl(),
+                           $this->request->all());
+        $this->checkResponseErrors($resp);
+        return $resp;
     }
 
     public function getLineitem(AgsLineitem $lineitem): Response
     {
-        $accessToken = $this->getAccessToken();
-        $req = Http::withHeaders([
-            'Accept' => [
-                Param::AGS_MEDIA_TYPE_LINEITEM // note singular lineitem
-            ],
-            'Authorization' => 'Bearer ' . $accessToken
-        ]);
-        return $this->makeGetRequest($req, $lineitem->lineitem);
+        $req = $this->getPendingRequest(Param::AGS_MEDIA_TYPE_LINEITEM);
+        $resp = $req->get($lineitem->lineitem);
+        $this->checkResponseErrors($resp);
+        return $resp;
     }
 
     /**
-     * Makes the actual http call and handles errors, if no errors, return the
-     * actual response.
+     * Create the PendingRequest object with the appropriate media type headers
+     * and access token.
      */
-    private function makeGetRequest(PendingRequest $req, string $url): Response
-    {
-        $resp = $req->get($url);
+    private function getPendingRequest(
+        string $acceptType = Param::AGS_MEDIA_TYPE_LINEITEMS,
+        string $contentType = ''
+    ): PendingRequest {
+        // first need to get the access token
+        $this->ltiLog->debug('Requesting access token', $this->request,
+                             $this->ags);
+        // assuming that if we have a content type, we're doing a write
+        // operation and need write access scope
+        $scopes;
+        if ($contentType) $scopes = $this->ags->getLineitemScopes(false);
+        else $scopes = $this->ags->getLineitemScopes(true);
+        if (!$scopes) throw new LtiException($this->ltiLog->msg(
+            'No suitable scope available for operation.'));
 
+        $this->ltiLog->debug('Token scope: ' . $scopes[0], $this->request,
+                             $this->ags);
+
+        // TODO need to handle single lineitem case when Deep Linking is added
+        $accessToken = $this->tokenHelper->request(
+            $this->ags->deployment->platform,
+            $this->ags->tool,
+            [$scopes[0]] // canvas not happy with multiple scopes per token?
+        );
+        $this->ltiLog->debug("Access token: $accessToken", $this->request,
+                             $this->ags);
+        // fill in the headers we want to send
+        $headers = [
+            'Accept' => [$acceptType],
+            'Authorization' => 'Bearer ' . $accessToken
+        ];
+        if ($contentType) $headers['Content-Type'] = $contentType;
+        // the pending request object to return
+        return Http::withHeaders($headers);
+    }
+
+    /**
+     * Pass on errors in the response via LtiException if any was found.
+     */
+    private function checkResponseErrors(Response $resp)
+    {
         if ($resp->serverError()) {
             throw new LtiException($this->ltiLog->msg('AGS platform error: ' .
                 $resp->status() . ' ' . $resp->body(),
@@ -86,25 +126,6 @@ class ToolAgs
                 $this->request, $this->ags
             ));
         }
-
-        return $resp;
-    }
-
-    private function getAccessToken()
-    {
-        $this->ltiLog->debug('Requesting access token', $this->request,
-                             $this->ags);
-        // TODO need to handle single lineitem case when Deep Linking is added
-        // TODO need to change token scope depending on actual available scopes
-        // TODO handle params
-        $accessToken = $this->tokenHelper->request(
-            $this->ags->deployment->platform,
-            $this->ags->tool,
-            [Param::AGS_SCOPE_LINEITEM_READONLY_URI]
-        );
-        $this->ltiLog->debug("Access token: $accessToken", $this->request,
-                             $this->ags);
-        return $accessToken;
     }
 
     /**

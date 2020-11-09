@@ -10,6 +10,8 @@ use League\Uri\Components\Query;
 use League\Uri\Uri;
 use League\Uri\UriModifier;
 
+use UBC\LTI\Utils\Param;
+
 // this model basically maps the original Names and Role Provisioning Service
 // request to the one that the shim provides
 class Ags extends Model
@@ -34,6 +36,33 @@ class Ags extends Model
     public function tool()
     {
         return $this->belongsTo('App\Models\Tool');
+    }
+
+    public function canReadOnlyLineitem(): bool
+    {
+        return in_array(Param::AGS_SCOPE_LINEITEM_READONLY_URI, $this->scopes);
+    }
+
+    public function canWriteLineitem(): bool
+    {
+        return in_array(Param::AGS_SCOPE_LINEITEM_URI, $this->scopes);
+    }
+
+    public function getLineitemScopes(bool $isReadOnly): array
+    {
+        $canWriteLineitem = $this->canWriteLineitem();
+        $scopes = [];
+        if ($isReadOnly) {
+            if ($this->canReadOnlyLineitem())
+                $scopes[] = Param::AGS_SCOPE_LINEITEM_READONLY_URI;
+            if ($canWriteLineitem)
+                $scopes[] = Param::AGS_SCOPE_LINEITEM_URI;
+        }
+        else {
+            if ($canWriteLineitem)
+                $scopes[] = Param::AGS_SCOPE_LINEITEM_URI;
+        }
+        return $scopes;
     }
 
     public function getLineitemsUrl(array $params = []): string
@@ -97,9 +126,11 @@ class Ags extends Model
             $ags->course_context_id = $courseContextId;
             $ags->deployment_id = $deploymentId;
             $ags->tool_id = $toolId;
-            if ($scopes) $ags->scopes = $scopes;
-            $ags->save();
         }
+        // we need to update scopes, in case it changes on the platform, e.g.:
+        // now allowing updates or turning to read only
+        if ($scopes) $ags->scopes = $scopes;
+        $ags->save();
         return $ags;
     }
 }

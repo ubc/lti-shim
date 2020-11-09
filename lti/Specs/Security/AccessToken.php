@@ -165,6 +165,8 @@ class AccessToken
         }
         $this->ltiLog->debug('Access token not in cache, try to get one.');
 
+        if (count($scopes) > 1)
+            $this->ltiLog->warning('Some LMS have issues with multiple scopes');
         // not in cache, request an access token
         $requestJwt = self::getRequestJwt($platform, $tool, $scopes);
         $params = [

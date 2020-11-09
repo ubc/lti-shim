@@ -57,7 +57,8 @@ class AgsTest extends TestCase
         $this->ags = Ags::factory()->create([
             'course_context_id' => $this->courseContext->id,
             'deployment_id' => $this->deployment->id,
-            'tool_id' => $this->tool->id
+            'tool_id' => $this->tool->id,
+            'scopes' => [self::SCOPE_LINEITEM]
         ]);
         $ltiLog = new LtiLog('AgsTest');
         $tokenHelper = new AccessToken($ltiLog);
@@ -169,6 +170,47 @@ class AgsTest extends TestCase
         $resp = $this->withHeaders($headers)
                      ->get($lineitemUrl);
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Test that a post request to the lineitems url creates a new lineitem
+     */
+    public function testCreateNewLineitem()
+    {
+        $expectedLineitem = [
+            "scoreMaximum" => 60,
+            "label" => "Chapter 5 Test",
+            "resourceId" => "quiz-231",
+            "tag" => "grade",
+            "startDateTime" => "2020-03-06T20:05:02Z",
+            "endDateTime" => "2022-04-06T22:05:03Z"
+        ];
+        // need a new AGS endpoint to fake a response on
+        $ags = Ags::factory()->create([
+            'course_context_id' => $this->courseContext->id,
+            'deployment_id' => $this->deployment->id,
+            'tool_id' => $this->tool->id,
+            'scopes' => [self::SCOPE_LINEITEM]
+        ]);
+        Http::fake([
+            $ags->lineitems => Http::response(array_merge(
+                ['id' => 'https://lms.example.com/context/2923/lineitems/81'],
+                $expectedLineitem
+            ))
+        ]);
+        // send the post request
+        $resp = $this->withHeaders($this->headers)
+                     ->post(
+                         $ags->getShimLineitemsUrl(),
+                         $expectedLineitem
+                     );
+        //$resp->dump();
+        // make sure the post request is successful
+        $resp->assertStatus(Response::HTTP_OK);
+        // the returned lineitem should have a lineitem url added, and since
+        // there's no existing lineitem in the db, it should be first one
+        $expectedLineitem['id'] = $ags->getShimLineitemsUrl() . '/lineitem/1';
+        $resp->assertJson($expectedLineitem);
     }
 
     /**

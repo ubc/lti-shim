@@ -16,20 +16,21 @@ use UBC\LTI\Specs\Ags\PlatformAgs;
 class AgsController extends Controller
 {
     /**
-     * Handles handing out OAuth tokens for LTI service authentication
-     *
-     * @param Request $request
-     *
+     * GET lineitems, return a list of grade lineitems
      */
     public function getLineitems(Request $request, Ags $ags)
     {
         $platformAgs = new PlatformAgs($request, $ags);
-        try {
-            return $platformAgs->getLineitems();
-        } catch (LtiException $e) {
-            report($e);
-            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
-        }
+        return $platformAgs->getLineitems();
+    }
+
+    /**
+     * POST lineitems, create a new lineitem entry
+     */
+    public function postLineitems(Request $request, Ags $ags)
+    {
+        $platformAgs = new PlatformAgs($request, $ags);
+        return $platformAgs->postLineitems();
     }
 
     public function getLineitem(
@@ -38,12 +39,7 @@ class AgsController extends Controller
         AgsLineitem $lineitem
     ) {
         $platformAgs = new PlatformAgs($request, $ags);
-        try {
-            return $platformAgs->getLineitem($lineitem);
-        } catch (LtiException $e) {
-            report($e);
-            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
-        }
+        return $platformAgs->getLineitem($lineitem);
     }
 }
 
