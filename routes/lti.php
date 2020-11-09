@@ -73,5 +73,7 @@ Route::namespace('LTI')->name('lti.')->group(function() {
         Route::get('/ags/platform/{ags}/lineitem/{lineitem}',
                    'AgsController@getLineitem')
             ->name('lineitem');
+        Route::put('/ags/platform/{ags}/lineitem/{lineitem}',
+                   'AgsController@putLineitem');
     });
 });

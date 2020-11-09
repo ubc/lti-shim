@@ -71,6 +71,19 @@ class ToolAgs
         return $resp;
     }
 
+    public function putLineitem(AgsLineitem $lineitem): Response
+    {
+        $req = $this->getPendingRequest(Param::AGS_MEDIA_TYPE_LINEITEM,
+                                        Param::AGS_MEDIA_TYPE_LINEITEM);
+        $this->ltiLog->debug('PUT: ' .
+            json_encode($this->request->all()),
+            $this->request, $this->ags);
+        $resp = $req->put($lineitem->lineitem,
+                          $this->request->all());
+        $this->checkResponseErrors($resp);
+        return $resp;
+    }
+
     /**
      * Create the PendingRequest object with the appropriate media type headers
      * and access token.

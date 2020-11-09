@@ -33,6 +33,9 @@ class AgsController extends Controller
         return $platformAgs->postLineitems();
     }
 
+    /**
+     * GET lineitem, return information on a single lineitem
+     */
     public function getLineitem(
         Request $request,
         Ags $ags,
@@ -40,6 +43,18 @@ class AgsController extends Controller
     ) {
         $platformAgs = new PlatformAgs($request, $ags);
         return $platformAgs->getLineitem($lineitem);
+    }
+
+    /**
+     * PUT lineitem, edit a single lineitem
+     */
+    public function putLineitem(
+        Request $request,
+        Ags $ags,
+        AgsLineitem $lineitem
+    ) {
+        $platformAgs = new PlatformAgs($request, $ags);
+        return $platformAgs->putLineitem($lineitem);
     }
 }
 

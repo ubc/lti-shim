@@ -173,7 +173,7 @@ class AgsTest extends TestCase
     }
 
     /**
-     * Test that a post request to the lineitems url creates a new lineitem
+     * Test that a POST request to the lineitems url creates a new lineitem
      */
     public function testCreateNewLineitem()
     {
@@ -210,6 +210,36 @@ class AgsTest extends TestCase
         // the returned lineitem should have a lineitem url added, and since
         // there's no existing lineitem in the db, it should be first one
         $expectedLineitem['id'] = $ags->getShimLineitemsUrl() . '/lineitem/1';
+        $resp->assertJson($expectedLineitem);
+    }
+
+    /**
+     * Test that a PUT request to a lineitem url edits that lineitem
+     */
+    public function testEditLineitem()
+    {
+        // do the ags call to get the lineitem entries
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->ags->getShimLineitemsUrl());
+        // request should be successful
+        $resp->assertStatus(Response::HTTP_OK);
+        // try to edit the second lineitem
+        $expectedLineitem = $resp->json()[1];
+        $expectedLineitem['scoreMaximum'] += 10;
+        $expectedLineitem['label'] .= ' added to label';
+        // fake a successful platform response to the shim
+        Http::fake([
+            $this->fakeAgs[1]['id'] => array_merge(
+                $expectedLineitem,
+                ['id' => $this->fakeAgs[1]['id']]
+            )
+        ]);
+        $lineitemUrl = $expectedLineitem['id'];
+        // send the PUT request
+        $resp = $this->withHeaders($this->headers)
+                     ->put($lineitemUrl, $expectedLineitem);
+        //$resp->dump();
+        $resp->assertStatus(Response::HTTP_OK);
         $resp->assertJson($expectedLineitem);
     }
 

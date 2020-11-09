@@ -42,4 +42,10 @@ class PlatformAgs
         $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
         return $lineitems->getLineitem($lineitem);
     }
+
+    public function putLineitem(AgsLineitem $lineitem): Response
+    {
+        $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
+        return $lineitems->putLineitem($lineitem);
+    }
 }

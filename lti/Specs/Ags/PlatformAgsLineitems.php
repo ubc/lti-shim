@@ -123,7 +123,15 @@ class PlatformAgsLineitems
     {
         $this->ltiLog->info('AGS put lineitem received at ' .
             $this->request->fullUrl(), $this->request, $this->ags, $lineitem);
-        $resp = response(json_encode('Edit lineitem not implemented'));
+        // check access token and get the Tool side
+        $toolAgs = $this->getToolAgs(false);
+        // proxy the request
+        $toolResp = $toolAgs->putLineitem($lineitem);
+        $lineitems = [ $toolResp->json() ];
+        $this->applyLineitemsFilters($lineitems);
+
+        $resp = response($lineitems[0]);
+        $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEM);
         return $resp;
     }
 
@@ -156,7 +164,7 @@ class PlatformAgsLineitems
                 throw new LtiException(
                     $this->ltiLog->msg("No scopes available for operation"));
         }
-        $this->ltiLog->debug('Using scope: ' . json_encode($scopes),
+        $this->ltiLog->debug('Verify against scope: ' . json_encode($scopes),
             $this->request, $this->ags);
 
         $this->tokenHelper->verify(
