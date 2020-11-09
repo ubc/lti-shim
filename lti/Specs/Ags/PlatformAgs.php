@@ -48,4 +48,10 @@ class PlatformAgs
         $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
         return $lineitems->putLineitem($lineitem);
     }
+
+    public function deleteLineitem(AgsLineitem $lineitem): Response
+    {
+        $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
+        return $lineitems->deleteLineitem($lineitem);
+    }
 }

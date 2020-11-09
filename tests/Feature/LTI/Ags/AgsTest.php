@@ -206,7 +206,7 @@ class AgsTest extends TestCase
                      );
         //$resp->dump();
         // make sure the post request is successful
-        $resp->assertStatus(Response::HTTP_OK);
+        $resp->assertStatus(Response::HTTP_CREATED);
         // the returned lineitem should have a lineitem url added, and since
         // there's no existing lineitem in the db, it should be first one
         $expectedLineitem['id'] = $ags->getShimLineitemsUrl() . '/lineitem/1';
@@ -241,6 +241,28 @@ class AgsTest extends TestCase
         //$resp->dump();
         $resp->assertStatus(Response::HTTP_OK);
         $resp->assertJson($expectedLineitem);
+    }
+
+    /**
+     * Test that a DELETE request to a lineitem url deletes that lineitem
+     */
+    public function testDeleteLineitem()
+    {
+        // do the ags call to get the lineitem entries
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->ags->getShimLineitemsUrl());
+        // request should be successful
+        $resp->assertStatus(Response::HTTP_OK);
+        // try to edit the second lineitem
+        $lineitemUrl = $resp->json()[0]['id'];
+        // make sure the lineitem entry is there before deletion
+        $this->assertNotEmpty(AgsLineitem::find(1));
+        // send the DELETE request
+        $resp = $this->withHeaders($this->headers)
+                     ->delete($lineitemUrl);
+        $resp->assertStatus(Response::HTTP_NO_CONTENT);
+        // lineitem entry should be gone after deletion
+        $this->assertEmpty(AgsLineitem::find(1));
     }
 
     /**

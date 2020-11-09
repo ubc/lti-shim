@@ -75,5 +75,7 @@ Route::namespace('LTI')->name('lti.')->group(function() {
             ->name('lineitem');
         Route::put('/ags/platform/{ags}/lineitem/{lineitem}',
                    'AgsController@putLineitem');
+        Route::delete('/ags/platform/{ags}/lineitem/{lineitem}',
+                   'AgsController@deleteLineitem');
     });
 });

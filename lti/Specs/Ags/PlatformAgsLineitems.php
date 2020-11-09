@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+use Symfony\Component\HttpFoundation\Response as HttpResp;
+
 use Lmc\HttpConstants\Header;
 
 use App\Models\Ags;
@@ -90,7 +92,7 @@ class PlatformAgsLineitems
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 
-        $resp = response($lineitems[0]);
+        $resp = response($lineitems[0], HttpResp::HTTP_CREATED);
         $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEM);
         return $resp;
     }
@@ -142,7 +144,15 @@ class PlatformAgsLineitems
     {
         $this->ltiLog->info('AGS delete lineitem received at ' .
             $this->request->fullUrl(), $this->request, $this->ags, $lineitem);
-        $resp = response(json_encode('Delete lineitem not implemented'));
+        // check access token and get the Tool side
+        $toolAgs = $this->getToolAgs(false);
+        // proxy the request
+        $toolResp = $toolAgs->deleteLineitem($lineitem);
+        // successful delete, remove it from database
+        $lineitem->delete();
+        // no need for filter since nothing returned
+
+        $resp = response()->noContent();
         return $resp;
     }
 

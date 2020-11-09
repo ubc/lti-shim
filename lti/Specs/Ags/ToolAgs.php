@@ -84,6 +84,15 @@ class ToolAgs
         return $resp;
     }
 
+    public function deleteLineitem(AgsLineitem $lineitem): Response
+    {
+        $req = $this->getPendingRequest(Param::AGS_MEDIA_TYPE_LINEITEM,
+                                        Param::AGS_MEDIA_TYPE_LINEITEM);
+        $resp = $req->delete($lineitem->lineitem);
+        $this->checkResponseErrors($resp);
+        return $resp;
+    }
+
     /**
      * Create the PendingRequest object with the appropriate media type headers
      * and access token.
