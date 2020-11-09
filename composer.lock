@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b6f3a6c420a3592640e01e62bdeea3fd",
+    "content-hash": "b60b53c035e9add3ac533ebd72712e1e",
     "packages": [
         {
             "name": "brick/math",
@@ -884,6 +884,7 @@
                 "faker",
                 "fixtures"
             ],
+            "abandoned": true,
             "time": "2019-12-12T13:22:17+00:00"
         },
         {
@@ -2179,6 +2180,48 @@
                 "url"
             ],
             "time": "2020-02-08T12:10:37+00:00"
+        },
+        {
+            "name": "lmc/http-constants",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lmc-eu/http-constants.git",
+                "reference": "8cb0fbffdafdf0c0c42e05935fb09cc588633d48"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lmc-eu/http-constants/zipball/8cb0fbffdafdf0c0c42e05935fb09cc588633d48",
+                "reference": "8cb0fbffdafdf0c0c42e05935fb09cc588633d48",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2 || ^8.0"
+            },
+            "require-dev": {
+                "ergebnis/composer-normalize": "^2.8",
+                "lmc/coding-standard": "^2.0.3",
+                "php-parallel-lint/php-parallel-lint": "^1.2",
+                "phpunit/phpunit": "^8.1 || ^9.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Lmc\\HttpConstants\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "HTTP Header Fields Constants",
+            "keywords": [
+                "constants",
+                "http",
+                "request",
+                "response"
+            ],
+            "time": "2020-09-01T11:14:36+00:00"
         },
         {
             "name": "monolog/monolog",

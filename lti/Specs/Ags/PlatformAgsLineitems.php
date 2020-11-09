@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+use Lmc\HttpConstants\Header;
+
 use App\Models\Ags;
 use App\Models\AgsLineitem;
 
@@ -68,7 +70,7 @@ class PlatformAgsLineitems
 
         // create the response to send back to the tool
         $resp = response($lineitems);
-        $resp->header('Content-Type', Param::AGS_MEDIA_TYPE_LINEITEMS);
+        $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEMS);
         if ($linkHeader) $resp->header(Param::LINK, $linkHeader);
         return $resp;
     }
@@ -89,7 +91,7 @@ class PlatformAgsLineitems
         $this->applyLineitemsFilters($lineitems);
 
         $resp = response($lineitems[0]);
-        $resp->header('Content-Type', Param::AGS_MEDIA_TYPE_LINEITEM);
+        $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEM);
         return $resp;
     }
 
@@ -110,7 +112,7 @@ class PlatformAgsLineitems
         $this->applyLineitemsFilters($lineitems);
 
         $resp = response($lineitems[0]);
-        $resp->header('Content-Type', Param::AGS_MEDIA_TYPE_LINEITEM);
+        $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEM);
         return $resp;
     }
 

@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 
+use Lmc\HttpConstants\Header;
+
 use Jose\Easy\Build;
 
 use App\Models\Ags;
@@ -104,7 +106,7 @@ class ToolAgs
             'Accept' => [$acceptType],
             'Authorization' => 'Bearer ' . $accessToken
         ];
-        if ($contentType) $headers['Content-Type'] = $contentType;
+        if ($contentType) $headers[Header::CONTENT_TYPE] = $contentType;
         // the pending request object to return
         return Http::withHeaders($headers);
     }
