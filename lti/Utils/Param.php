@@ -82,6 +82,7 @@ class Param
     public const TOKEN_TYPE = 'token_type';
     public const TOKEN_TYPE_VALUE = 'bearer';
     public const EXPIRES_IN = 'expires_in';
+    public const BEARER_PREFIX = 'Bearer ';
 
     // Names and Roles Provisioning Service (NRPS) response params
     public const NRPS = 'nrps';

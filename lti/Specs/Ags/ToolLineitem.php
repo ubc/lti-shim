@@ -22,7 +22,7 @@ use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Security\AccessToken;
 
-class ToolAgs
+class ToolLineitem
 {
     private AccessToken $tokenHelper;
     private LtiLog $ltiLog;
@@ -33,7 +33,7 @@ class ToolAgs
     {
         $this->request = $request;
         $this->ags = $ags;
-        $this->ltiLog = new LtiLog('AGS (Tool)', $ltiLog->getStreamId());
+        $this->ltiLog = new LtiLog('AGS Lineitem (Tool)', $ltiLog->getStreamId());
         $this->tokenHelper = new AccessToken($this->ltiLog);
     }
 
@@ -125,8 +125,8 @@ class ToolAgs
                              $this->ags);
         // fill in the headers we want to send
         $headers = [
-            'Accept' => [$acceptType],
-            'Authorization' => 'Bearer ' . $accessToken
+            Header::ACCEPT => [$acceptType],
+            Header::AUTHORIZATION => Param::BEARER_PREFIX . $accessToken
         ];
         if ($contentType) $headers[Header::CONTENT_TYPE] = $contentType;
         // the pending request object to return

@@ -10,7 +10,7 @@ use App\Models\AgsLineitem;
 
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
-use UBC\LTI\Specs\Ags\PlatformAgsLineitems;
+use UBC\LTI\Specs\Ags\PlatformLineitem;
 
 class PlatformAgs
 {
@@ -27,31 +27,31 @@ class PlatformAgs
 
     public function getLineitems(): Response
     {
-        $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
+        $lineitems = new PlatformLineitem($this->request, $this->ags);
         return $lineitems->getLineitems();
     }
 
     public function postLineitems(): Response
     {
-        $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
+        $lineitems = new PlatformLineitem($this->request, $this->ags);
         return $lineitems->postLineitems();
     }
 
     public function getLineitem(AgsLineitem $lineitem): Response
     {
-        $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
+        $lineitems = new PlatformLineitem($this->request, $this->ags);
         return $lineitems->getLineitem($lineitem);
     }
 
     public function putLineitem(AgsLineitem $lineitem): Response
     {
-        $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
+        $lineitems = new PlatformLineitem($this->request, $this->ags);
         return $lineitems->putLineitem($lineitem);
     }
 
     public function deleteLineitem(AgsLineitem $lineitem): Response
     {
-        $lineitems = new PlatformAgsLineitems($this->request, $this->ags);
+        $lineitems = new PlatformLineitem($this->request, $this->ags);
         return $lineitems->deleteLineitem($lineitem);
     }
 }

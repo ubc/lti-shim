@@ -15,12 +15,12 @@ use App\Models\AgsLineitem;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
-use UBC\LTI\Specs\Ags\ToolAgs;
+use UBC\LTI\Specs\Ags\ToolLineitem;
 use UBC\LTI\Specs\Ags\Filters\LineitemsFilter;
 use UBC\LTI\Specs\Ags\Filters\PaginationFilter;
 use UBC\LTI\Specs\Security\AccessToken;
 
-class PlatformAgsLineitems
+class PlatformLineitem
 {
     private AccessToken $tokenHelper;
     private Ags $ags;
@@ -49,9 +49,9 @@ class PlatformAgsLineitems
         $this->ltiLog->info('AGS get lineitems received at ' .
             $this->request->fullUrl(), $this->request, $this->ags);
         // check access token and get the Tool side
-        $toolAgs = $this->getToolAgs(true);
+        $toolSide = $this->getToolSide(true);
         // proxy the request
-        $toolResp = $toolAgs->getLineitems();
+        $toolResp = $toolSide->getLineitems();
 
         // apply filters
         $lineitems = $toolResp->json();
@@ -70,6 +70,9 @@ class PlatformAgsLineitems
                                  $this->request, $this->ags);
         }
 
+        $this->ltiLog->info(
+            'AGS get lineitems completed: ' . json_encode($lineitems),
+            $this->request->fullUrl(), $this->request, $this->ags);
         // create the response to send back to the tool
         $resp = response($lineitems);
         $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEMS);
@@ -86,12 +89,15 @@ class PlatformAgsLineitems
         $this->ltiLog->info('AGS create lineitem received at ' .
             $this->request->fullUrl(), $this->request, $this->ags);
         // check access token and get the Tool side
-        $toolAgs = $this->getToolAgs(false);
+        $toolSide = $this->getToolSide(false);
         // proxy the request
-        $toolResp = $toolAgs->postLineitems();
+        $toolResp = $toolSide->postLineitems();
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 
+        $this->ltiLog->info(
+            'AGS create lineitem completed: ' . json_encode($lineitems[0]),
+            $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response($lineitems[0], HttpResp::HTTP_CREATED);
         $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEM);
         return $resp;
@@ -107,12 +113,15 @@ class PlatformAgsLineitems
         $this->ltiLog->info('AGS get lineitem received at ' .
             $this->request->fullUrl(), $this->request, $this->ags, $lineitem);
         // check access token and get the Tool side
-        $toolAgs = $this->getToolAgs(true);
+        $toolSide = $this->getToolSide(true);
         // proxy the request
-        $toolResp = $toolAgs->getLineitem($lineitem);
+        $toolResp = $toolSide->getLineitem($lineitem);
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 
+        $this->ltiLog->info(
+            'AGS get lineitem completed: ' . json_encode($lineitems[0]),
+            $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response($lineitems[0]);
         $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEM);
         return $resp;
@@ -126,12 +135,15 @@ class PlatformAgsLineitems
         $this->ltiLog->info('AGS put lineitem received at ' .
             $this->request->fullUrl(), $this->request, $this->ags, $lineitem);
         // check access token and get the Tool side
-        $toolAgs = $this->getToolAgs(false);
+        $toolSide = $this->getToolSide(false);
         // proxy the request
-        $toolResp = $toolAgs->putLineitem($lineitem);
+        $toolResp = $toolSide->putLineitem($lineitem);
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 
+        $this->ltiLog->info(
+            'AGS put lineitem completed: ' . json_encode($lineitems[0]),
+            $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response($lineitems[0]);
         $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_LINEITEM);
         return $resp;
@@ -145,13 +157,15 @@ class PlatformAgsLineitems
         $this->ltiLog->info('AGS delete lineitem received at ' .
             $this->request->fullUrl(), $this->request, $this->ags, $lineitem);
         // check access token and get the Tool side
-        $toolAgs = $this->getToolAgs(false);
+        $toolSide = $this->getToolSide(false);
         // proxy the request
-        $toolResp = $toolAgs->deleteLineitem($lineitem);
+        $toolResp = $toolSide->deleteLineitem($lineitem);
         // successful delete, remove it from database
         $lineitem->delete();
         // no need for filter since nothing returned
 
+        $this->ltiLog->info('AGS delete lineitem completed' .
+            $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response()->noContent();
         return $resp;
     }
@@ -167,12 +181,12 @@ class PlatformAgsLineitems
             $this->request, $this->ags);
     }
 
-    private function getToolAgs(bool $isReadOnly): ToolAgs
+    private function getToolSide(bool $isReadOnly): ToolLineitem
     {
         $scopes = $this->ags->getLineitemScopes($isReadOnly);
         if (!$scopes) {
                 throw new LtiException(
-                    $this->ltiLog->msg("No scopes available for operation"));
+                    $this->ltiLog->msg("No scopes available for lineitem op"));
         }
         $this->ltiLog->debug('Verify against scope: ' . json_encode($scopes),
             $this->request, $this->ags);
@@ -184,8 +198,8 @@ class PlatformAgsLineitems
         );
 
         // access token good, proxy the request
-        $toolAgs = new ToolAgs($this->request, $this->ags, $this->ltiLog);
+        $toolSide = new ToolLineitem($this->request, $this->ags, $this->ltiLog);
 
-        return $toolAgs;
+        return $toolSide;
     }
 }

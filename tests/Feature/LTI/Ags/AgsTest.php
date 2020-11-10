@@ -253,7 +253,7 @@ class AgsTest extends TestCase
                      ->get($this->ags->getShimLineitemsUrl());
         // request should be successful
         $resp->assertStatus(Response::HTTP_OK);
-        // try to edit the second lineitem
+        // try to delete the first lineitem
         $lineitemUrl = $resp->json()[0]['id'];
         // make sure the lineitem entry is there before deletion
         $this->assertNotEmpty(AgsLineitem::find(1));

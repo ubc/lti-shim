@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
+use Lmc\HttpConstants\Header;
+
 use Jose\Easy\Build;
 
 use App\Models\Nrps;
@@ -45,8 +47,8 @@ class ToolNrps
                              $this->nrps);
 
         $req = Http::withHeaders([
-            'Accept' => Param::NRPS_MEDIA_TYPE,
-            'Authorization' => 'Bearer ' . $accessToken
+            Header::ACCEPT => Param::NRPS_MEDIA_TYPE,
+            Header::AUTHORIZATION => Param::BEARER_PREFIX . $accessToken
         ]);
         // the spec allow the 'limit' and 'role' GET params for pagination and
         // filtering purposes, we should be able to pass through those as is
