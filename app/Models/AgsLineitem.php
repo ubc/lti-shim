@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Collection;
@@ -10,15 +11,26 @@ use League\Uri\Components\Query;
 use League\Uri\Uri;
 use League\Uri\UriModifier;
 
+use UBC\LTI\Utils\Param;
+
 // this model basically maps the original Names and Role Provisioning Service
 // request to the one that the shim provides
 class AgsLineitem extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['lineitem', 'ags_id'];
 
     public function ags()
     {
         return $this->belongsTo('App\Models\Ags');
+    }
+
+    public function getLineitemResultsAttribute()
+    {
+        // the result url might have queries and such, but we want to append
+        // to the path, this means using the Uri package to modify the url
+        return $this->addToUrl($this->lineitem, [], Param::AGS_RESULT_PATH);
     }
 
     public function getShimLineitemUrlAttribute()
@@ -27,21 +39,33 @@ class AgsLineitem extends Model
             ['ags' => $this->ags_id, 'lineitem' => $this->id]);
     }
 
-    public function getShimLineitemUrl(array $params = []): string
+    public function getShimLineitemResultsUrlAttribute()
     {
-        return $this->addParamsToUrl($this->shim_lineitem_url, $params);
+        return route('lti.ags.results',
+            ['ags' => $this->ags_id, 'lineitem' => $this->id]);
     }
 
-    // The urls might have existing GET params. If we want to add
-    // additional params, then we need to rebuild the URL.
-    private function addParamsToUrl(string $url, array $params): string
+    public function getShimLineitemUrl(array $params = []): string
     {
-        // not adding any params, return as is
-        if (!$params) return $url;
+        return $this->addToUrl($this->shim_lineitem_url, $params);
+    }
 
+    /**
+     * The urls might have existing GET queries. If we want to add additional
+     * queries or if we want to append to the path, then we need to rebuild the
+     * URL.
+     */
+    private function addToUrl(
+        string $url,
+        array $queries = [],
+        string $path = ''
+    ): string {
         $uri = Uri::createFromString($url);
-        $query = Query::createFromParams($params);
-        $uri = UriModifier::mergeQuery($uri, $query);
+        if ($path) $uri = UriModifier::appendSegment($uri, $path);
+        if ($queries) {
+            $query = Query::createFromParams($queries);
+            $uri = UriModifier::mergeQuery($uri, $query);
+        }
 
         return $uri;
     }

@@ -11,6 +11,7 @@ use App\Models\AgsLineitem;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Specs\Ags\PlatformLineitem;
+use UBC\LTI\Specs\Ags\PlatformResult;
 
 class PlatformAgs
 {
@@ -55,5 +56,13 @@ class PlatformAgs
     {
         $lineitems = new PlatformLineitem($this->request, $this->ags);
         return $lineitems->deleteLineitem($lineitem);
+    }
+
+    /********* Result Service *********/
+
+    public function getResults(AgsLineitem $lineitem): Response
+    {
+        $results = new PlatformResult($this->request, $this->ags);
+        return $results->getResults($lineitem);
     }
 }

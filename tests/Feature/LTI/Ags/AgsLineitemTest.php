@@ -21,7 +21,7 @@ use UBC\LTI\Specs\Ags\PlatformAgs;
 use UBC\LTI\Specs\Security\AccessToken;
 
 // tests AGS calls
-class AgsTest extends TestCase
+class AgsLineitemTest extends TestCase
 {
     use RefreshDatabase; // reset database after each test
 

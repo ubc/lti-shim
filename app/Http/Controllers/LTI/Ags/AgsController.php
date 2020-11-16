@@ -68,5 +68,17 @@ class AgsController extends Controller
         $platformAgs = new PlatformAgs($request, $ags);
         return $platformAgs->deleteLineitem($lineitem);
     }
+
+    /**
+     * GET results (grades) for this specific lineitem
+     */
+    public function getResults(
+        Request $request,
+        Ags $ags,
+        AgsLineitem $lineitem
+    ) {
+        $platformAgs = new PlatformAgs($request, $ags);
+        return $platformAgs->getResults($lineitem);
+    }
 }
 
