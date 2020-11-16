@@ -17,7 +17,7 @@ use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Ags\ToolLineitem;
 use UBC\LTI\Specs\Ags\Filters\LineitemsFilter;
-use UBC\LTI\Specs\Ags\Filters\PaginationFilter;
+use UBC\LTI\Specs\Ags\Filters\LineitemPaginationFilter;
 use UBC\LTI\Specs\Security\AccessToken;
 
 class PlatformLineitem
@@ -25,7 +25,7 @@ class PlatformLineitem
     private AccessToken $tokenHelper;
     private Ags $ags;
     private LtiLog $ltiLog;
-    private PaginationFilter $paginationFilter;
+    private LineitemPaginationFilter $paginationFilter;
     private Request $request;
     private array $filters;
 
@@ -39,7 +39,7 @@ class PlatformLineitem
             new LineitemsFilter($this->ltiLog)
         ];
         // pagination filter is called separately so it's not in $filters
-        $this->paginationFilter = new PaginationFilter($this->ltiLog);
+        $this->paginationFilter = new LineitemPaginationFilter($this->ltiLog);
     }
 
     // ------ Lineitems Operations: GET/POST ------

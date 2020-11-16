@@ -45,6 +45,8 @@ class ToolLineitem
         $this->ltiLog->debug('Lineitems Filters: ' . json_encode($filters),
                              $this->request, $this->ags);
 
+        $this->ltiLog->debug('Platform URL: ' .
+            $this->ags->getLineitemsUrl($filters), $this->request, $this->ags);
         $resp = $req->get($this->ags->getLineitemsUrl($filters));
         $this->checkResponseErrors($resp);
         return $resp;

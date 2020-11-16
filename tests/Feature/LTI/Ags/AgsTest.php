@@ -143,6 +143,91 @@ class AgsTest extends TestCase
     }
 
     /**
+     * Test that filter parameters as defined by the spec are passed on properly
+     * to the actual call to the platform
+     */
+    public function testLineitemsFilterParamPassthrough()
+    {
+        // make sure that spec defined filters work and that non-spec filters
+        // are dropped.
+        // note that the order of the query matters due to us rewriting the
+        // order in ToolLineitem
+        $expectedQueries = '?resource_link_id=ResourceLinkId1' .
+                           '&resource_id=ResourceId1&tag=Tag1&limit=1';
+        $expectedRawLineitems = [[
+            "id" => "https://lms.example.com/context/111/lineitems/1",
+            "scoreMaximum" => 60,
+            "label" => "Lineitems Filter Passthrough",
+            "resourceId" => "11111111111",
+            "tag" => "filter",
+            "resourceLinkId" => "111111111111",
+            "endDateTime" => "2020-11-11T11:11:11Z"
+        ]];
+        Http::fake([
+            $this->ags->lineitems . $expectedQueries => $expectedRawLineitems,
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->ags->getShimLineitemsUrl() .
+                           $expectedQueries . '&dropme=1');
+        //$resp->dump();
+        // request should match what we faked for the platform url
+        $resp->assertStatus(Response::HTTP_OK);
+        $lineitem = AgsLineitem::find(1);
+        $expectedLineitems = $expectedRawLineitems;
+        $expectedLineitems[0]['id'] = $lineitem->getShimLineitemUrl();
+        $resp->assertJson($expectedLineitems);
+    }
+
+    /**
+     * Pagination is done using the "link" header, we need to make sure those
+     * urls are rewritten to shim AGS urls.
+     */
+    public function testLineitemsPaginationHeaderFiltering()
+    {
+        $expectedQueries = '?limit=1';
+        $expectedRawLineitems = [[
+            "id" => "https://lms.example.com/context/111/lineitems/1",
+            "scoreMaximum" => 60,
+            "label" => "Lineitems Filter Passthrough",
+            "resourceId" => "11111111111",
+            "tag" => "filter",
+            "resourceLinkId" => "111111111111",
+            "endDateTime" => "2020-11-11T11:11:11Z"
+        ]];
+        // fake a response that contains link headers to filter
+        Http::fake([
+            $this->ags->lineitems . $expectedQueries => Http::response(
+                $expectedRawLineitems,
+                Response::HTTP_OK,
+                [
+                    'link' => '<http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=1&per_page=1>; rel="current",<http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=2&per_page=1>; rel="next"'
+                ]
+            ),
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->ags->getShimLineitemsUrl() .
+                           $expectedQueries);
+        //$resp->dump();
+        $resp->assertStatus(Response::HTTP_OK);
+        // make sure that the link header was properly replaced and that
+        // the correct Ags entries are in the database
+        $resp->assertHeader('link',
+            '<http://localhost/lti/ags/platform/2>; rel="current",<http://localhost/lti/ags/platform/3>; rel="next"');
+        $ags = Ags::find(2);
+        $this->assertEquals($ags->lineitems,
+            'http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=1&per_page=1');
+        $this->assertEquals($ags->getShimLineitemsUrl(),
+            'http://localhost/lti/ags/platform/2');
+        $ags = Ags::find(3);
+        $this->assertEquals($ags->lineitems,
+            'http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=2&per_page=1');
+        $this->assertEquals($ags->getShimLineitemsUrl(),
+            'http://localhost/lti/ags/platform/3');
+    }
+
+    /**
      * Test that we can get info on a single lineitem.
      */
     public function testGetLineitem()

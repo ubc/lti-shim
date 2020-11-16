@@ -25,6 +25,8 @@ class PlatformAgs
         $this->ltiLog = new LtiLog('AGS (Platform)');
     }
 
+    /********* Lineitem Service *********/
+
     public function getLineitems(): Response
     {
         $lineitems = new PlatformLineitem($this->request, $this->ags);

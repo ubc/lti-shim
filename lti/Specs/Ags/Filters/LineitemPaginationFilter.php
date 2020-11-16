@@ -11,8 +11,8 @@ use UBC\LTI\Filters\AbstractPaginationFilter;
 use UBC\LTI\Specs\Ags\Filters\FilterInterface;
 use UBC\LTI\Utils\Param;
 
-class PaginationFilter extends AbstractPaginationFilter
-                       implements FilterInterface
+class LineitemPaginationFilter extends AbstractPaginationFilter
+                               implements FilterInterface
 {
     protected const LOG_HEADER = 'Pagination Filter';
 
