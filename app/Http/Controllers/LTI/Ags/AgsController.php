@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
 use App\Models\Ags;
 use App\Models\AgsLineitem;
+use App\Models\AgsResult;
 
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Specs\Ags\PlatformAgs;
@@ -79,6 +80,19 @@ class AgsController extends Controller
     ) {
         $platformAgs = new PlatformAgs($request, $ags);
         return $platformAgs->getResults($lineitem);
+    }
+
+    /**
+     * GET result (grade) for just one specific result
+     */
+    public function getResult(
+        Request $request,
+        Ags $ags,
+        AgsLineitem $lineitem,
+        AgsResult $result
+    ) {
+        $platformAgs = new PlatformAgs($request, $ags);
+        return $platformAgs->getResult($lineitem, $result);
     }
 }
 

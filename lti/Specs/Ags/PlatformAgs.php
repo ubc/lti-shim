@@ -7,6 +7,7 @@ use Illuminate\Http\Response;
 
 use App\Models\Ags;
 use App\Models\AgsLineitem;
+use App\Models\AgsResult;
 
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
@@ -64,5 +65,13 @@ class PlatformAgs
     {
         $results = new PlatformResult($this->request, $this->ags);
         return $results->getResults($lineitem);
+    }
+
+    public function getResult(
+        AgsLineitem $lineitem,
+        AgsResult $result
+    ): Response {
+        $results = new PlatformResult($this->request, $this->ags);
+        return $results->getResult($lineitem, $result);
     }
 }

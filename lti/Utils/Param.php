@@ -133,6 +133,9 @@ class Param
     public const RESOURCE_LINK_ID = 'resource_link_id';
     public const RESOURCE_ID = 'resource_id';
     public const TAG = 'tag';
+    // ags result params
+    public const SCORE_OF = 'scoreOf';
+    public const AGS_USER_ID = 'userId';
 
     // List of scopes that can be used to request access tokens
     public const AGS_SCOPES = [

@@ -13,8 +13,10 @@ class CreateAgsTable extends Migration
      */
     public function up()
     {
-        // create table for tracking Names and Role Provisioning Service
+        // create table for tracking Assignment and Grade Service
         // requests
+        //
+        // the lineitems url is advertised in the launch message
         Schema::create('ags', function (Blueprint $table) {
             $table->id();
 
@@ -48,6 +50,7 @@ class CreateAgsTable extends Migration
             $table->timestampTz('updated_at')->useCurrent();
         });
 
+        // each lineitem has their own url, this table tracks those
         Schema::create('ags_lineitems', function (Blueprint $table) {
             $table->id();
 
@@ -70,6 +73,27 @@ class CreateAgsTable extends Migration
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
         });
+
+        // each lineitem has a list of results, and each result has their own
+        // url, this tracks individual result's url
+        Schema::create('ags_results', function (Blueprint $table) {
+            $table->id();
+
+            $table->text('result')
+                  ->comment('Original AGS result url on the original platform.');
+
+            $table->unsignedBigInteger('ags_lineitems_id');
+            $table->foreign('ags_lineitems_id')->references('id')
+                  ->on('ags_lineitems')->onDelete('cascade');
+
+            $table->unique([
+                'result',
+                'ags_lineitems_id'
+            ]);
+
+            $table->timestampTz('created_at')->useCurrent();
+            $table->timestampTz('updated_at')->useCurrent();
+        });
     }
 
     /**
@@ -79,7 +103,8 @@ class CreateAgsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('ags_lineitem');
+        Schema::dropIfExists('ags_results');
+        Schema::dropIfExists('ags_lineitems');
         Schema::dropIfExists('ags');
     }
 }

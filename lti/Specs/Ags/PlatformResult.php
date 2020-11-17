@@ -16,6 +16,7 @@ use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Ags\ToolResult;
+use UBC\LTI\Specs\Ags\Filters\ResultsFilter;
 use UBC\LTI\Specs\Security\AccessToken;
 
 /**
@@ -36,6 +37,7 @@ class PlatformResult
         $this->ltiLog = new LtiLog('AGS Result (Platform)');
         $this->tokenHelper = new AccessToken($this->ltiLog);
         $this->filters = [
+            new ResultsFilter($this->ltiLog)
         ];
     }
 
@@ -62,8 +64,7 @@ class PlatformResult
 
         // apply filters
         $results = $toolResp->json();
-        // TODO: re-enable filter
-        //$this->applyLineitemsFilters($lineitems);
+        $this->applyFilters($results, $lineitem);
 
         // TODO: re-enable pagination
         // pagination not in json body, but in the Link http header, so we need
@@ -87,14 +88,21 @@ class PlatformResult
         return $resp;
     }
 
-    private function applyLineitemsFilters(array &$lineitems)
+    public function getResult(
+        AgsLineitem $lineitem,
+        AgsResult $result
+    ): Response {
+        return response("Not Implemented", 404);
+    }
+
+    private function applyFilters(array &$results, AgsLineitem $lineitem)
     {
-        $this->ltiLog->debug('Pre-filter: ' . json_encode($lineitems),
+        $this->ltiLog->debug('Pre-filter: ' . json_encode($results),
             $this->request, $this->ags);
         foreach ($this->filters as $filter) {
-            $lineitems = $filter->filter($lineitems, $this->ags);
+            $results = $filter->filter($results, $this->ags, $lineitem);
         }
-        $this->ltiLog->debug('Post-filter: ' . json_encode($lineitems),
+        $this->ltiLog->debug('Post-filter: ' . json_encode($results),
             $this->request, $this->ags);
     }
 }

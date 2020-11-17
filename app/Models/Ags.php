@@ -23,6 +23,11 @@ class Ags extends Model
         'scopes' => 'array'
     ];
 
+    public function ags_lineitems()
+    {
+        return $this->hasMany('App\Models\AgsLineitem');
+    }
+
     public function course_context()
     {
         return $this->belongsTo('App\Models\CourseContext');

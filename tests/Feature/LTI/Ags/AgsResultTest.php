@@ -11,6 +11,7 @@ use Tests\TestCase;
 use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\LtiRealUser;
+use App\Models\LtiFakeUser;
 use App\Models\Ags;
 use App\Models\AgsLineitem;
 use App\Models\Platform;
@@ -35,9 +36,11 @@ class AgsResultTest extends TestCase
     private AgsLineitem $lineitem;
     private Platform $platform;
     private Tool $tool;
+    private LtiRealUser $realUser1;
+    private LtiRealUser $realUser2;
 
-    private array $fakeAgs; // holds the fake AGS response that the platform
-                            // sends back, that needs to be filtered
+    private array $fakeResults; // holds the fake AGS results that the platform
+                                // sends back
     private array $headers; // headers sent on each AGS request
 
     protected function setUp(): void
@@ -73,6 +76,30 @@ class AgsResultTest extends TestCase
             'Accept' => 'application/vnd.ims.lis.v2.lineitemcontainer+json',
             'Authorization' => 'Bearer ' . $this->accessToken
         ];
+        $this->realUser1 = LtiRealUser::factory()->create([
+            'platform_id' => $this->platform->id
+        ]);
+        $this->realUser2 = LtiRealUser::factory()->create([
+            'platform_id' => $this->platform->id
+        ]);
+        $this->fakeResults = [
+            [
+                "id" => "https://lms.example.com/context/2923/lineitems/1/results/1111111",
+                "scoreOf" => "https://lms.example.com/context/2923/lineitems/1",
+                "userId" => $this->realUser1->sub,
+                "resultScore" => 0.83,
+                "resultMaximum" => 1,
+                "comment" => "This is exceptional work."
+            ],
+            [
+                "id" => "https://lms.example.com/context/2923/lineitems/1/results/2222222",
+                "scoreOf" => "https://lms.example.com/context/2923/lineitems/1",
+                "userId" => $this->realUser2->sub,
+                "resultScore" => 0.47,
+                "resultMaximum" => 1,
+                "comment" => "This is ok work."
+            ]
+        ];
         // configure fake http responses
         Http::fake([
             $this->platform->access_token_url => Http::response([
@@ -88,52 +115,53 @@ class AgsResultTest extends TestCase
      */
     public function testGetResults()
     {
-        // fake a results response from the platform
-        $expectedResults = [
-            [
-                "id" => "https://lms.example.com/context/2923/lineitems/1/results/5323497",
-                "scoreOf" => "https://lms.example.com/context/2923/lineitems/1",
-                "userId" => "1111111",
-                "resultScore" => 0.83,
-                "resultMaximum" => 1,
-                "comment" => "This is exceptional work."
-            ],
-            [
-                "id" => "https://lms.example.com/context/2923/lineitems/1/results/5323497",
-                "scoreOf" => "https://lms.example.com/context/2923/lineitems/1",
-                "userId" => "2222222",
-                "resultScore" => 0.47,
-                "resultMaximum" => 1,
-                "comment" => "This is ok work."
-            ]
-        ];
         Http::fake([
-            $this->lineitem->lineitem_results => $expectedResults,
+            $this->lineitem->lineitem_results => $this->fakeResults,
             '*' => Http::response('Test failed', Response::HTTP_FORBIDDEN)
         ]);
 
         // call the shim results endpoint
         $resp = $this->withHeaders($this->headers)
                      ->get($this->lineitem->shim_lineitem_results_url);
-        //$resp->dump();
         $resp->assertStatus(Response::HTTP_OK);
+        $fakeUser1 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
+            $this->ags->tool_id, $this->realUser1);
+        $fakeUser2 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
+            $this->ags->tool_id, $this->realUser2);
+        $expectedResults = $this->fakeResults;
+        $expectedResults[0]['scoreOf'] =
+            $this->lineitem->getShimLineitemUrl();
+        $expectedResults[0]['id'] =
+            $this->lineitem->shim_lineitem_results_url . '/1';
+        $expectedResults[0]['userId'] = $fakeUser1->sub;
+        $expectedResults[1]['scoreOf'] =
+            $this->lineitem->getShimLineitemUrl();
+        $expectedResults[1]['id'] =
+            $this->lineitem->shim_lineitem_results_url . '/2';
+        $expectedResults[1]['userId'] = $fakeUser2->sub;
         $resp->assertJson($expectedResults);
+        // sanity check on our data
+        $this->assertNotEquals($this->realUser1->sub, $fakeUser1->sub);
+        $this->assertNotEquals($this->realUser2->sub, $fakeUser2->sub);
     }
 
     /**
-     * Make sure that AGS calls are checking access tokens
+     * Make sure that AGS result calls are checking access tokens
      */
-    /* TODO
     public function testRejectInvalidAccessToken()
     {
+        Http::fake([
+            $this->lineitem->lineitem_results => $this->fakeResults,
+            '*' => Http::response('Test failed', Response::HTTP_FORBIDDEN)
+        ]);
         // change the access token to a bad one
         $headers = $this->headers;
         $headers['Authorization'] = 'Bearer ClearlyBadAccessToken';
 
         // do the ags call
-        $resp = $this->withHeaders($headers)->get($this->ags->getShimLineitemsUrl());
+        $resp = $this->withHeaders($headers)
+                     ->get($this->lineitem->shim_lineitem_results_url);
         // request should fail
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
-     */
 }

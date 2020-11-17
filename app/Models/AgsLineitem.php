@@ -24,6 +24,12 @@ class AgsLineitem extends Model
     public function ags()
     {
         return $this->belongsTo('App\Models\Ags');
+
+    }
+
+    public function ags_results()
+    {
+        return $this->hasMany('App\Models\AgsResult');
     }
 
     public function getLineitemResultsAttribute()
