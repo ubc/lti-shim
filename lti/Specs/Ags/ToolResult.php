@@ -3,6 +3,8 @@ namespace UBC\LTI\Specs\Ags;
 
 use Faker\Factory as Faker;
 
+use GuzzleHttp\Psr7\Response as GuzzleResponse;
+
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -15,6 +17,8 @@ use Jose\Easy\Build;
 
 use App\Models\Ags;
 use App\Models\AgsLineitem;
+use App\Models\LtiFakeUser;
+use App\Models\LtiRealUser;
 use App\Models\Tool;
 
 use UBC\LTI\Utils\LtiException;
@@ -28,6 +32,9 @@ class ToolResult
     private LtiLog $ltiLog;
     private Request $request;
     private Ags $ags;
+
+    // true if the user_id filter cannot be matched to a known user in our db
+    private bool $hasUnknownUserId = false;
 
     public function __construct(Request $request, Ags $ags, LtiLog $ltiLog)
     {
@@ -48,7 +55,7 @@ class ToolResult
         $accessToken = $this->tokenHelper->request(
             $this->ags->deployment->platform,
             $this->ags->tool,
-            [Param::AGS_SCOPE_RESULT_READONLY_URI, Param::AGS_SCOPE_SCORE_URI]
+            [Param::AGS_SCOPE_RESULT_READONLY_URI]
         );
         $this->ltiLog->debug("Access token: $accessToken", $this->request,
                              $this->ags, $lineitem);
@@ -58,12 +65,23 @@ class ToolResult
             Header::AUTHORIZATION => Param::BEARER_PREFIX . $accessToken
         ]);
 
-        // TODO: implement filters
-        //$filters = $this->getLineitemFilters();
-        //$this->ltiLog->debug('Lineitems Filters: ' . json_encode($filters),
-        //                     $this->request, $this->ags);
+        $filters = [];
+        $this->addUserIdQueryIfExists($filters);
+        $this->addQueryIfExists(Param::LIMIT, $filters);
+        $this->ltiLog->debug(
+            'Results url with filters: ' .
+                $lineitem->getLineitemResultsUrl($filters),
+            $this->request,
+            $this->ags
+        );
 
-        $resp = $req->get($lineitem->lineitem_results);
+        if ($this->hasUnknownUserId) {
+            // since we don't know who this user is, we can't rewrite the
+            // user id, so just return an empty response
+            return new Response(new GuzzleResponse(200, [], '[]'));
+        }
+
+        $resp = $req->get($lineitem->getLineitemResultsUrl($filters));
         $this->checkResponseErrors($resp);
 
         return $resp;
@@ -89,28 +107,6 @@ class ToolResult
     }
 
     /**
-     * GET requests to the lineitem endpoints can be accompanied by queries
-     * used for filtering purposes:
-     *
-     * * resource_link_id - limit to only items associated with the given
-     *      resource link. A resource could be like an assignment.
-     * * resource_id - limit to a only items associated with the resource.
-     * * tag - limit to only lineitems with the given tag
-     * * limit - restrict the number of items returned, note that platforms
-     *      may return less than the given limit and pagination is supported
-     *      using the same link http header mechanism as NRPS
-     */
-    private function getLineitemFilters(): array
-    {
-        $filters = [];
-        $this->addQueryIfExists(Param::RESOURCE_LINK_ID, $filters);
-        $this->addQueryIfExists(Param::RESOURCE_ID, $filters);
-        $this->addQueryIfExists(Param::TAG, $filters);
-        $this->addQueryIfExists(Param::LIMIT, $filters);
-        return $filters;
-    }
-
-    /**
      * Check the GET queries sent in the request to see if the given $queryKey
      * exists, if so, put the value into the $target array.
      */
@@ -119,5 +115,30 @@ class ToolResult
         if ($this->request->query($queryKey)) {
             $target[$queryKey] = $this->request->query($queryKey);
         }
+    }
+
+    /**
+     * Since the user_id filter comes from the tool, it'll be a fake user id
+     * which we need to replace with the real user id.
+     *
+     * An edge case we need to watch out for is if we can't find the user. This
+     * is what the $hasUnknownUserId is for.
+     */
+    private function addUserIdQueryIfExists(array &$filters)
+    {
+        $userId = $this->request->query(Param::USER_ID);
+        if (!$userId) return; // no user_id filter
+        $fakeUser = LtiFakeUser::getBySub(
+            $this->ags->course_context_id,
+            $this->ags->tool_id,
+            $userId
+        );
+        if (!$fakeUser) {
+            $this->ltiLog->warning('user_id filter has an unknown user: ' .
+                $userId, $this->ags);
+            $this->hasUnknownUserId = true;
+            return;
+        }
+        $filters[Param::USER_ID] = $fakeUser->lti_real_user->sub;
     }
 }

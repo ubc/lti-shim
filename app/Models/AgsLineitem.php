@@ -32,6 +32,9 @@ class AgsLineitem extends Model
         return $this->hasMany('App\Models\AgsResult');
     }
 
+    /**
+     * Add a /results to the original lineitem url path
+     */
     public function getLineitemResultsAttribute()
     {
         // the result url might have queries and such, but we want to append
@@ -39,18 +42,35 @@ class AgsLineitem extends Model
         return $this->addToUrl($this->lineitem, [], Param::AGS_RESULT_PATH);
     }
 
+    /**
+     * Build a url to this lineitem on the shim.
+     */
     public function getShimLineitemUrlAttribute()
     {
         return route('lti.ags.lineitem',
             ['ags' => $this->ags_id, 'lineitem' => $this->id]);
     }
 
+    /**
+     * Build a url to this lineitem's results on the shim.
+     */
     public function getShimLineitemResultsUrlAttribute()
     {
         return route('lti.ags.results',
             ['ags' => $this->ags_id, 'lineitem' => $this->id]);
     }
 
+    /**
+     * Add queries to the original lineitem results url
+     */
+    public function getLineitemResultsUrl(array $params = []): string
+    {
+        return $this->addToUrl($this->lineitem_results, $params);
+    }
+
+    /**
+     * Add queries to the lineitem results url on the shim
+     */
     public function getShimLineitemUrl(array $params = []): string
     {
         return $this->addToUrl($this->shim_lineitem_url, $params);

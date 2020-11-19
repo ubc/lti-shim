@@ -85,6 +85,8 @@ class PlatformResult
         $resp->header(Header::CONTENT_TYPE, Param::AGS_MEDIA_TYPE_RESULTS);
         // TODO: pagination
         //if ($linkHeader) $resp->header(Param::LINK, $linkHeader);
+        $this->ltiLog->notice('AGS get result completed', $this->request,
+            $this->ags);
         return $resp;
     }
 

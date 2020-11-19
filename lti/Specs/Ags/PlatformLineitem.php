@@ -70,7 +70,7 @@ class PlatformLineitem
                                  $this->request, $this->ags);
         }
 
-        $this->ltiLog->info(
+        $this->ltiLog->notice(
             'AGS get lineitems completed: ' . json_encode($lineitems),
             $this->request->fullUrl(), $this->request, $this->ags);
         // create the response to send back to the tool
@@ -95,7 +95,7 @@ class PlatformLineitem
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 
-        $this->ltiLog->info(
+        $this->ltiLog->notice(
             'AGS create lineitem completed: ' . json_encode($lineitems[0]),
             $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response($lineitems[0], HttpResp::HTTP_CREATED);
@@ -119,7 +119,7 @@ class PlatformLineitem
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 
-        $this->ltiLog->info(
+        $this->ltiLog->notice(
             'AGS get lineitem completed: ' . json_encode($lineitems[0]),
             $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response($lineitems[0]);
@@ -141,7 +141,7 @@ class PlatformLineitem
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 
-        $this->ltiLog->info(
+        $this->ltiLog->notice(
             'AGS put lineitem completed: ' . json_encode($lineitems[0]),
             $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response($lineitems[0]);
@@ -164,7 +164,7 @@ class PlatformLineitem
         $lineitem->delete();
         // no need for filter since nothing returned
 
-        $this->ltiLog->info('AGS delete lineitem completed' .
+        $this->ltiLog->notice('AGS delete lineitem completed' .
             $this->request->fullUrl(), $this->request, $this->ags);
         $resp = response()->noContent();
         return $resp;

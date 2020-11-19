@@ -146,6 +146,55 @@ class AgsResultTest extends TestCase
     }
 
     /**
+     * Test that filter parameters as defined by the spec are passed on properly
+     * to the actual call to the platform
+     */
+    public function testResultFilterParamPassthrough()
+    {
+        $fakeUser1 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
+            $this->ags->tool_id, $this->realUser1);
+        // The user_id that comes from the tool should be a fake user id that
+        // we have to map back to the real user. The query sent to the platform
+        // should have the real user's id.
+        $shimQueries = '?user_id=' . $fakeUser1->sub . '&limit=1';
+        $platformQueries = '?user_id=' . $this->realUser1->sub . '&limit=1';
+        $expectedRawResults = [$this->fakeResults[0]];
+        Http::fake([
+            $this->lineitem->lineitem_results . $platformQueries =>
+                                                            $expectedRawResults,
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->lineitem->shim_lineitem_results_url .
+                           $shimQueries . '&dropme=1');
+        // request should match what we faked for the platform url
+        $resp->assertStatus(Response::HTTP_OK);
+        $expectedResults = $expectedRawResults;
+        $expectedResults[0]['scoreOf'] =
+            $this->lineitem->getShimLineitemUrl();
+        $expectedResults[0]['id'] =
+            $this->lineitem->shim_lineitem_results_url . '/1';
+        $expectedResults[0]['userId'] = $fakeUser1->sub;
+        $resp->assertJson($expectedResults);
+    }
+
+    /**
+     * If the user_id filter refers to an unknown user, the returned result
+     * should be empty.
+     */
+    public function testUnkownUserIdFilterReturnsEmpty()
+    {
+        Http::fake([
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->lineitem->shim_lineitem_results_url .
+                           '?user_id=ThisUserDoesNotExist');
+        $resp->assertStatus(Response::HTTP_OK);
+        $resp->assertJson([]);
+    }
+
+    /**
      * Make sure that AGS result calls are checking access tokens
      */
     public function testRejectInvalidAccessToken()

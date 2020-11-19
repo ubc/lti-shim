@@ -125,6 +125,17 @@ class LtiFakeUser extends Model
                      ->get();
     }
 
+    public static function getBySub(
+        int $courseContextId,
+        int $toolId,
+        string $sub
+    ): ?self {
+        return self::where('sub', $sub)
+                     ->where('course_context_id', $courseContextId)
+                     ->where('tool_id', $toolId)
+                     ->first();
+    }
+
     private static function faker()
     {
         if (!isset(self::$faker)) self::$faker = Faker::create();
