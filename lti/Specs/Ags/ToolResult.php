@@ -17,6 +17,7 @@ use Jose\Easy\Build;
 
 use App\Models\Ags;
 use App\Models\AgsLineitem;
+use App\Models\AgsResult;
 use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\Tool;
@@ -44,21 +45,9 @@ class ToolResult
         $this->tokenHelper = new AccessToken($this->ltiLog);
     }
 
-    public function getResult(AgsLineitem $lineitem): Response
+    public function getResults(AgsLineitem $lineitem): Response
     {
-        // first need to get the access token
-        $this->ltiLog->debug('Requesting access token', $this->request,
-                             $this->ags, $lineitem);
-
-        // only one scope for result and it should've been checked by the
-        // platform side already
-        $accessToken = $this->tokenHelper->request(
-            $this->ags->deployment->platform,
-            $this->ags->tool,
-            [Param::AGS_SCOPE_RESULT_READONLY_URI]
-        );
-        $this->ltiLog->debug("Access token: $accessToken", $this->request,
-                             $this->ags, $lineitem);
+        $accessToken = $this->getAccessToken();
         // fill in the headers we want to send
         $req = Http::withHeaders([
             Header::ACCEPT => [Param::AGS_MEDIA_TYPE_RESULTS],
@@ -82,6 +71,23 @@ class ToolResult
         }
 
         $resp = $req->get($lineitem->getLineitemResultsUrl($filters));
+        $this->checkResponseErrors($resp);
+
+        return $resp;
+    }
+
+    public function getResult(
+        AgsLineitem $lineitem,
+        AgsResult $result
+    ): Response
+    {
+        $accessToken = $this->getAccessToken();
+        // fill in the headers we want to send
+        $req = Http::withHeaders([
+            Header::ACCEPT => [Param::AGS_MEDIA_TYPE_RESULTS],
+            Header::AUTHORIZATION => Param::BEARER_PREFIX . $accessToken
+        ]);
+        $resp = $req->get($result->result);
         $this->checkResponseErrors($resp);
 
         return $resp;
@@ -140,5 +146,23 @@ class ToolResult
             return;
         }
         $filters[Param::USER_ID] = $fakeUser->lti_real_user->sub;
+    }
+
+    private function getAccessToken(): string
+    {
+        // first need to get the access token
+        $this->ltiLog->debug('Requesting access token', $this->request,
+                             $this->ags);
+
+        // only one scope for result and it should've been checked by the
+        // platform side already
+        $accessToken = $this->tokenHelper->request(
+            $this->ags->deployment->platform,
+            $this->ags->tool,
+            [Param::AGS_SCOPE_RESULT_READONLY_URI]
+        );
+        $this->ltiLog->debug("Access token: $accessToken", $this->request,
+                             $this->ags);
+        return $accessToken;
     }
 }

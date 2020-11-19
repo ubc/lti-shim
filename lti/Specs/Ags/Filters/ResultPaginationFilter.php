@@ -6,15 +6,16 @@ use Illuminate\Support\Facades\Log;
 
 use App\Models\Ags;
 use App\Models\AgsLineitem;
+use App\Models\AgsResult;
 
 use UBC\LTI\Filters\AbstractPaginationFilter;
 use UBC\LTI\Specs\Ags\Filters\FilterInterface;
 use UBC\LTI\Utils\Param;
 
-class LineitemPaginationFilter extends AbstractPaginationFilter
+class ResultPaginationFilter extends AbstractPaginationFilter
                                implements FilterInterface
 {
-    protected const LOG_HEADER = 'Lineitem Pagination Filter';
+    protected const LOG_HEADER = 'Result Pagination Filter';
 
     public function filter(
         array $params,
@@ -22,7 +23,7 @@ class LineitemPaginationFilter extends AbstractPaginationFilter
         AgsLineitem $lineitem = null
     ): array {
         if (!isset($params[Param::LINK])) {
-            $this->ltiLog->debug('Skipping', $ags);
+            $this->ltiLog->debug('Skipping', $ags, $lineitem);
             return $params;
         }
         $this->ltiLog->debug('Trying', $ags);
@@ -31,18 +32,14 @@ class LineitemPaginationFilter extends AbstractPaginationFilter
 
         // create or get an AGS entry for each link
         foreach ($links as $key => $link) {
-            $linkAgs = Ags::createOrGet(
-                $link[static::URL],
-                $ags->course_context_id,
-                $ags->deployment_id,
-                $ags->tool_id,
-                $ags->scopes
-            );
-            $links[$key][static::URL] = $linkAgs->getShimLineitemsUrl();
+            $linkResult = AgsResult::createOrGet($link[static::URL],
+                                                 $lineitem->id);
+            $links[$key][static::URL] = $linkResult->shim_url;
         }
 
         $params[Param::LINK] = $this->createLinkHeader($links);
 
+        $this->ltiLog->debug('Completed', $ags, $lineitem);
         return $params;
     }
 }

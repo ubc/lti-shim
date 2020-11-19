@@ -9,11 +9,11 @@ use Illuminate\Support\Collection;
 
 class AgsResult extends Model
 {
-//    use HasFactory;
+    use HasFactory;
 
-    protected $with = ['ags_lineitems'];
+    protected $with = ['ags_lineitem'];
 
-    public function ags_lineitems()
+    public function ags_lineitem()
     {
         return $this->belongsTo('App\Models\AgsLineitem');
     }
@@ -22,11 +22,26 @@ class AgsResult extends Model
     {
         return route('lti.ags.result',
             [
-                'ags' => $this->ags_lineitems->ags_id,
-                'lineitem' => $this->ags_lineitems_id,
+                'ags' => $this->ags_lineitem->ags_id,
+                'lineitem' => $this->ags_lineitem_id,
                 'result' => $this->id
             ]
         );
+    }
+
+    public static function createOrGet(string $resultUrl, int $lineitemId): self
+    {
+        $result = self::where('result', $resultUrl)
+                        ->where('ags_lineitem_id', $lineitemId)
+                        ->first();
+        if (!$result) {
+            // no existing entry, create a new one
+            $result = new self;
+            $result->result = $resultUrl;
+            $result->ags_lineitem_id = $lineitemId;
+            $result->save();
+        }
+        return $result;
     }
 
     public static function createOrGetAll(
@@ -39,14 +54,14 @@ class AgsResult extends Model
         foreach ($resultUrls as $resultUrl) {
             $resultsInfo[] = [
                 'result' => $resultUrl,
-                'ags_lineitems_id' => $lineitemId
+                'ags_lineitem_id' => $lineitemId
             ];
         }
 
         $res = self::insertOrIgnore($resultsInfo);
         // since insertOrIgnore doesn't return the created rows,
         // we have to do a separate query for them
-        $results = self::where('ags_lineitems_id', $lineitemId)
+        $results = self::where('ags_lineitem_id', $lineitemId)
                          ->whereIn('result', $resultUrls)
                          ->get();
 

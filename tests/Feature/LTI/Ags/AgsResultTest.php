@@ -14,6 +14,7 @@ use App\Models\LtiRealUser;
 use App\Models\LtiFakeUser;
 use App\Models\Ags;
 use App\Models\AgsLineitem;
+use App\Models\AgsResult;
 use App\Models\Platform;
 use App\Models\Tool;
 
@@ -192,6 +193,108 @@ class AgsResultTest extends TestCase
                            '?user_id=ThisUserDoesNotExist');
         $resp->assertStatus(Response::HTTP_OK);
         $resp->assertJson([]);
+    }
+
+    /**
+     * Pagination is done using the "link" header, we need to make sure those
+     * urls are rewritten to shim AGS urls.
+     */
+    public function testLineitemsPaginationHeaderFiltering()
+    {
+        $fakeUser1 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
+            $this->ags->tool_id, $this->realUser1);
+        // The user_id that comes from the tool should be a fake user id that
+        // we have to map back to the real user. The query sent to the platform
+        // should have the real user's id.
+        $query = '?limit=1';
+        $expectedRawResults = [$this->fakeResults[0]];
+        Http::fake([
+            $this->lineitem->lineitem_results . $query => Http::response(
+                $expectedRawResults,
+                Response::HTTP_OK,
+                [
+                    'link' => '<http://192.168.55.182:8900/api/lti/courses/1/lineitems/1/results?page=1&per_page=1>; rel="current",<http://192.168.55.182:8900/api/lti/courses/1/lineitems/1/results?page=2&per_page=1>; rel="next"'
+                ]
+            ),
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->lineitem->shim_lineitem_results_url . $query);
+        // request should match what we faked for the platform url
+        $resp->assertStatus(Response::HTTP_OK);
+
+        // make sure that the link header was properly replaced and that
+        // the correct Ags entries are in the database
+        $resp->assertHeader('link',
+            '<http://localhost/lti/ags/platform/1/lineitem/1/results/2>; rel="current",<http://localhost/lti/ags/platform/1/lineitem/1/results/3>; rel="next"');
+        $result = AgsResult::find(2);
+        $this->assertEquals($result->result,
+            'http://192.168.55.182:8900/api/lti/courses/1/lineitems/1/results?page=1&per_page=1');
+        $this->assertEquals($result->shim_url,
+            'http://localhost/lti/ags/platform/1/lineitem/1/results/2');
+    }
+
+    /**
+     * Test that we can GET from an AgsResult created as a result of pagination
+     * filter. The difference is that pagination result returns an array
+     * of results from the platform.
+     */
+    public function testGetPaginationResult()
+    {
+        $result = AgsResult::factory()->create([
+            'ags_lineitem_id' => $this->lineitem->id
+        ]);
+        Http::fake([
+            $result->result => $this->fakeResults,
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($result->shim_url);
+        $resp->assertStatus(Response::HTTP_OK);
+        $fakeUser1 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
+            $this->ags->tool_id, $this->realUser1);
+        $fakeUser2 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
+            $this->ags->tool_id, $this->realUser2);
+        $expectedResults = $this->fakeResults;
+        $expectedResults[0]['scoreOf'] =
+            $this->lineitem->getShimLineitemUrl();
+        $expectedResults[0]['id'] =
+            $this->lineitem->shim_lineitem_results_url . '/2';
+        $expectedResults[0]['userId'] = $fakeUser1->sub;
+        $expectedResults[1]['scoreOf'] =
+            $this->lineitem->getShimLineitemUrl();
+        $expectedResults[1]['id'] =
+            $this->lineitem->shim_lineitem_results_url . '/3';
+        $expectedResults[1]['userId'] = $fakeUser2->sub;
+        $resp->assertJson($expectedResults);
+    }
+
+    /**
+     * Test that we can GET from an AgsResult created from a single result id.
+     * The difference is that this result returns a json object from the
+     * platform and we convert it to an array with a single result.
+     */
+    public function testGetSingleResult()
+    {
+        $result = AgsResult::factory()->create([
+            'ags_lineitem_id' => $this->lineitem->id
+        ]);
+        Http::fake([
+            $result->result => $this->fakeResults[0],
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($result->shim_url);
+        $resp->assertStatus(Response::HTTP_OK);
+        $fakeUser1 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
+            $this->ags->tool_id, $this->realUser1);
+        $expectedResults = [$this->fakeResults[0]];
+        $expectedResults[0]['scoreOf'] =
+            $this->lineitem->getShimLineitemUrl();
+        $expectedResults[0]['id'] =
+            $this->lineitem->shim_lineitem_results_url . '/2';
+        $expectedResults[0]['userId'] = $fakeUser1->sub;
+        $resp->assertJson($expectedResults);
     }
 
     /**

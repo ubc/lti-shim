@@ -82,13 +82,13 @@ class CreateAgsTable extends Migration
             $table->text('result')
                   ->comment('Original AGS result url on the original platform.');
 
-            $table->unsignedBigInteger('ags_lineitems_id');
-            $table->foreign('ags_lineitems_id')->references('id')
+            $table->unsignedBigInteger('ags_lineitem_id');
+            $table->foreign('ags_lineitem_id')->references('id')
                   ->on('ags_lineitems')->onDelete('cascade');
 
             $table->unique([
                 'result',
-                'ags_lineitems_id'
+                'ags_lineitem_id'
             ]);
 
             $table->timestampTz('created_at')->useCurrent();
