@@ -1,26 +1,20 @@
 <?php
 namespace UBC\LTI\Specs\Ags;
 
-use Faker\Factory as Faker;
-
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 
 use Lmc\HttpConstants\Header;
-
-use Jose\Easy\Build;
 
 use App\Models\Ags;
 use App\Models\AgsLineitem;
 use App\Models\AgsResult;
 use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
-use App\Models\Tool;
 
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;

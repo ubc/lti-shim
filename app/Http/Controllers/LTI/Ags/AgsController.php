@@ -94,5 +94,18 @@ class AgsController extends Controller
         $platformAgs = new PlatformAgs($request, $ags);
         return $platformAgs->getResult($lineitem, $result);
     }
+
+    /**
+     * POST a score for this lineitem, looks like we can only post one score
+     * at a time.
+     */
+    public function postScore(
+        Request $request,
+        Ags $ags,
+        AgsLineitem $lineitem
+    ) {
+        $platformAgs = new PlatformAgs($request, $ags);
+        return $platformAgs->postScore($lineitem);
+    }
 }
 

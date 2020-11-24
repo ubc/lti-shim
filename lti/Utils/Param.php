@@ -128,7 +128,10 @@ class Param
         'application/vnd.ims.lis.v2.lineitemcontainer+json';
     public const AGS_MEDIA_TYPE_RESULTS =
         'application/vnd.ims.lis.v2.resultcontainer+json';
-    public const AGS_RESULT_PATH = 'results';
+    public const AGS_MEDIA_TYPE_SCORE =
+        'application/vnd.ims.lis.v1.score+json';
+    public const AGS_RESULTS_PATH = 'results';
+    public const AGS_SCORES_PATH = 'scores';
     // ags lineitem query params
     public const RESOURCE_LINK_ID = 'resource_link_id';
     public const RESOURCE_ID = 'resource_id';
@@ -136,6 +139,8 @@ class Param
     // ags result params
     public const SCORE_OF = 'scoreOf';
     public const AGS_USER_ID = 'userId';
+    // ags score
+    public const RESULT_URL = 'resultUrl';
 
     // List of scopes that can be used to request access tokens
     public const AGS_SCOPES = [

@@ -58,6 +58,11 @@ class Ags extends Model
         return in_array(Param::AGS_SCOPE_LINEITEM_URI, $this->scopes);
     }
 
+    public function canWriteScore(): bool
+    {
+        return in_array(Param::AGS_SCOPE_SCORE_URI, $this->scopes);
+    }
+
     public function getLineitemScopes(bool $isReadOnly): array
     {
         $canWriteLineitem = $this->canWriteLineitem();

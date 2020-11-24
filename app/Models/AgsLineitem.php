@@ -39,7 +39,15 @@ class AgsLineitem extends Model
     {
         // the result url might have queries and such, but we want to append
         // to the path, this means using the Uri package to modify the url
-        return $this->addToUrl($this->lineitem, [], Param::AGS_RESULT_PATH);
+        return $this->addToUrl($this->lineitem, [], Param::AGS_RESULTS_PATH);
+    }
+
+    /**
+     * Add a /scores to the original lineitem url path
+     */
+    public function getLineitemScoresAttribute()
+    {
+        return $this->addToUrl($this->lineitem, [], Param::AGS_SCORES_PATH);
     }
 
     /**
@@ -57,6 +65,15 @@ class AgsLineitem extends Model
     public function getShimLineitemResultsUrlAttribute()
     {
         return route('lti.ags.results',
+            ['ags' => $this->ags_id, 'lineitem' => $this->id]);
+    }
+
+    /**
+     * Build a url to this lineitem's scores on the shim.
+     */
+    public function getShimLineitemScoresUrlAttribute()
+    {
+        return route('lti.ags.scores',
             ['ags' => $this->ags_id, 'lineitem' => $this->id]);
     }
 

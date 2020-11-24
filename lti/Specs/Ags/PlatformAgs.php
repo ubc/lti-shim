@@ -13,6 +13,7 @@ use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Specs\Ags\PlatformLineitem;
 use UBC\LTI\Specs\Ags\PlatformResult;
+use UBC\LTI\Specs\Ags\PlatformScore;
 
 class PlatformAgs
 {
@@ -73,5 +74,13 @@ class PlatformAgs
     ): Response {
         $results = new PlatformResult($this->request, $this->ags);
         return $results->getResult($lineitem, $result);
+    }
+
+    /********* Score Service *********/
+
+    public function postScore(AgsLineitem $lineitem): Response
+    {
+        $results = new PlatformScore($this->request, $this->ags);
+        return $results->postScore($lineitem);
     }
 }

@@ -84,5 +84,9 @@ Route::namespace('LTI')->name('lti.')->group(function() {
         Route::get('/ags/platform/{ags}/lineitem/{lineitem}/results/{result}',
                    'AgsController@getResult')
             ->name('result');
+        // score
+        Route::post('/ags/platform/{ags}/lineitem/{lineitem}/scores',
+                    'AgsController@postScore')
+            ->name('scores');
     });
 });
