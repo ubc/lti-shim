@@ -19,7 +19,6 @@ use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\Nrps;
 use App\Models\Platform;
-use App\Models\ResourceLink;
 use App\Models\Tool;
 
 use Tests\TestCase;
@@ -43,7 +42,6 @@ class AuthRespTest extends TestCase
     private LtiSession $ltiSession;
     private Platform $shimPlatform;
     private Platform $platform;
-    private ResourceLink $resourceLink;
     private Tool $tool;
 
     protected function setUp(): void
@@ -69,16 +67,13 @@ class AuthRespTest extends TestCase
             'course_context_id' => $this->courseContext->id,
             'tool_id' => $this->tool->id
         ]);
-        $this->resourceLink = ResourceLink::factory()->create([
-            'deployment_id' => $this->deployment->id
-        ]);
         // prepare session
         $this->ltiSession = LtiSession::factory()->create([
             'token' => [
                 'sub' => $this->realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => [],
                 'https://purl.imsglobal.org/spec/lti/claim/resource_link' =>
-                    ['id' => $this->resourceLink->real_link_id],
+                    ['id' => 'SomeResourceLinkId'],
                 'https://purl.imsglobal.org/spec/lti/claim/context' =>
                     ['id' => $this->courseContext->real_context_id],
                 'name' => $this->realUser->name,
@@ -190,7 +185,7 @@ class AuthRespTest extends TestCase
                 'https://purl.imsglobal.org/spec/lti/claim/target_link_uri')
         );
         $this->assertEquals(
-            $this->resourceLink->fake_link_id,
+            'SomeResourceLinkId',
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/resource_link')['id']
         );

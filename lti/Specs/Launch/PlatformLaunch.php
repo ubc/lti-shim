@@ -24,7 +24,6 @@ use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Launch\Filters\DeploymentFilter;
 use UBC\LTI\Specs\Launch\Filters\LaunchPresentationFilter;
 use UBC\LTI\Specs\Launch\Filters\NrpsFilter;
-use UBC\LTI\Specs\Launch\Filters\ResourceLinkFilter;
 use UBC\LTI\Specs\Launch\Filters\UserFilter;
 use UBC\LTI\Specs\Launch\Filters\WhitelistFilter;
 
@@ -52,7 +51,6 @@ class PlatformLaunch
             new DeploymentFilter($this->ltiLog),
             new WhitelistFilter($this->ltiLog),
             new UserFilter($this->ltiLog),
-            new ResourceLinkFilter($this->ltiLog),
             new LaunchPresentationFilter($this->ltiLog),
             new CourseContextFilter($this->ltiLog),
             new NrpsFilter($this->ltiLog),
