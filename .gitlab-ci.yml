@@ -183,9 +183,6 @@ staging:
         --wait \
         --set service.enabled="$service_enabled" \
         --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
-        --set image.repository="$CI_APPLICATION_REPOSITORY" \
-        --set image.tag="$CI_APPLICATION_TAG" \
-        --set image.secrets[0].name="$secret_name" \
         --set application.track="$track" \
         --set application.secretName="$APPLICATION_SECRET_NAME" \
         --set application.secretChecksum="$APPLICATION_SECRET_CHECKSUM" \
@@ -219,9 +216,6 @@ staging:
         --force \
         --set service.enabled="$service_enabled" \
         --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
-        --set image.repository="$CI_APPLICATION_REPOSITORY" \
-        --set image.tag="$CI_APPLICATION_TAG" \
-        --set image.secrets[0].name="$secret_name" \
         --set application.track="$track" \
         --set application.secretName="$APPLICATION_SECRET_NAME" \
         --set application.secretChecksum="$APPLICATION_SECRET_CHECKSUM" \
@@ -277,7 +271,7 @@ staging:
     fi
 
     helm init --client-only
-    helm repo add gitlab ${AUTO_DEVOPS_CHART_REPOSITORY:-https://charts.gitlab.io}
+    helm repo add ${AUTO_DEVOPS_CHART_REPOSITORY_NAME} ${AUTO_DEVOPS_CHART_REPOSITORY:-https://charts.gitlab.io}
     if [[ ! -d "$auto_chart" ]]; then
       helm fetch ${auto_chart} --untar
     fi
