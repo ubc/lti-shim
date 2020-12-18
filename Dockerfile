@@ -63,7 +63,7 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # make sure we have a laravel env file
-COPY deploy-docker/deploy-env /var/www/.env
+COPY deploy/docker/deploy-env /var/www/.env
 
 RUN chown -R www-data:www-data \
         /var/www/storage \
@@ -77,6 +77,6 @@ RUN php artisan route:cache
 RUN php artisan view:cache
 
 # custom entrypoint so that we can run things like database migrations
-COPY deploy-docker/custom-entrypoint.sh /usr/local/bin/custom-entrypoint
+COPY deploy/docker/custom-entrypoint.sh /usr/local/bin/custom-entrypoint
 ENTRYPOINT ["custom-entrypoint", "docker-php-entrypoint"]
 CMD ["apache2-foreground"]

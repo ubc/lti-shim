@@ -4,7 +4,7 @@ version: '3'
 services:
   php:
     build:
-      context: ../
+      context: ../../
     environment:
       - NODE_ENV=production
       - DB_HOST=postgres
