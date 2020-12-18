@@ -28,7 +28,7 @@ class AddTitleLabelToCourseContext extends Migration
      */
     public function down()
     {
-        Schema::table('course_context', function (Blueprint $table) {
+        Schema::table('course_contexts', function (Blueprint $table) {
             $table->dropColumn('title');
             $table->dropColumn('label');
         });
