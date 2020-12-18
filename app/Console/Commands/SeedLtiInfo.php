@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Faker\Factory as Faker;
-
 use Illuminate\Console\Command;
 
 use Jose\Component\KeyManagement\JWKFactory;
@@ -30,8 +28,6 @@ class SeedLtiInfo extends Command
      */
     protected $description = "Seed the database with the shim's own LTI platform and client info.";
 
-    private $faker;
-
     /**
      * Create a new command instance.
      *
@@ -49,7 +45,6 @@ class SeedLtiInfo extends Command
      */
     public function handle()
     {
-        $this->faker = Faker::create();
         $this->seedPlatform();
         $this->seedTool();
         $this->seedEncryptionKey();
@@ -72,7 +67,7 @@ class SeedLtiInfo extends Command
             $platform->save();
         }
         // generate a new key
-        $kid = date('Y-m-d') . ' ' . $this->faker->unique()->colorName;
+        $kid = date('c');
         $platformKey = new PlatformKey;
         $platformKey->kid = $kid;
         $platformKey->key = $this->generateKeyAsJson($kid);
@@ -97,7 +92,7 @@ class SeedLtiInfo extends Command
             $tool->save();
         }
         // generate a new key
-        $kid = date('Y-m-d') . ' ' . $this->faker->unique()->colorName;
+        $kid = date('c');
         $toolKey = new ToolKey;
         $toolKey->kid = $kid;
         $toolKey->key = $this->generateKeyAsJson($kid);
