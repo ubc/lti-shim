@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
+use Ramsey\Uuid\Uuid;
+
 use UBC\LTI\Utils\FakeName;
 
 class LtiFakeUser extends Model
@@ -96,10 +98,10 @@ class LtiFakeUser extends Model
                     'lti_real_user_id' => $newUserId,
                     'course_context_id' => $courseContextId,
                     'tool_id' => $toolId,
-                    'login_hint' => $faker->uuid,
-                    'sub' => $faker->uuid,
+                    'login_hint' => Uuid::uuid4()->toString(),
+                    'sub' => Uuid::uuid4()->toString(),
                     'name' => FakeName::name(),
-                    'email' => $faker->email,
+                    'email' => $faker->safeEmail,
                     'student_number' => $faker->ean13
                 ];
                 $newUsersInfo[] = $userInfo;

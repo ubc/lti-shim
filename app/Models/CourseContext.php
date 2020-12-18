@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Support\Facades\Log;
 
-use Faker\Factory as Faker;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
+use Ramsey\Uuid\Uuid;
 
 class CourseContext extends Model
 {
@@ -47,7 +47,6 @@ class CourseContext extends Model
 
     public function fillFakeFields()
     {
-        $faker = Faker::create();
-        $this->fake_context_id = $faker->sha256;
+        $this->fake_context_id = Uuid::uuid4()->toString();
     }
 }

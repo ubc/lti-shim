@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Faker\Factory as Faker;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
+use Ramsey\Uuid\Uuid;
 
 class Deployment extends Model
 {
@@ -22,8 +22,7 @@ class Deployment extends Model
     // auto-populate fake_lti_deployment_id if it's not filled
     public function fillFakeFields()
     {
-        $faker = Faker::create();
-        $this->fake_lti_deployment_id = $faker->uuid;
+        $this->fake_lti_deployment_id = Uuid::uuid4()->toString();
         $this->save();
     }
 }
