@@ -20,6 +20,7 @@
     "league/uri": "^6.0",
     "league/uri-components": "^2.2",
     "lmc/http-constants": "^1.2",
+    "ramsey/uuid": "^4.1",
     "web-token/jwt-easy": "^2.2",
     "web-token/jwt-encryption-algorithm-aesgcm": "^2.2",
     "web-token/jwt-encryption-algorithm-rsa": "^2.2",
