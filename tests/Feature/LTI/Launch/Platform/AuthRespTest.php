@@ -77,7 +77,9 @@ class AuthRespTest extends TestCase
                 'https://purl.imsglobal.org/spec/lti/claim/context' =>
                     ['id' => $this->courseContext->real_context_id],
                 'name' => $this->realUser->name,
-                'email' => $this->realUser->email
+                'email' => $this->realUser->email,
+                'https://purl.imsglobal.org/spec/lti/claim/message_type' =>
+                    'LtiResourceLinkRequest'
             ],
             'lti_real_user_id' => $this->realUser->id,
             'course_context_id' => $this->courseContext->id,

@@ -230,7 +230,6 @@ class ToolLaunch
             JwsUtil::verifyTimestamps($jwt, $this->ltiLog);
             // check required claim values
             $requiredValues = [
-                Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
                 Param::VERSION_URI => '1.3.0'
             ];
             if ($state->claims->has(Param::LTI_DEPLOYMENT_ID)) {
@@ -244,11 +243,19 @@ class ToolLaunch
                 Param::RESOURCE_LINK_URI,
                 Param::ROLES_URI,
                 Param::NONCE,
+                Param::MESSAGE_TYPE_URI
             ]);
-            // TODO: verify and FOLLOW target_link_uri
+            // check message type
+            $messageType = $jwt->claims->get(Param::MESSAGE_TYPE_URI);
+            if (!in_array($messageType, Param::MESSAGE_TYPES)) {
+                throw new LtiException($this->ltiLog->msg(
+                    'Unsupported Message Type: ' . $messageType,
+                    $this->request));
+            }
             // check nonce
             $nonce = $jwt->claims->get(Param::NONCE);
             if (Nonce::isValid($nonce)) Nonce::used($nonce);
+            // TODO: verify and FOLLOW target_link_uri
             else throw new LtiException($this->ltiLog->msg('Invalid nonce',
                                                            $this->request));
         } catch(\Exception $e) { // invalid signature throws a bare Exception

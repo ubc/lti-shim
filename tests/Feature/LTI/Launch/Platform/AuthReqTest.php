@@ -63,7 +63,9 @@ class AuthReqTest extends TestCase
                 'sub' => $realUser->sub,
                 'https://purl.imsglobal.org/spec/lti/claim/roles' => [],
                 'https://purl.imsglobal.org/spec/lti/claim/resource_link' =>
-                    ['id' => 'resourceLinkId']
+                    ['id' => 'resourceLinkId'],
+                'https://purl.imsglobal.org/spec/lti/claim/message_type' =>
+                    'LtiResourceLinkRequest'
             ],
             'lti_real_user_id' => $realUser->id,
             'course_context_id' => $courseContext->id,

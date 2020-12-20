@@ -71,6 +71,13 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/context';
     public const LIS_URI =
         'https://purl.imsglobal.org/spec/lti/claim/lis';
+    // LTI message types
+    public const MESSAGE_TYPE_RESOURCE_LINK = 'LtiResourceLinkRequest';
+    public const MESSAGE_TYPE_GRADEBOOK = 'LtiSubmissionReviewRequest';
+    public const MESSAGE_TYPES = [
+        self::MESSAGE_TYPE_RESOURCE_LINK,
+        self::MESSAGE_TYPE_GRADEBOOK
+    ];
     // LTI service oauth token request
     public const GRANT_TYPE = 'grant_type';
     public const GRANT_TYPE_VALUE = 'client_credentials';

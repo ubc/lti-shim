@@ -150,7 +150,8 @@ class PlatformLaunch
             Param::IAT => $time, // issued at
             Param::NBF => $time, // not before
             Param::NONCE => $this->request->input('nonce'),
-            Param::MESSAGE_TYPE_URI => 'LtiResourceLinkRequest',
+            Param::MESSAGE_TYPE_URI =>
+                $this->ltiSession->token[Param::MESSAGE_TYPE_URI],
             Param::ROLES_URI => $this->ltiSession->token[Param::ROLES_URI],
             Param::VERSION_URI => '1.3.0',
             Param::DEPLOYMENT_ID_URI => $deployment->lti_deployment_id,
