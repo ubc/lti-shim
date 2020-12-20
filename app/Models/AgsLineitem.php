@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Collection;
 
-use League\Uri\Components\Query;
-use League\Uri\Uri;
-use League\Uri\UriModifier;
+use App\Models\AddToUrlTrait;
 
 use UBC\LTI\Utils\Param;
 
@@ -17,6 +15,7 @@ use UBC\LTI\Utils\Param;
 // request to the one that the shim provides
 class AgsLineitem extends Model
 {
+    use AddToUrlTrait;
     use HasFactory;
 
     protected $fillable = ['lineitem', 'ags_id'];
@@ -91,26 +90,6 @@ class AgsLineitem extends Model
     public function getShimLineitemUrl(array $params = []): string
     {
         return $this->addToUrl($this->shim_lineitem_url, $params);
-    }
-
-    /**
-     * The urls might have existing GET queries. If we want to add additional
-     * queries or if we want to append to the path, then we need to rebuild the
-     * URL.
-     */
-    private function addToUrl(
-        string $url,
-        array $queries = [],
-        string $path = ''
-    ): string {
-        $uri = Uri::createFromString($url);
-        if ($path) $uri = UriModifier::appendSegment($uri, $path);
-        if ($queries) {
-            $query = Query::createFromParams($queries);
-            $uri = UriModifier::mergeQuery($uri, $query);
-        }
-
-        return $uri;
     }
 
     public static function getByLineitem(

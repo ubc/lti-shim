@@ -6,14 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
-use League\Uri\Components\Query;
-use League\Uri\Uri;
-use League\Uri\UriModifier;
+use App\Models\AddToUrlTrait;
 
 // this model basically maps the original Names and Role Provisioning Service
 // request to the one that the shim provides
 class Nrps extends Model
 {
+    use AddToUrlTrait;
     use HasFactory;
 
     public function course_context()
@@ -38,26 +37,12 @@ class Nrps extends Model
 
     public function getContextMembershipsUrl(array $params = []): string
     {
-        return $this->addParamsToUrl($this->context_memberships_url, $params);
+        return $this->addToUrl($this->context_memberships_url, $params);
     }
 
     public function getShimUrl(array $params = []): string
     {
-        return $this->addParamsToUrl($this->shim_url, $params);
-    }
-
-    // The NRPS url might have existing GET params. If we want to add
-    // additional params, then we need rebuild the URL.
-    private function addParamsToUrl(string $url, array $params): string
-    {
-        // not adding any params, return as is
-        if (!$params) return $url;
-
-        $uri = Uri::createFromString($url);
-        $query = Query::createFromParams($params);
-        $uri = UriModifier::mergeQuery($uri, $query);
-
-        return $uri;
+        return $this->addToUrl($this->shim_url, $params);
     }
 
     public static function getByUrl(

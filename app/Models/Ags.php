@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
-use League\Uri\Components\Query;
-use League\Uri\Uri;
-use League\Uri\UriModifier;
+use App\Models\AddToUrlTrait;
 
 use UBC\LTI\Utils\Param;
 
@@ -16,6 +14,7 @@ use UBC\LTI\Utils\Param;
 // request to the one that the shim provides
 class Ags extends Model
 {
+    use AddToUrlTrait;
     use HasFactory;
 
     // need to tell Laravel to auto decode our JSON column
@@ -82,7 +81,7 @@ class Ags extends Model
 
     public function getLineitemsUrl(array $params = []): string
     {
-        return $this->addParamsToUrl($this->lineitems, $params);
+        return $this->addToUrl($this->lineitems, $params);
     }
 
     public function getShimLineitemsUrlAttribute()
@@ -92,21 +91,7 @@ class Ags extends Model
 
     public function getShimLineitemsUrl(array $params = []): string
     {
-        return $this->addParamsToUrl($this->shim_lineitems_url, $params);
-    }
-
-    // The urls might have existing GET params. If we want to add
-    // additional params, then we need to rebuild the URL.
-    private function addParamsToUrl(string $url, array $params): string
-    {
-        // not adding any params, return as is
-        if (!$params) return $url;
-
-        $uri = Uri::createFromString($url);
-        $query = Query::createFromParams($params);
-        $uri = UriModifier::mergeQuery($uri, $query);
-
-        return $uri;
+        return $this->addToUrl($this->shim_lineitems_url, $params);
     }
 
     public static function getByLineitems(
