@@ -22,6 +22,7 @@ use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Launch\Filters\AgsFilter;
 use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Launch\Filters\DeploymentFilter;
+use UBC\LTI\Specs\Launch\Filters\GradebookMessageFilter;
 use UBC\LTI\Specs\Launch\Filters\LaunchPresentationFilter;
 use UBC\LTI\Specs\Launch\Filters\NrpsFilter;
 use UBC\LTI\Specs\Launch\Filters\UserFilter;
@@ -54,7 +55,8 @@ class PlatformLaunch
             new LaunchPresentationFilter($this->ltiLog),
             new CourseContextFilter($this->ltiLog),
             new NrpsFilter($this->ltiLog),
-            new AgsFilter($this->ltiLog)
+            new AgsFilter($this->ltiLog),
+            new GradebookMessageFilter($this->ltiLog)
         ];
     }
 

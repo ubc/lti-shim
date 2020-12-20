@@ -71,6 +71,8 @@ class Param
         'https://purl.imsglobal.org/spec/lti/claim/context';
     public const LIS_URI =
         'https://purl.imsglobal.org/spec/lti/claim/lis';
+    public const FOR_USER_URI =
+        'https://purl.imsglobal.org/spec/lti/claim/for_user';
     // LTI message types
     public const MESSAGE_TYPE_RESOURCE_LINK = 'LtiResourceLinkRequest';
     public const MESSAGE_TYPE_GRADEBOOK = 'LtiSubmissionReviewRequest';

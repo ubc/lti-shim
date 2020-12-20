@@ -53,7 +53,7 @@ class AuthRespTest extends TestCase
         $this->platform = Platform::factory()->create(['id' => 2]);
         $this->encryptionKey = EncryptionKey::factory()->create();
         $this->deployment = Deployment::factory()->create([
-            'platform_id' => $this->shimPlatform->id
+            'platform_id' => $this->platform->id
         ]);
         $this->realUser = LtiRealUser::factory()->create([
             'platform_id' => $this->platform->id

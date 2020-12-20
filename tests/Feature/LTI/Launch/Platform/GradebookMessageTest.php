@@ -53,7 +53,7 @@ class GradebookMessageTest extends TestCase
         $this->platform = Platform::factory()->create(['id' => 2]);
         $this->encryptionKey = EncryptionKey::factory()->create();
         $this->deployment = Deployment::factory()->create([
-            'platform_id' => $this->shimPlatform->id
+            'platform_id' => $this->platform->id
         ]);
         $this->realUser = LtiRealUser::factory()->create([
             'platform_id' => $this->platform->id
@@ -79,7 +79,10 @@ class GradebookMessageTest extends TestCase
                 'name' => $this->realUser->name,
                 'email' => $this->realUser->email,
                 'https://purl.imsglobal.org/spec/lti/claim/message_type' =>
-                    'LtiSubmissionReviewRequest'
+                    'LtiSubmissionReviewRequest',
+                'https://purl.imsglobal.org/spec/lti/claim/for_user' => [
+                    'user_id' => $this->realUser->sub
+                ]
             ],
             'lti_real_user_id' => $this->realUser->id,
             'course_context_id' => $this->courseContext->id,
@@ -144,7 +147,7 @@ class GradebookMessageTest extends TestCase
      *
      * @return void
      */
-    public function testGradebookMessageTypeIsSet()
+    public function testGradebookMessageFilter()
     {
         // check the static values first
         $response = $this->call('get', $this->baseUrl, $this->goodValues);
@@ -157,6 +160,15 @@ class GradebookMessageTest extends TestCase
             'LtiSubmissionReviewRequest',
             $jwt->claims->get(
                 'https://purl.imsglobal.org/spec/lti/claim/message_type')
+        );
+        $this->assertEquals(
+            [
+                'user_id' => $this->fakeUser->sub,
+                'name' => $this->fakeUser->name,
+                'email' => $this->fakeUser->email
+            ],
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/for_user')
         );
     }
 

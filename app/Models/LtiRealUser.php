@@ -68,6 +68,13 @@ class LtiRealUser extends Model
         return self::getBySubs($platformId, $subs);
     }
 
+    public static function getBySub(int $platformId, string $sub): ?self
+    {
+        return self::where('sub', $sub)
+                     ->where('platform_id', $platformId)
+                     ->first();
+    }
+
     // Bulk retrieve users identified by the 'sub' field.
     public static function getBySubs(int $platformId, array $subs): Collection
     {
