@@ -11,6 +11,7 @@ use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\LtiSession;
 use App\Models\Nrps;
+use App\Models\ReturnUrl;
 use App\Models\Tool;
 
 use UBC\LTI\Utils\LtiException;
@@ -161,6 +162,9 @@ class LtiLog
             }
             elseif ($obj instanceof Tool) {
                 $components[] = 'Tool: ' . $obj->id . ' ' . $obj->name;
+            }
+            elseif ($obj instanceof ReturnUrl) {
+                $components[] = 'ReturnUrl: ' . $obj->id;
             }
             else {
                 Log::channel('lti')->warning('Unknown object given in lti log');

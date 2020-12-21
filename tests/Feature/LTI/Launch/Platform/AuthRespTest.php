@@ -19,6 +19,7 @@ use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\Nrps;
 use App\Models\Platform;
+use App\Models\ReturnUrl;
 use App\Models\Tool;
 
 use Tests\TestCase;
@@ -339,6 +340,38 @@ class AuthRespTest extends TestCase
         $this->assertEquals(
             $jwt->claims->get($claimUri)['lineitem'],
             $agsLineitem->getShimLineitemUrl()
+        );
+    }
+
+    public function testLaunchPresentationFilter()
+    {
+        $claimUri =
+            'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
+        // add an nrps claim to the session
+        $expectedClaimVals = [
+            'document_target' => 'iframe',
+            'height' => '800',
+            'width' => '600',
+            'locale' => 'en-CA',
+            'return_url' => 'https://example.com/lti/return_url/1?blah=abc'
+        ];
+        $this->addClaims([
+            $claimUri => array_merge($expectedClaimVals,
+                                     ['unknownValue' => 'removeMe'])
+        ]);
+
+        $response = $this->call('get', $this->baseUrl, $this->goodValues);
+        $response->assertStatus(Response::HTTP_OK);
+        $jwt = $this->getJwtFromResponse($response);
+        // need to get the expected return_url, since it should've been filtered
+        // to a shim platform url
+        $returnUrl = ReturnUrl::find(1);
+        $expectedClaimVals['return_url'] = $returnUrl->getShimUrl();
+        // make sure we have the launch presentation claim
+        $this->assertTrue($jwt->claims->has($claimUri));
+        $this->assertEquals(
+            $jwt->claims->get($claimUri),
+            $expectedClaimVals
         );
     }
 }

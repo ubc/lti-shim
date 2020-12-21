@@ -127,8 +127,7 @@ class Ags extends Model
             $ags->deployment_id = $deploymentId;
             $ags->tool_id = $toolId;
         }
-        // we need to update scopes, in case it changes on the platform, e.g.:
-        // now allowing updates or turning to read only
+        // we need to update scopes, in case it changes on the platform
         if ($scopes) $ags->scopes = $scopes;
         $ags->save();
         return $ags;

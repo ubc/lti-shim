@@ -92,6 +92,16 @@ class Param
     public const TOKEN_TYPE_VALUE = 'bearer';
     public const EXPIRES_IN = 'expires_in';
     public const BEARER_PREFIX = 'Bearer ';
+    // launch presentation claim's parameters
+    public const DOCUMENT_TARGET = 'document_target';
+    public const HEIGHT = 'height';
+    public const WIDTH = 'width';
+    public const RETURN_URL = 'return_url';
+    public const LOCALE = 'locale';
+    public const LTI_ERRORMSG = 'lti_errormsg';
+    public const LTI_MSG = 'lti_msg';
+    public const LTI_ERRORLOG = 'lti_errorlog';
+    public const LTI_LOG = 'lti_log';
 
     // Names and Roles Provisioning Service (NRPS) response params
     public const NRPS = 'nrps';

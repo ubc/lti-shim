@@ -21,7 +21,7 @@ Route::namespace('LTI')->name('lti.')->group(function() {
                ->name('tool');
         //Route::get('/keygen', 'JWKSController@keygen'); // generates jwk in log
     });
-    // LTI Launch (Core Spec)
+    // LTI Launch (many specs, such as Core)
     Route::namespace('Launch')->name('launch.')->group(function() {
         // TOOL
         Route::name('tool.')->group(function() {
@@ -50,6 +50,12 @@ Route::namespace('LTI')->name('lti.')->group(function() {
                 'PlatformLaunchController@auth'
             )->name('authReq');
         });
+    });
+    // LTI Core Spec
+    Route::namespace('Core')->name('core.')->group(function() {
+        Route::get('/core/platform/return/{returnUrl}/{token}',
+            'ReturnUrlController@getReturnUrl')->name('return');
+
     });
     // LTI Security Spec
     Route::namespace('Security')->group(function() {
