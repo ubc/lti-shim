@@ -52,15 +52,11 @@ class ToolLineitem
         return $resp;
     }
 
-    public function postLineitems(): Response
+    public function postLineitems(array $lineitem): Response
     {
         $req = $this->getPendingRequest(Param::AGS_MEDIA_TYPE_LINEITEM,
                                         Param::AGS_MEDIA_TYPE_LINEITEM);
-        $this->ltiLog->debug('POST: ' .
-            json_encode($this->request->all()),
-            $this->request, $this->ags);
-        $resp = $req->post($this->ags->getLineitemsUrl(),
-                           $this->request->all());
+        $resp = $req->post($this->ags->getLineitemsUrl(), $lineitem);
         $this->checkResponseErrors($resp);
         return $resp;
     }

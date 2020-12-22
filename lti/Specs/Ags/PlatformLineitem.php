@@ -18,6 +18,7 @@ use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\Ags\ToolLineitem;
 use UBC\LTI\Specs\Ags\Filters\LineitemsFilter;
 use UBC\LTI\Specs\Ags\Filters\LineitemPaginationFilter;
+use UBC\LTI\Specs\Ags\Filters\SubmissionReviewFilter;
 use UBC\LTI\Specs\Security\AccessToken;
 
 class PlatformLineitem
@@ -27,6 +28,7 @@ class PlatformLineitem
     private LtiLog $ltiLog;
     private LineitemPaginationFilter $paginationFilter;
     private Request $request;
+    private SubmissionReviewFilter $submissionReviewFilter;
     private array $filters;
 
     public function __construct(Request $request, Ags $ags)
@@ -35,8 +37,13 @@ class PlatformLineitem
         $this->ags = $ags;
         $this->ltiLog = new LtiLog('AGS Lineitems (Platform)');
         $this->tokenHelper = new AccessToken($this->ltiLog);
+        // this is in $filters to run as well as called separately for POST
+        // lineitem requests
+        $this->submissionReviewFilter = new SubmissionReviewFilter(
+                                                                $this->ltiLog);
         $this->filters = [
-            new LineitemsFilter($this->ltiLog)
+            new LineitemsFilter($this->ltiLog),
+            $this->submissionReviewFilter
         ];
         // pagination filter is called separately so it's not in $filters
         $this->paginationFilter = new LineitemPaginationFilter($this->ltiLog);
@@ -88,10 +95,21 @@ class PlatformLineitem
     {
         $this->ltiLog->info('AGS create lineitem received at ' .
             $this->request->fullUrl(), $this->request, $this->ags);
+
+        $lineitem = $this->request->all();
+        // need to apply the submission review filter before sending it on to
+        // the real platform to enforce submission review's url policy
+        $this->ltiLog->debug('Pre Submission Review Filter: ' .
+            json_encode($lineitem), $this->request, $this->ags);
+        $lineitem = $this->submissionReviewFilter
+                         ->filter([$lineitem], $this->ags)[0];
+        $this->ltiLog->debug('Post Submission Review Filter: ' .
+            json_encode($lineitem), $this->request, $this->ags);
+
         // check access token and get the Tool side
         $toolSide = $this->getToolSide(false);
         // proxy the request
-        $toolResp = $toolSide->postLineitems();
+        $toolResp = $toolSide->postLineitems($lineitem);
         $lineitems = [ $toolResp->json() ];
         $this->applyLineitemsFilters($lineitems);
 

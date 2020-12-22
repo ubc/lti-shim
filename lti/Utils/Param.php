@@ -169,4 +169,10 @@ class Param
         self::AGS_SCOPE_SCORE_URI => self::AGS . '4'
     ];
     public const NRPS_SCOPES = [self::NRPS_SCOPE_URI => self::NRPS . '1'];
+
+    // Gradebook Messages
+    public const SUBMISSION_REVIEW = 'submissionReview';
+    public const REVIEWABLE_STATUS = 'reviewableStatus';
+    public const URL = 'url';
+    public const CUSTOM = 'custom';
 }

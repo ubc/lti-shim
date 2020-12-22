@@ -389,4 +389,98 @@ class AgsLineitemTest extends TestCase
         $resp = $this->withHeaders($headers)->get($this->ags->getShimLineitemsUrl());
         $resp->assertStatus(Response::HTTP_OK);
     }
+
+    /**
+     * Test Gradebook Message's submissionReview section is properly filtered.
+     * Should drop the submissionReview section if it has a 'url' property.
+     */
+    public function testSubmissionReviewFiltering()
+    {
+        $expectedQueries = '?limit=2'; // required to make http::fake think this
+                                       // is a unique url, so we don't get
+                                       // $this->fakeAgs back
+        $expectedRawLineitems = [
+            [
+                'id' => 'https://lms.example.com/context/111/lineitems/1',
+                'scoreMaximum' => 60,
+                'label' => 'Lineitems Filter Passthrough 1',
+                'resourceId' => '11111111111',
+                'tag' => 'filter',
+                'resourceLinkId' => '111111111111',
+                'endDateTime' => '2020-11-11T11:11:11Z',
+                'submissionReview' => [
+                    'reviewableStatus' => 'None',
+                    'label' => 'some label',
+                    'custom' => ['someCustom' => 'blah']
+                ]
+            ],
+            [
+                'id' => 'https://lms.example.com/context/222/lineitems/2',
+                'scoreMaximum' => 60,
+                'label' => 'Lineitems Filter Passthrough 2',
+                'resourceId' => '22222222222',
+                'tag' => 'filter',
+                'resourceLinkId' => '222222222222',
+                'endDateTime' => '2020-11-12T22:22:22Z',
+                'submissionReview' => [
+                    'reviewableStatus' => 'None',
+                    'label' => 'some label',
+                    'url' =>
+                        'https://lms.example.com/context/222/lineitems/2/blah',
+                    'custom' => ['someCustom' => 'blah']
+                ]
+            ]
+        ];
+        Http::fake([
+            $this->ags->lineitems . $expectedQueries => $expectedRawLineitems,
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->ags->getShimLineitemsUrl(). $expectedQueries);
+        //$resp->dump();
+        // request should match what we faked for the platform url
+        $resp->assertStatus(Response::HTTP_OK);
+        $lineitem1 = AgsLineitem::find(1);
+        $lineitem2 = AgsLineitem::find(2);
+        $expectedLineitems = $expectedRawLineitems;
+        $expectedLineitems[0]['id'] = $lineitem1->getShimLineitemUrl();
+        $expectedLineitems[1]['id'] = $lineitem2->getShimLineitemUrl();
+        unset($expectedLineitems[1]['submissionReview']);
+        $resp->assertJson($expectedLineitems);
+    }
+
+    /**
+     * The 'reviewableStatus' property is required and should throw an error
+     * if missing.
+     */
+    public function testSubmissionReviewFilteringMissingRequiredParameter()
+    {
+        $expectedQueries = '?limit=23978'; // required to make http::fake think
+                                           // this is a unique url, so we don't
+                                           // get $this->fakeAgs back
+        $expectedRawLineitems = [
+            [
+                'id' => 'https://lms.example.com/context/111/lineitems/1',
+                'scoreMaximum' => 60,
+                'label' => 'Lineitems Filter Passthrough 1',
+                'resourceId' => '11111111111',
+                'tag' => 'filter',
+                'resourceLinkId' => '111111111111',
+                'endDateTime' => '2020-11-11T11:11:11Z',
+                'submissionReview' => [
+                    'label' => 'some label',
+                    'custom' => ['someCustom' => 'blah']
+                ]
+            ]
+        ];
+        Http::fake([
+            $this->ags->lineitems . $expectedQueries => $expectedRawLineitems,
+            '*' => Http::response('Failed Filter', Response::HTTP_FORBIDDEN)
+        ]);
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->ags->getShimLineitemsUrl(). $expectedQueries);
+        // $resp->dump();
+        // request should match what we faked for the platform url
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
 }
