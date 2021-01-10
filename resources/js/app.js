@@ -6,7 +6,8 @@
 
 require('./bootstrap');
 
-window.Vue = require('vue');
+import Vue from 'vue'
+window.axios = require('axios');
 
 // vuex
 import store from './plugins/store/store'
@@ -15,7 +16,8 @@ import store from './plugins/store/store'
 import notification from './plugins/notification/notification'
 
 // vue material design icons
-import 'vue-material-design-icons/styles.css';
+import 'vue-material-design-icons/styles.css'
+
 
 /**
  * The following block of code may be used to automatically register your

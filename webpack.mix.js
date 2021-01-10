@@ -1,5 +1,5 @@
-const mix = require('laravel-mix');
-
+let mix = require('laravel-mix');
+let path = require('path');
 /*
  |--------------------------------------------------------------------------
  | Mix Asset Management
@@ -12,8 +12,8 @@ const mix = require('laravel-mix');
  */
 
 mix.sourceMaps()
-  .js('resources/js/app.js', 'public/js')
-  .js('resources/js/midway.js', 'public/js')
+  .js('resources/js/app.js', 'public/js').vue()
+  .js('resources/js/midway.js', 'public/js').vue()
   .sass('resources/sass/app.scss', 'public/css');
 
 mix.options({
