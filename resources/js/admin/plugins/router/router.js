@@ -3,7 +3,8 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
-import Splash from '../../views/Splash'
+import Splash from '../../views/SplashView'
+import Login from '../../views/LoginView'
 
 export default new VueRouter({
   routes: [
@@ -11,6 +12,11 @@ export default new VueRouter({
       path: '/',
       name: 'splash',
       component: Splash 
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: Login
     }
   ]
 })

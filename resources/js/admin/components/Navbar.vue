@@ -22,7 +22,9 @@
         <ul class="navbar-nav ml-auto">
           <!-- Authentication Links -->
           <li class="nav-item">
-            <a class="nav-link" href="#">Login</a>
+            <router-link class='nav-link' :to="{name: 'login'}">
+              Login
+            </router-link>
           </li>
         </ul>
       </div>
