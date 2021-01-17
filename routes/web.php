@@ -11,9 +11,6 @@
 |
 */
 
-// enable login system but disable the registration page
-Auth::routes(['register' => false]);
-
 // shim Admin pages
 //Route::get('/', 'WelcomeController@index'); // TODO: delete line
 Route::get('/admin', 'HomeController@index')->name('admin');

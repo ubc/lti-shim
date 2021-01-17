@@ -22,9 +22,13 @@
         <ul class="navbar-nav ml-auto">
           <!-- Authentication Links -->
           <li class="nav-item">
-            <router-link class='nav-link' :to="{name: 'login'}">
+            <router-link class='nav-link' :to="{name: 'login'}"
+              v-if='!isLoggedIn'>
               Login
             </router-link>
+            <a href='#' @click='logout' class='nav-link' v-if='isLoggedIn'>
+              Logout
+            </a>
           </li>
         </ul>
       </div>
@@ -35,7 +39,19 @@
 <script>
 export default {
   name: "Navbar",
-  props: ['appName']
+  computed: {
+    isLoggedIn() {
+      return this.$store.state.auth.isLoggedIn
+    }
+  },
+  props: ['appName'],
+  methods: {
+    logout() {
+      this.$store.dispatch('auth/logout').then(() => {
+        this.$router.push('/')
+      })
+    }
+  }
 }
 </script>
 

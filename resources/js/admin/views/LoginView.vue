@@ -37,6 +37,13 @@ export default {
   }},
   methods: {
     login() {
+      let credential = {
+        email: this.email,
+        password: this.password
+      }
+      this.$store.dispatch('auth/login', credential).then(() => {
+        this.$router.push('admin')
+      })
     }
   },
   mounted() {

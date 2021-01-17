@@ -7,12 +7,11 @@
 require('../bootstrap');
 
 import Vue from 'vue'
-window.axios = require('axios');
 
-/*
 // vuex
 import store from './plugins/store/store'
 
+/*
 // vue-notification
 import notification from './plugins/notification/notification'
 */
@@ -47,6 +46,6 @@ Vue.component('root', require('./views/Root.vue').default);
  */
 
 const app = new Vue({
-  //store,
+  store,
   router
 }).$mount('#app')
