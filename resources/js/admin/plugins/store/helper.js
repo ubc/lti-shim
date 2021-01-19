@@ -1,21 +1,16 @@
 import Vue from 'vue'
 import axios from 'axios'
-import { auth } from './authStore'
+import auth from './authStore'
+import router from '../router/router'
 
 export default {
   // helper for axios request promises' catch block.
   // convert validation error from laravel into a list for display to
   // the user, show error notification, and return a rejected promise
   processError(error, notification) {
-    // session expired, so we have to force logout
+    // session expired, let the global interceptor handle it
     if (error.response.status == 401) {
-      auth.actions.signOut(false)
-      axios.post('/logout')
-        .then(response => {
-          // refreshing the page should take the user to login
-          location.reload()
-        })
-      return Promise.reject(error)
+      return error
     }
     // show error to user
     let msg = ''

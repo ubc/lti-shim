@@ -11,10 +11,8 @@ import Vue from 'vue'
 // vuex
 import store from './plugins/store/store'
 
-/*
 // vue-notification
 import notification from './plugins/notification/notification'
-*/
 
 // vue-router
 import router from './plugins/router/router'
@@ -34,10 +32,23 @@ import 'vue-material-design-icons/styles.css'
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
+// we only need to register the root component since that's the only one we'll
+// be using in blade templates
 Vue.component('root', require('./views/Root.vue').default);
-//Vue.component('admin-main', require('./components/AdminMain.vue').default);
-//Vue.component('session-dropdown',
-//  require('./components/SessionDropdown.vue').default);
+
+// Intercept unauthenticated requests and send them to login
+axios.interceptors.response.use(
+  response => { return response },
+  error => {
+    if (error.response.status === 401) {
+      Vue.notify({'title': 'Invalid session, please login', 'type': 'error'})
+      store.dispatch('auth/logout')
+      const path = '/login'
+      if (router.path !== path) router.push(path)
+    }
+    return Promise.reject(error)
+  }
+)
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

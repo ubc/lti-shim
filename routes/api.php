@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::namespace('API')->group(function() {
+Route::middleware('auth:sanctum')->namespace('API')->group(function() {
     Route::apiResource('user', 'UserController');
 
     Route::apiResource('platform-client', 'PlatformClientController');
