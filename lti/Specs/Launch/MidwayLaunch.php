@@ -32,16 +32,22 @@ class MidwayLaunch
     {
         $this->ltiLog->debug('Arrived from Tool Side', $this->request);
 
-        // generate a midway api access token
+        $courseContextId = $this->ltiSession->course_context_id;
+        $toolId = $this->ltiSession->tool_id;
+        // generate a midway api access token, storing the course context and
+        // tool of the launch in as a token ability. This let us use token
+        // ability later on to make sure that tokens can only access the course
+        // context and tool they were generated in
         $user = User::getMidwayApiUser();
-        $token = $user->createToken(Str::random(20));
+        $token = $user->createToken(Str::random(20),
+            [$user->getLookupAbility($courseContextId, $toolId)]);
 
         $response = [
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT),
-            'courseContextId' => $this->ltiSession->course_context_id,
+            'courseContextId' => $courseContextId,
             'platformName' => $this->ltiSession->deployment->platform->name,
-            'toolId' => $this->ltiSession->tool_id,
+            'toolId' => $toolId,
             'toolName' => $this->ltiSession->tool->name,
             'token' => $token->plainTextToken
         ];

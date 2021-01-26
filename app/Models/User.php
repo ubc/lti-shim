@@ -56,6 +56,15 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($password);
     }
 
+    /**
+     * We want to use Sanctum's token abilities functions to restrict access
+     * for a token to only the course context and tool they were launched.
+     */
+    public function getLookupAbility(int $courseContextId, int $toolId): string
+    {
+        return 'lookup:' . $courseContextId . ':' . $toolId;
+    }
+
     public static function addUserIfNotExist(
         string $name,
         string $email,

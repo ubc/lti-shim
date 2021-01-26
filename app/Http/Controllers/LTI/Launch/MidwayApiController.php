@@ -22,6 +22,16 @@ class MidwayApiController extends Controller
         CourseContext $courseContext,
         Tool $tool
     ) {
+
+        // make sure the token we got is allowed to access the given course
+        // context and tool
+        $user = $request->user();
+        if (!$user->tokenCan(
+            $user->getLookupAbility($courseContext->id, $tool->id))) {
+            return response()->json(['error' => 'Not authorized.'], 403);
+        }
+
+        // return the users for this course context/tool pair
         $users = LtiFakeUser::getByCourseContext($courseContext->id, $tool->id);
 
         // hide some fields we send out

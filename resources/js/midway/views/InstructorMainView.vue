@@ -30,7 +30,7 @@
 <script>
 //import ContinueIcon from 'icons/ArrowTopRightThinCircleOutline'
 import ContinueIcon from 'icons/ArrowTopRightThick'
-import UserList from '../UserList'
+import UserList from '../components/UserList'
 
 export default {
   name: "MidwayMain",

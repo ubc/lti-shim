@@ -11,14 +11,13 @@ import Vue from 'vue'
 // vue material design icons
 import 'vue-material-design-icons/styles.css'
 
-
 // vue-good-table
 import './plugins/vue-good-table/vue-good-table'
 
 // vuex
 import store from './plugins/store/store'
 
-Vue.component('midway-main',
+Vue.component('instructor-main-view',
   require('./views/InstructorMainView.vue').default)
 
 /**
