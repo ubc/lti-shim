@@ -13,7 +13,7 @@ let path = require('path');
 
 mix.sourceMaps()
   .js('resources/js/admin/admin.js', 'public/js').vue()
-  .js('resources/js/midway.js', 'public/js').vue()
+  .js('resources/js/midway/midway.js', 'public/js').vue()
   .sass('resources/sass/app.scss', 'public/css');
 
 mix.options({

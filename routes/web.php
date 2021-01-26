@@ -11,11 +11,7 @@
 |
 */
 
-// shim Admin pages
-//Route::get('/', 'WelcomeController@index'); // TODO: delete line
-Route::get('/admin', 'HomeController@index')->name('admin');
-Route::get('/account', 'HomeController@account')->name('account');
-
+// shim admin
 Route::namespace('Admin')->group(function() {
     Route::get('/', 'AdminController@index');
 });
