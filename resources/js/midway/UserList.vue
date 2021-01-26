@@ -71,20 +71,6 @@ export default {
     BackIcon,
     VueGoodTable
   },
-  props: {
-    platform: {
-      type: String,
-      required: true
-    },
-    tool: {
-      type: String,
-      required: true
-    },
-    users: {
-      type: Array,
-      required: true
-    }
-  },
   computed: {
     columns() {
       if (this.isSearchTargetTool) {
@@ -110,6 +96,7 @@ export default {
         }
       ]
     },
+    platform() { return this.$store.state.lookup.platformName },
     sortOptions() {
       if (this.isSearchTargetTool) {
         return {
@@ -122,6 +109,8 @@ export default {
         initialSortBy: {field: 'lti_real_user.name', type: 'asc'}
       }
     },
+    tool() { return this.$store.state.lookup.toolName },
+    users() { return this.$store.state.lookup.users },
     // some real users do not have student numbers, but vue-good-table will
     // complain if the student number column is missing, so we need to put an
     // empty string there to keep vue-good-table happy

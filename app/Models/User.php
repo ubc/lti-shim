@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -39,23 +42,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    private const MIDWAY_API_USER = 'midway_api_user@example.com';
+
     public function AuthRouteAPI(Request $request){
         return $request->user();
-    }
-
-    public static function addUserIfNotExist(
-        string $name,
-        string $email,
-        string $password
-    ) {
-        $user = User::firstWhere('email', $email);
-        if ($user) return; # user already exists
-        # user does not exist, create one
-        $user = new User;
-        $user->name = $name;
-        $user->email = $email;
-        $user->password = $password;
-        $user->save();
     }
 
     /**
@@ -64,5 +54,27 @@ class User extends Authenticatable
     public function setPasswordAttribute($password)
     {
         $this->attributes['password'] = Hash::make($password);
+    }
+
+    public static function addUserIfNotExist(
+        string $name,
+        string $email,
+        string $password
+    ): self {
+        $user = User::firstWhere('email', $email);
+        if ($user) return $user; # user already exists
+        # user does not exist, create one
+        $user = new User;
+        $user->name = $name;
+        $user->email = $email;
+        $user->password = $password;
+        $user->save();
+        return $user;
+    }
+
+    public static function getMidwayApiUser(): self
+    {
+        return self::addUserIfNotExist('Midway API User',
+            self::MIDWAY_API_USER, Str::random(40));
     }
 }

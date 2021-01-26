@@ -13,16 +13,26 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:sanctum')->namespace('API')->group(function() {
-    Route::apiResource('user', 'UserController');
+Route::middleware('auth:sanctum')->group(function() {
+    // ADMIN API
+    Route::namespace('API')->group(function() {
+        Route::apiResource('user', 'UserController');
 
-    Route::apiResource('platform-client', 'PlatformClientController');
+        Route::apiResource('platform-client', 'PlatformClientController');
 
-    Route::apiResource('platform', 'PlatformController');
-    Route::apiResource('platform.keys', 'PlatformKeyController');
+        Route::apiResource('platform', 'PlatformController');
+        Route::apiResource('platform.keys', 'PlatformKeyController');
 
-    Route::apiResource('tool', 'ToolController');
-    Route::apiResource('tool.keys', 'ToolKeyController');
+        Route::apiResource('tool', 'ToolController');
+        Route::apiResource('tool.keys', 'ToolKeyController');
 
-    Route::get('help/config', 'HelpController@config');
+        Route::get('help/config', 'HelpController@config');
+    });
+
+    // MIDWAY API
+    Route::namespace('LTI\Launch')->prefix('midway')->group(function() {
+        Route::get('users/course_context/{courseContext}/tool/{tool}',
+            'MidwayApiController@getLtiFakeUsers');
+    });
+
 });

@@ -4,19 +4,22 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
-require('../bootstrap');
+require('../bootstrap')
 
 import Vue from 'vue'
 
 // vue material design icons
-import 'vue-material-design-icons/styles.css';
+import 'vue-material-design-icons/styles.css'
+
 
 // vue-good-table
-import './plugins/vue-good-table/vue-good-table';
+import './plugins/vue-good-table/vue-good-table'
+
+// vuex
+import store from './plugins/store/store'
 
 Vue.component('midway-main',
-  require('./MidwayMain.vue').default);
-Vue.component('user-list', require('./UserList.vue').default);
+  require('./views/InstructorMainView.vue').default)
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -25,6 +28,5 @@ Vue.component('user-list', require('./UserList.vue').default);
  */
 
 const app = new Vue({
-  el: '#app',
-  //store
-});
+  store
+}).$mount('#app')

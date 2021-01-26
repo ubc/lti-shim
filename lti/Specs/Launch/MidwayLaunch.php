@@ -1,12 +1,14 @@
 <?php
 namespace UBC\LTI\Specs\Launch;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 use App\Models\LtiFakeUser;
 use App\Models\LtiSession;
+use App\Models\User;
 
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
@@ -30,25 +32,18 @@ class MidwayLaunch
     {
         $this->ltiLog->debug('Arrived from Tool Side', $this->request);
 
-        $users = LtiFakeUser::getByCourseContext(
-            $this->ltiSession->course_context_id,
-            $this->ltiSession->tool_id
-        );
-
-        // hide some fields we send out
-        $users->makeHidden(['login_hint', 'sub', 'lti_real_user_id', 'tool_id',
-            'course_context_id', 'created_at', 'updated_at']);
-        foreach ($users as $user) {
-            $user->lti_real_user->makeHidden(['login_hint', 'email', 'sub',
-                'non_lti_id', 'platform_id', 'created_at', 'updated_at']);
-        }
+        // generate a midway api access token
+        $user = User::getMidwayApiUser();
+        $token = $user->createToken(Str::random(20));
 
         $response = [
             Param::LTI_MESSAGE_HINT =>
                 $this->request->input(Param::LTI_MESSAGE_HINT),
-            'tool' => $this->ltiSession->tool->name,
-            'platform' => $this->ltiSession->deployment->platform->name,
-            'users' => $users
+            'courseContextId' => $this->ltiSession->course_context_id,
+            'platformName' => $this->ltiSession->deployment->platform->name,
+            'toolId' => $this->ltiSession->tool_id,
+            'toolName' => $this->ltiSession->tool->name,
+            'token' => $token->plainTextToken
         ];
 
         $roleVo = new RoleVocabulary();

@@ -6,22 +6,22 @@
         <slot name='session'></slot>
         <button type='submit' class='btn btn-primary' ref='continueButton'>
           <ContinueIcon />
-          Continue to {{ tool }}
+          Continue to {{ toolName }}
         </button>
       </form>
       <h1 class='order-lg-0 mt-3 mt-lg-0'>
-        {{ tool }} Student Identities
+        {{ toolName }} Student Identities
       </h1>
     </div>
 
     <p>
     Students in the tool you are accessing receive anonymous identities to
-    protect their privacy. Find and click any identity used in {{ tool }} or in
-    {{ platform }} to reveal who that student is on the other side.
+    protect their privacy. Find and click any identity used in {{ toolName }}
+    or in {{ platformName }} to reveal who that student is on the other side.
     </p>
 
     <div>
-      <slot name='users'></slot>
+      <UserList />
     </div>
 
   </div>
@@ -30,11 +30,13 @@
 <script>
 //import ContinueIcon from 'icons/ArrowTopRightThinCircleOutline'
 import ContinueIcon from 'icons/ArrowTopRightThick'
+import UserList from '../UserList'
 
 export default {
   name: "MidwayMain",
   components: {
-    ContinueIcon
+    ContinueIcon,
+    UserList
   },
   props: {
     action: {
@@ -48,20 +50,38 @@ export default {
         return ['post', 'get'].indexOf(value) !== -1
       }
     },
-    platform: {
+    courseContextId: {
       type: String,
       required: true
     },
-    tool: {
+    platformName: {
       type: String,
       required: true
-    }
+    },
+    token: {
+      type: String,
+      required: true
+    },
+    toolId: {
+      type: String,
+      required: true
+    },
+    toolName: {
+      type: String,
+      required: true
+    },
   },
   data() { return {
   }},
   methods: {
   },
   mounted() {
+    axios.defaults.headers.common['Authorization'] = 'Bearer ' + this.token;
+    this.$store.commit('lookup/setCourseContextId', this.courseContextId)
+    this.$store.commit('lookup/setPlatformName', this.platformName)
+    this.$store.commit('lookup/setToolName', this.toolName)
+    this.$store.commit('lookup/setToolId', this.toolId)
+    this.$store.dispatch('lookup/getUsers')
     this.$refs.continueButton.focus();
   }
 }

@@ -29,7 +29,9 @@ return [
     |
     */
 
-    'expiration' => null,
+    // given that LTI id_tokens are only valid for 60 minutes, we can make our
+    // access tokens also valid only for 60 minutes
+    'expiration' => 60,
 
     /*
     |--------------------------------------------------------------------------
