@@ -6,7 +6,7 @@ variables:
   # KUBE_INGRESS_BASE_DOMAIN is the application deployment domain and should be set as a variable at the group or project level.
   # KUBE_INGRESS_BASE_DOMAIN: domain.example.com
   KUBERNETES_VERSION: 1.15.3
-  HELM_VERSION: 2.14.3
+  HELM_VERSION: 3.5.0
 
   DOCKER_HOST: tcp://localhost:2375
   DOCKER_DRIVER: overlay2
@@ -28,7 +28,6 @@ staging:
     - install_dependencies
     - download_chart
     - download_value_overrides
-    - initialize_tiller
     - create_secret
     - deploy
   variables:
@@ -211,6 +210,8 @@ staging:
         chart/
     else
       echo "Deploying new release..."
+      # omitClusterIP fix from https://github.com/helm/helm/issues/6378
+      # basically a helm 2 to helm 3 migration issue
       helm upgrade --install \
         --wait \
         --force \
@@ -229,6 +230,8 @@ staging:
         --set postgresql.postgresPassword="$POSTGRES_PASSWORD" \
         --set postgresql.postgresDatabase="$POSTGRES_DB" \
         --set application.migrateCommand="$DB_MIGRATE" \
+        --set controller.service.omitClusterIP=true \
+        --set defaultBackend.service.omitClusterIP=true \
         $values_override \
         "$name" \
         chart/
@@ -248,11 +251,9 @@ staging:
     apk add glibc-2.28-r0.apk
     rm glibc-2.28-r0.apk
 
-    curl "https://kubernetes-helm.storage.googleapis.com/helm-v${HELM_VERSION}-linux-amd64.tar.gz" | tar zx
+    curl "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" | tar zx
     mv linux-amd64/helm /usr/bin/
-    mv linux-amd64/tiller /usr/bin/
     helm version --client
-    tiller -version
 
     curl -L -o /usr/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl"
     chmod +x /usr/bin/kubectl
@@ -270,10 +271,9 @@ staging:
       auto_chart_name="chart"
     fi
 
-    helm init --client-only
     helm repo add ${AUTO_DEVOPS_CHART_REPOSITORY_NAME} ${AUTO_DEVOPS_CHART_REPOSITORY:-https://charts.gitlab.io}
     if [[ ! -d "$auto_chart" ]]; then
-      helm fetch ${auto_chart} --untar
+      helm pull ${auto_chart} --untar
     fi
     if [ "$auto_chart_name" != "chart" ]; then
       mv ${auto_chart_name} chart
