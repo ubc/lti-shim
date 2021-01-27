@@ -62,9 +62,6 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# make sure we have a laravel env file
-COPY deploy/docker/deploy-env /var/www/.env
-
 RUN chown -R www-data:www-data \
         /var/www/storage \
         /var/www/bootstrap/cache

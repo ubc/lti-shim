@@ -19,7 +19,12 @@
                      v-model='password' />
             </div>
 
-            <button type='submit' class='btn btn-primary'>Login</button>
+            <button type='submit' class='btn btn-primary' v-if='!isLoading'>
+              Login</button>
+            <div class="spinner-border" role="status" v-if='isLoading'>
+              <span class="sr-only">Loading...</span>
+            </div>
+
           </form>
         </div>
 
@@ -33,7 +38,8 @@ export default {
   name: "LoginView",
   data() { return {
     email: '',
-    password: ''
+    password: '',
+    isLoading: false
   }},
   methods: {
     login() {
@@ -41,12 +47,14 @@ export default {
         email: this.email,
         password: this.password
       }
+      this.isLoading = true
       this.$store.dispatch('auth/login', credential).then(() => {
         // when we initiate an api call right after login, the calls all fail
         // with unauthenticated error. This is stupid but I don't want to have
         // to dig through Sanctum's innards, so adding a short delay here
         // as a workaround
-        setTimeout(()=>{ this.$router.push('admin') }, 500)
+        setTimeout(
+          ()=>{ this.isLoading = false; this.$router.push('admin') }, 1500)
       })
     }
   },
