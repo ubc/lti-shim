@@ -47,7 +47,7 @@ class MemberFilter extends AbstractFilter implements FilterInterface
             }
         }
 
-        $realUsers = $this->getRealUsers($platformId, $toolId, $membersByIds);
+        $realUsers = LtiRealUser::upsertFromNrps($platformId, $members);
         $fakeUsers = LtiFakeUser::getByRealUsers($nrps->course_context_id,
                                                  $toolId, $realUsers);
 
@@ -90,35 +90,5 @@ class MemberFilter extends AbstractFilter implements FilterInterface
         $params[Param::MEMBERS] = $fakeMembers;
 
         return $params;
-    }
-
-    // get the real user entries from the database, will create an entry
-    // for users that don't exist the database
-    private function getRealUsers(
-        int $platformId,
-        int $toolId,
-        array $usersBySub
-    ): Collection {
-        // get users that already exist in the database
-        $userSubs = array_keys($usersBySub);
-        $existingUsers = LtiRealUser::getBySubs($platformId, $userSubs);
-        // this feels messy, but there's going to be users who aren't in the
-        // database, so we need to find out who those non-existent users are
-        // and enter them into the database
-        $existingUserSubs = [];
-        foreach ($existingUsers as $user) $existingUserSubs[] = $user->sub;
-        $newUserSubs = array_diff($userSubs, $existingUserSubs);
-        // create users that aren't in the database, the difficulty here is
-        // that we want to avoid creating the users one by one, cause that
-        // would generate a lot of sql queries. The problem is that Eloquent
-        // doesn't have bulk create, so we have to use the lower level database
-        // methods that operate on arrays.
-        $newUsersInfo = [];
-        foreach ($newUserSubs as $newUserSub) {
-            $newUsersInfo[] = $usersBySub[$newUserSub];
-        }
-        $newUsers = LtiRealUser::createFromNrps($platformId, $toolId,
-                                                    $newUsersInfo);
-        return $existingUsers->merge($newUsers);
     }
 }
