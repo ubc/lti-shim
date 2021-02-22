@@ -52,7 +52,7 @@ class SeedLtiInfo extends Command
 
     private function seedPlatform()
     {
-        $platform = Platform::find(config('lti.own_platform_id'));
+        $platform = Platform::getOwnPlatform();
         if ($platform) return; // we only want to seed empty databases
         $platform = new Platform;
         $platform->name = 'LTI Shim Platform Side';
@@ -61,11 +61,6 @@ class SeedLtiInfo extends Command
         $platform->jwks_url = route('lti.jwks.platform');
         $platform->access_token_url = route('lti.token');
         $platform->save();
-        // correct the id if needed
-        if ($platform->id != config('lti.own_platform_id')) {
-            $platform->id = config('lti.own_platform_id');
-            $platform->save();
-        }
         // generate a new key
         $kid = date('c');
         $platformKey = new PlatformKey;
@@ -76,7 +71,7 @@ class SeedLtiInfo extends Command
 
     private function seedTool()
     {
-        $tool = Tool::find(config('lti.own_tool_id'));
+        $tool = Tool::getOwnTool();
         if ($tool) return; // we only want to seed empty databases
         $tool = new Tool;
         $tool->name = 'LTI Shim Tool Side';
@@ -86,11 +81,6 @@ class SeedLtiInfo extends Command
         $tool->target_link_uri = route('lti.launch.platform.login');
         $tool->jwks_url = route('lti.jwks.tool');
         $tool->save();
-        // correct the id if needed
-        if ($tool->id != config('lti.own_tool_id')) {
-            $tool->id = config('lti.own_tool_id');
-            $tool->save();
-        }
         // generate a new key
         $kid = date('c');
         $toolKey = new ToolKey;

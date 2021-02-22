@@ -59,7 +59,7 @@ class Platform extends AbstractLtiEntity
     {
         // we don't want users to be able to edit the shim's own platform
         // configuration, so exclude it
-        return self::where('id', '!=', config('lti.own_platform_id'))->get();
+        return self::where('iss', '!=', config('lti.iss'))->get();
     }
 
     public static function getByIss(string $iss): ?self
@@ -70,7 +70,7 @@ class Platform extends AbstractLtiEntity
     // get the shim's platform entry
     public static function getOwnPlatform(): self
     {
-        $platform = self::find(config('lti.own_platform_id'));
+        $platform = self::where('iss', config('lti.iss'))->first();
         if (!$platform) {
             throw new \UnexpectedValueException(
                 "Missing own platform information, did you seed the database?");
