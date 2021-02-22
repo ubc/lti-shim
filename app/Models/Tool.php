@@ -82,7 +82,8 @@ class Tool extends AbstractLtiEntity
 
     public static function getOwnTool(): self
     {
-        $tool = self::find(config('lti.own_tool_id'));
+        $tool = self::where('client_id', config('lti.own_tool_client_id'))
+                      ->first();
         if (!$tool) {
             throw new \UnexpectedValueException(
                 "Missing own tool information, did you seed the database?");
@@ -92,6 +93,7 @@ class Tool extends AbstractLtiEntity
 
     public static function getAllEditable(): Collection
     {
-        return self::where('id', '!=', config('lti.own_tool_id'))->get();
+        return self::where('client_id', '!=', config('lti.own_tool_client_id'))
+                     ->get();
     }
 }

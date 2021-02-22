@@ -18,9 +18,9 @@ class HelpController extends Controller
      */
     public function config()
     {
-        $platform = Platform::find(config('lti.own_platform_id'));
+        $platform = Platform::getOwnPlatform();
         $platform->convertToPublicKeys();
-        $tool = Tool::find(config('lti.own_tool_id'));
+        $tool = Tool::getOwnTool();
         $tool->convertToPublicKeys();
         $resp = ['platform' => $platform, 'tool' => $tool];
         return $resp;
