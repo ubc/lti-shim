@@ -33,19 +33,19 @@ class LtiRealUser extends Model
         return $this->hasMany('App\Models\LtiFakeuser');
     }
 
-    // Create users based on info returned from NRPS. As far as I can figure,
-    // Eloquent doesn't have a bulk create method, so we have to use the DB
-    // abstraction's insert(). This assumes that the given list of users are all
-    // new users.
-    public static function createFromNrps(
+    /**
+     * Create/Update users based on info returned from NRPS. Uses the new bulk
+     * create or update method upsert()
+     */
+    public static function upsertFromNrps(
         int $platformId,
-        int $toolId,
-        array $newUsers
+        array $users
     ): Collection {
-        if (empty($newUsers)) return collect([]);
+        if (empty($users)) return collect([]);
+
         $userInfos = [];
         $subs = []; // used to retrieve the newly created users
-        foreach ($newUsers as $user) {
+        foreach ($users as $key => $user) {
             $info = [
                 'sub' => $user[Param::USER_ID],
                 'platform_id' => $platformId,
@@ -62,9 +62,12 @@ class LtiRealUser extends Model
             $userInfos[] = $info;
             $subs[] = $user[Param::USER_ID];
         }
-        // turns out there's no way to bulk insert and get the resulting
-        // new records back in Laravel, so we have to do a separate query
-        self::insert($userInfos);
+
+        self::upsert(
+            $userInfos, // list of users
+            ['sub', 'platform_id'], // columns which uniquely id the user
+            ['name', 'email', 'student_number'] // columns that can be updated
+        );
         return self::getBySubs($platformId, $subs);
     }
 

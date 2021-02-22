@@ -77,13 +77,13 @@ class NrpsTest extends TestCase
             "members" => [
                 [
                     "status" => "Active",
-                    "name" => "admin@example.com",
-                    "picture" => "https://192.168.55.182:8900/images/messages/avatar-50.png",
-                    "given_name" => "admin@example.com",
+                    "name" => "instructor1",
+                    "picture" => "https://192.168.55.182:8900/images/messages/avatar-70.png",
+                    "given_name" => "instructor1@example.com",
                     "family_name" => "",
-                    "email" => "admin@example.com",
-                    "user_id" => "cb3f9fd9-59e7-49ca-9355-f6ceda272f8d",
-                    "lti11_legacy_user_id" => "535fa085f22b4655f48cd5a36a9215f64c062838",
+                    "email" => "instructor1@example.com",
+                    "user_id" => "00000000-0000-0000-0000-000000000000",
+                    "lti11_legacy_user_id" => "0000000000000000000000000000000000000000",
                     "roles" => ["http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor"]
                 ],
                 [
@@ -99,9 +99,15 @@ class NrpsTest extends TestCase
                 ]
             ]
         ];
+    }
+
+    private function setupHttpFake($fakeNrpsResponse = null)
+    {
+        // let us override the fake nrps info if needed
+        if (!$fakeNrpsResponse)
+            $fakeNrpsResponse = Http::response($this->fakeNrps);
         Http::fake([
-            $this->nrps->context_memberships_url =>
-                Http::response($this->fakeNrps),
+            $this->nrps->context_memberships_url => $fakeNrpsResponse,
             $this->platform->access_token_url => Http::response([
                 'access_token' => $this->accessToken,
                 'expires_in' => 3600
@@ -117,6 +123,7 @@ class NrpsTest extends TestCase
      */
     public function testNonExistentNrpsEndpoint()
     {
+        $this->setupHttpFake();
         $resp = $this->withHeaders($this->headers)->get($this->baseUrl . '9999');
         $resp->assertStatus(Response::HTTP_NOT_FOUND);
     }
@@ -127,6 +134,7 @@ class NrpsTest extends TestCase
      */
     public function testContextAndMemberFiltering()
     {
+        $this->setupHttpFake();
         // do the nrps call
         $resp = $this->withHeaders($this->headers)
                      ->get($this->nrps->getShimUrl());
@@ -199,6 +207,7 @@ class NrpsTest extends TestCase
      */
     public function testLimitAndRoleParamPassthrough()
     {
+        $this->setupHttpFake();
         $expectedQueries = '?limit=1&role=Teacher';
         // the queries are passed on to the original URL, so we need to modify
         // it to match in the fake response
@@ -223,6 +232,7 @@ class NrpsTest extends TestCase
      */
     public function testPaginationHeaderFiltering()
     {
+        $this->setupHttpFake();
         $nrps = Nrps::factory()->create([
             'course_context_id' => $this->courseContext->id,
             'deployment_id' => $this->deployment->id,
@@ -261,6 +271,7 @@ class NrpsTest extends TestCase
      */
     public function testRejectInvalidAccessToken()
     {
+        $this->setupHttpFake();
         // change the access token to a bad one
         $headers = $this->headers;
         $headers['Authorization'] = 'Bearer ClearlyBadAccessToken';
@@ -273,6 +284,7 @@ class NrpsTest extends TestCase
 
     public function testMissingAccessToken()
     {
+        $this->setupHttpFake();
         // delete the access token
         $headers = $this->headers;
         unset($headers['Authorization']);
@@ -284,6 +296,7 @@ class NrpsTest extends TestCase
 
     public function testAuthorizationHeaderCaseSensitivity()
     {
+        $this->setupHttpFake();
         $headers = $this->headers;
         // lower case b in bearer
         $headers['Authorization'] = 'bearer ' . $this->accessToken;
@@ -298,6 +311,7 @@ class NrpsTest extends TestCase
 
     public function testRejectAccessTokenWithIncorrectScope()
     {
+        $this->setupHttpFake();
         $accessToken = $this->tokenHelper->create(
             $this->tool,
             ['https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly']
@@ -314,6 +328,7 @@ class NrpsTest extends TestCase
 
     public function testRejectAccessTokenWithIncorrectTool()
     {
+        $this->setupHttpFake();
         $tool = Tool::find(3);
         $accessToken = $this->tokenHelper->create(
             $tool,
@@ -327,5 +342,129 @@ class NrpsTest extends TestCase
         $resp = $this->withHeaders($headers)->get($this->nrps->getShimUrl());
         // request should fail
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Test that new users in a second NRPS call are added to the
+     * database and fake users created for them.
+     */
+    public function testNewUsersAreAdded()
+    {
+        // set up our fake NRPS response so that our second NRPS call has a
+        // new user
+        $secondFakeNrps = $this->fakeNrps;
+        $secondFakeNrps['members'][] = [
+            "status" => "Active",
+            "name" => "student2",
+            "picture" => "https://192.168.55.182:8900/images/messages/avatar-07.png",
+            "given_name" => "student2",
+            "family_name" => "",
+            "email" => "student2@example.com",
+            "user_id" => "22222222-2222-2222-2222-222222222222",
+            "lti11_legacy_user_id" => "2222222222222222222222222222222222222222",
+            "roles" => ["http://purl.imsglobal.org/vocab/lis/v2/membership#Learner"]
+        ];
+        $fakeNrpsResponse = Http::sequence()
+            ->push($this->fakeNrps, Response::HTTP_OK)
+            ->push($secondFakeNrps);
+        $this->setupHttpFake($fakeNrpsResponse);
+        // do the first nrps call
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->nrps->getShimUrl());
+        $resp->assertStatus(Response::HTTP_OK);
+        // do the second nrps call
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->nrps->getShimUrl());
+        //$resp->dump();
+        $resp->assertStatus(Response::HTTP_OK);
+        // make sure that the users we got back have been entered into database
+        $this->assertNotEmpty($secondFakeNrps['members']); // sanity check, make
+                                                // sure we aren't skipping loop
+        $expectedFakeUsers = []; // store fake users for filter verification
+        foreach ($secondFakeNrps['members'] as $expectedRealUser) {
+            $actualRealUser = LtiRealUser::firstWhere('sub',
+                                                  $expectedRealUser['user_id']);
+            $this->assertNotEmpty($actualRealUser);
+            $this->assertEquals($expectedRealUser['name'],
+                                $actualRealUser->name);
+            $this->assertEquals($expectedRealUser['email'],
+                                $actualRealUser->email);
+            $this->assertEquals($this->platform->id,
+                                $actualRealUser->platform_id);
+            // make sure the real users also has a fake user created
+            $fakeUser = $actualRealUser->lti_fake_users()->first();
+            $this->assertNotEmpty($fakeUser);
+            $this->assertEquals($this->tool->id, $fakeUser->tool_id);
+            $expectedFakeUsers[$fakeUser->sub] = [
+                'fakeUser' => $fakeUser,
+                'roles' => $expectedRealUser['roles']
+            ];
+        }
+        // make sure we got the filtered members result back
+        $this->assertNotEmpty($resp['members']);
+        foreach ($resp['members'] as $actualFakeUser) {
+            $this->assertArrayHasKey($actualFakeUser['user_id'],
+                                     $expectedFakeUsers);
+            $expectedFakeUser =
+                $expectedFakeUsers[$actualFakeUser['user_id']]['fakeUser'];
+            $expectedRoles =
+                $expectedFakeUsers[$actualFakeUser['user_id']]['roles'];
+            $this->assertNotEmpty($expectedFakeUser);
+            $this->assertEquals($expectedFakeUser->name,
+                                $actualFakeUser['name']);
+            $this->assertEquals($expectedFakeUser->first_name,
+                                $actualFakeUser['given_name']);
+            $this->assertEquals($expectedFakeUser->last_name,
+                                $actualFakeUser['family_name']);
+            $this->assertEquals($expectedFakeUser->email,
+                                $actualFakeUser['email']);
+            $this->assertEquals($expectedRoles,
+                                $actualFakeUser['roles']);
+        }
+    }
+
+    /**
+     * Test that a second NRPS with changed user information will also update
+     * our real user info.
+     */
+    public function testExistingUsersAreUpdated()
+    {
+        // set up our fake NRPS response so that our second NRPS call changes
+        // users email and name
+        $secondFakeNrps = $this->fakeNrps;
+        $secondFakeNrps['members'][0]['name'] = "instructorOne";
+        $secondFakeNrps['members'][0]['email'] = "instructorOne@example.com";
+        $secondFakeNrps['members'][1]['name'] = "studentOne";
+        $fakeNrpsResponse = Http::sequence()
+            ->push($this->fakeNrps, Response::HTTP_OK)
+            ->push($secondFakeNrps);
+        $this->setupHttpFake($fakeNrpsResponse);
+        // do the first nrps call
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->nrps->getShimUrl());
+        $resp->assertStatus(Response::HTTP_OK);
+        // do the second nrps call
+        $resp = $this->withHeaders($this->headers)
+                     ->get($this->nrps->getShimUrl());
+        //$resp->dump();
+        $resp->assertStatus(Response::HTTP_OK);
+        // make sure that the users we got back have been entered into database
+        $this->assertNotEmpty($secondFakeNrps['members']); // sanity check, make
+                                                // sure we aren't skipping loop
+        foreach ($secondFakeNrps['members'] as $expectedRealUser) {
+            $actualRealUser = LtiRealUser::firstWhere('sub',
+                                                  $expectedRealUser['user_id']);
+            $this->assertNotEmpty($actualRealUser);
+            $this->assertEquals($expectedRealUser['name'],
+                                $actualRealUser->name);
+            $this->assertEquals($expectedRealUser['email'],
+                                $actualRealUser->email);
+            $this->assertEquals($this->platform->id,
+                                $actualRealUser->platform_id);
+            // make sure the real users also has a fake user created
+            $fakeUser = $actualRealUser->lti_fake_users()->first();
+            $this->assertNotEmpty($fakeUser);
+            $this->assertEquals($this->tool->id, $fakeUser->tool_id);
+        }
     }
 }
