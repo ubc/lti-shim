@@ -42,8 +42,9 @@ class NrpsTest extends TestCase
         parent::setUp();
         // setup the database
         $this->seed();
-        $this->tool = Tool::find(2);
-        $this->platform = Platform::find(3); // canvas test
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+        $this->platform = Platform::where('iss',
+            'https://canvas.test.instructure.com')->first(); // canvas test
         $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->platform->id
         ]);
@@ -253,17 +254,34 @@ class NrpsTest extends TestCase
         $resp = $this->withHeaders($this->headers)->get($nrps->getShimurl());
         $resp->assertStatus(Response::HTTP_OK);
         // make sure the link urls were rewritten to shim URLs
+        // grab the NRPS entries that should've been created
+        $actualCurrentNrps = Nrps::where(
+                'context_memberships_url',
+                'http://192.168.55.182:8900/api/lti/courses/1/names_and_roles?page=1&per_page=1'
+            )
+            ->first();
+        $this->assertNotEmpty($actualCurrentNrps);
+        $actualNextNrps = Nrps::where(
+                'context_memberships_url',
+                'http://192.168.55.182:8900/api/lti/courses/1/names_and_roles?page=2&per_page=1'
+            )
+            ->first();
+        $this->assertNotEmpty($actualNextNrps);
+        $expectedCurrentNrpsLink = 'http://localhost/lti/nrps/platform/' .
+            $actualCurrentNrps->id;
+        $expectedNextNrpsLink = 'http://localhost/lti/nrps/platform/' .
+            $actualNextNrps->id;
         $resp->assertHeader('link',
-            '<http://localhost/lti/nrps/platform/3>; rel="current",<http://localhost/lti/nrps/platform/4>; rel="next",<http://localhost/lti/nrps/platform/3>; rel="first",<http://localhost/lti/nrps/platform/4>; rel="last"');
+            '<'.$expectedCurrentNrpsLink.'>; rel="current",<'.$expectedNextNrpsLink.'>; rel="next",<'.$expectedCurrentNrpsLink.'>; rel="first",<'.$expectedNextNrpsLink.'>; rel="last"');
         // make sure corresponding NRPS entries are in the database
-        $actualNrps = Nrps::find(3);
-        $this->assertNotEmpty($actualNrps);
-        $this->assertEquals('http://localhost/lti/nrps/platform/3',
-            $actualNrps->getShimUrl());
-        $actualNrps = Nrps::find(4);
-        $this->assertNotEmpty($actualNrps);
-        $this->assertEquals('http://localhost/lti/nrps/platform/4',
-            $actualNrps->getShimUrl());
+        $this->assertEquals(
+            $expectedCurrentNrpsLink,
+            $actualCurrentNrps->getShimUrl()
+        );
+        $this->assertEquals(
+            $expectedNextNrpsLink,
+            $actualNextNrps->getShimUrl()
+        );
     }
 
     /**
@@ -329,7 +347,8 @@ class NrpsTest extends TestCase
     public function testRejectAccessTokenWithIncorrectTool()
     {
         $this->setupHttpFake();
-        $tool = Tool::find(3);
+        $tool = Tool::where('name', 'LTI Reference Implementation Tool')
+                    ->first();
         $accessToken = $this->tokenHelper->create(
             $tool,
             ['https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly']

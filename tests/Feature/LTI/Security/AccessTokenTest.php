@@ -35,8 +35,10 @@ class AccessTokenTest extends TestCase
     {
         parent::setUp();
         $this->seed();
-        $this->platform = Platform::find(3);
-        $this->tool = Tool::find(2);
+        $this->platform = Platform::where('iss',
+            'https://canvas.test.instructure.com')->first(); // canvas test
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+
         $ltiLog = new LtiLog('AccessTokenTest');
         $this->tokenHelper = new AccessToken($ltiLog);
         Http::fake([
@@ -122,7 +124,9 @@ class AccessTokenTest extends TestCase
     public function testDontCacheShortLivedTokens()
     {
         // switch platform so we can fake a request with a shorter expiry
-        $platform = Platform::find(2);
+        $platform = Platform::where('iss',
+            'https://lti-ri.imsglobal.org')->first();
+
         Http::fake([
             $platform->access_token_url =>  Http::response([
                 'access_token' => self::EXPECTED_ACCESS_TOKEN,
@@ -147,7 +151,8 @@ class AccessTokenTest extends TestCase
     public function testExpirationNotANumber()
     {
         // switch platform so we can fake a request with a shorter expiry
-        $platform = Platform::find(2);
+        $platform = Platform::where('iss',
+            'https://lti-ri.imsglobal.org')->first();
         Http::fake([
             $platform->access_token_url =>  Http::response([
                 'access_token' => self::EXPECTED_ACCESS_TOKEN,

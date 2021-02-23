@@ -15,7 +15,7 @@ class PlatformSeeder extends Seeder
     public function run()
     {
         // insert the shim and associated key
-        DB::table('platforms')->insert([
+        $platformId = DB::table('platforms')->insertGetId([
             'name' => 'LTI Shim Platform Side',
             'iss' => config('lti.iss'),
             'auth_req_url' => route('lti.launch.platform.authReq'),
@@ -24,7 +24,7 @@ class PlatformSeeder extends Seeder
         ]);
         DB::table('platform_keys')->insert([
             'kid' => 'ExampleKey',
-            'platform_id' => 1,
+            'platform_id' => $platformId,
             'key' => '{
                 "kid": "ExampleKey",
                 "alg": "RS256",
@@ -46,7 +46,7 @@ class PlatformSeeder extends Seeder
         ]);
 
         // insert the reference implementation platform
-        DB::table('platforms')->insert([
+        $platformId = DB::table('platforms')->insertGetId([
             'name' => 'Reference Implementation',
             'iss' => 'https://lti-ri.imsglobal.org',
             'auth_req_url' => 'https://lti-ri.imsglobal.org/platforms/643/authorizations/new',
@@ -58,7 +58,7 @@ class PlatformSeeder extends Seeder
         // this is the RI platform's public key
         DB::table('platform_keys')->insert([
             'kid' => 'FakeKeyID',
-            'platform_id' => 2,
+            'platform_id' => $platformId,
             'key' => '{
                 "kid": "FakeKeyID",
                 "alg": "RS256",

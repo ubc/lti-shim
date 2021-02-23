@@ -15,7 +15,7 @@ class ToolSeeder extends Seeder
     public function run()
     {
         // insert the shim's tool side
-        DB::table('tools')->insert([
+        $toolId = DB::table('tools')->insertGetId([
             'name' => 'LTI Shim Tool Side',
             'client_id' => config('lti.own_tool_client_id'),
             'oidc_login_url' => route('lti.launch.tool.login'),
@@ -25,7 +25,7 @@ class ToolSeeder extends Seeder
         ]);
         DB::table('tool_keys')->insert([
             'kid' => 'MyDummyKey',
-            'tool_id' => 1,
+            'tool_id' => $toolId,
             'key' => '{
                 "kid": "MyDummyKey",
                 "alg": "RS256",

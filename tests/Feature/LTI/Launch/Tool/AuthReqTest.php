@@ -31,9 +31,10 @@ class AuthReqTest extends TestCase
         parent::setUp();
         $this->seed();
 
-        $this->tool = Tool::find(2);
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
         $this->shimTool = Tool::getOwnTool();
-        $this->platform = Platform::find(2);
+        $this->platform = Platform::where('iss',
+            'https://canvas.test.instructure.com')->first(); // canvas test
         $this->platformClient = $this->tool->getPlatformClient(
                                                         $this->platform->id);
         $this->goodParams = [
