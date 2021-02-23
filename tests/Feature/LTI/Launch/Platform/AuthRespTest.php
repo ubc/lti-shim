@@ -50,7 +50,10 @@ class AuthRespTest extends TestCase
         parent::setUp();
         // set up a known good request
         $this->tool = Tool::factory()->create();
-        $this->shimPlatform = Platform::factory()->create(['id' => 1]);
+        $this->shimPlatform = Platform::factory()->create([
+            'id' => 1,
+            'iss' => config('lti.iss')
+        ]);
         $this->platform = Platform::factory()->create(['id' => 2]);
         $this->encryptionKey = EncryptionKey::factory()->create();
         $this->deployment = Deployment::factory()->create([
@@ -335,7 +338,7 @@ class AuthRespTest extends TestCase
         //$response->dump();
         $response->assertStatus(Response::HTTP_OK);
         $jwt = $this->getJwtFromResponse($response);
-        $agsLineitem = AgsLineitem::find(1);
+        $agsLineitem = AgsLineitem::first();
         $this->assertEquals($agsLineitem->lineitem, $expectedLineitemUrl);
         $this->assertEquals(
             $jwt->claims->get($claimUri)['lineitem'],
@@ -365,7 +368,7 @@ class AuthRespTest extends TestCase
         $jwt = $this->getJwtFromResponse($response);
         // need to get the expected return_url, since it should've been filtered
         // to a shim platform url
-        $returnUrl = ReturnUrl::find(1);
+        $returnUrl = ReturnUrl::first();
         $expectedClaimVals['return_url'] = $returnUrl->getShimUrl();
         // make sure we have the launch presentation claim
         $this->assertTrue($jwt->claims->has($claimUri));

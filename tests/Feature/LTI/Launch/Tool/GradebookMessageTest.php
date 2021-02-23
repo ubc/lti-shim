@@ -40,8 +40,9 @@ class GradebookMessageTest extends TestCase
         parent::setUp();
         $this->seed();
         // known good request
-        $this->tool = Tool::find(2);
-        $this->platform = Platform::find(2);
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+        $this->platform = Platform::where('iss',
+            'https://lti-ri.imsglobal.org')->first(); // RI has seeded key
         $this->client = $this->tool->getPlatformClient($this->platform->id);
         $encryptionKey = EncryptionKey::factory()->create();
         $this->deployment = Deployment::factory()->create([

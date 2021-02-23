@@ -45,8 +45,9 @@ class AgsLineitemTest extends TestCase
         parent::setUp();
         // setup the database
         $this->seed();
-        $this->tool = Tool::find(2);
-        $this->platform = Platform::find(3); // canvas test
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+        $this->platform = Platform::where('iss',
+            'https://canvas.test.instructure.com')->first(); // canvas test
         $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->platform->id
         ]);
@@ -173,7 +174,7 @@ class AgsLineitemTest extends TestCase
         //$resp->dump();
         // request should match what we faked for the platform url
         $resp->assertStatus(Response::HTTP_OK);
-        $lineitem = AgsLineitem::find(1);
+        $lineitem = AgsLineitem::first();
         $expectedLineitems = $expectedRawLineitems;
         $expectedLineitems[0]['id'] = $lineitem->getShimLineitemUrl();
         $resp->assertJson($expectedLineitems);
@@ -213,18 +214,27 @@ class AgsLineitemTest extends TestCase
         $resp->assertStatus(Response::HTTP_OK);
         // make sure that the link header was properly replaced and that
         // the correct Ags entries are in the database
+
+        $agsCurrent = Ags::where(
+                'lineitems',
+                'http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=1&per_page=1'
+            )
+            ->first();
+        $agsCurrentUrl = 'http://localhost/lti/ags/platform/' . $agsCurrent->id;
+        $agsNext = Ags::where(
+                'lineitems',
+                'http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=2&per_page=1'
+            )
+            ->first();
+        $agsNextUrl = 'http://localhost/lti/ags/platform/' . $agsNext->id;
         $resp->assertHeader('link',
-            '<http://localhost/lti/ags/platform/2>; rel="current",<http://localhost/lti/ags/platform/3>; rel="next"');
-        $ags = Ags::find(2);
-        $this->assertEquals($ags->lineitems,
+            '<'.$agsCurrentUrl.'>; rel="current",<'.$agsNextUrl.'>; rel="next"');
+        $this->assertEquals($agsCurrent->lineitems,
             'http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=1&per_page=1');
-        $this->assertEquals($ags->getShimLineitemsUrl(),
-            'http://localhost/lti/ags/platform/2');
-        $ags = Ags::find(3);
-        $this->assertEquals($ags->lineitems,
+        $this->assertEquals($agsCurrent->getShimLineitemsUrl(), $agsCurrentUrl);
+        $this->assertEquals($agsNext->lineitems,
             'http://192.168.55.182:8900/api/lti/courses/1/lineitems?page=2&per_page=1');
-        $this->assertEquals($ags->getShimLineitemsUrl(),
-            'http://localhost/lti/ags/platform/3');
+        $this->assertEquals($agsNext->getShimLineitemsUrl(), $agsNextUrl);
     }
 
     /**
@@ -294,7 +304,8 @@ class AgsLineitemTest extends TestCase
         $resp->assertStatus(Response::HTTP_CREATED);
         // the returned lineitem should have a lineitem url added, and since
         // there's no existing lineitem in the db, it should be first one
-        $expectedLineitem['id'] = $ags->getShimLineitemsUrl() . '/lineitem/1';
+        $expectedLineitem['id'] = $ags->getShimLineitemsUrl() . '/lineitem/' .
+            ($ags->id + 1);
         $resp->assertJson($expectedLineitem);
     }
 
@@ -341,13 +352,15 @@ class AgsLineitemTest extends TestCase
         // try to delete the first lineitem
         $lineitemUrl = $resp->json()[0]['id'];
         // make sure the lineitem entry is there before deletion
-        $this->assertNotEmpty(AgsLineitem::find(1));
+        $ags = AgsLineitem::first();
+        $this->assertNotEmpty($ags);
+        $agsId = $ags->id;
         // send the DELETE request
         $resp = $this->withHeaders($this->headers)
                      ->delete($lineitemUrl);
         $resp->assertStatus(Response::HTTP_NO_CONTENT);
         // lineitem entry should be gone after deletion
-        $this->assertEmpty(AgsLineitem::find(1));
+        $this->assertEmpty(AgsLineitem::find($agsId));
     }
 
     /**
@@ -440,8 +453,14 @@ class AgsLineitemTest extends TestCase
         //$resp->dump();
         // request should match what we faked for the platform url
         $resp->assertStatus(Response::HTTP_OK);
-        $lineitem1 = AgsLineitem::find(1);
-        $lineitem2 = AgsLineitem::find(2);
+        $lineitem1 = AgsLineitem::where(
+                'lineitem',
+                'https://lms.example.com/context/111/lineitems/1'
+            )->first();
+        $lineitem2 = AgsLineitem::where(
+                'lineitem',
+                'https://lms.example.com/context/222/lineitems/2'
+            )->first();
         $expectedLineitems = $expectedRawLineitems;
         $expectedLineitems[0]['id'] = $lineitem1->getShimLineitemUrl();
         $expectedLineitems[1]['id'] = $lineitem2->getShimLineitemUrl();

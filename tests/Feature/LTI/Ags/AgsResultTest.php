@@ -49,8 +49,9 @@ class AgsResultTest extends TestCase
         parent::setUp();
         // setup the database
         $this->seed();
-        $this->tool = Tool::find(2);
-        $this->platform = Platform::find(3); // canvas test
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+        $this->platform = Platform::where('iss',
+            'https://canvas.test.instructure.com')->first(); // canvas test
         $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->platform->id
         ]);
@@ -173,8 +174,9 @@ class AgsResultTest extends TestCase
         $expectedResults = $expectedRawResults;
         $expectedResults[0]['scoreOf'] =
             $this->lineitem->getShimLineitemUrl();
+        $agsResult = AgsResult::first();
         $expectedResults[0]['id'] =
-            $this->lineitem->shim_lineitem_results_url . '/1';
+            $this->lineitem->shim_lineitem_results_url . '/' . $agsResult->id;
         $expectedResults[0]['userId'] = $fakeUser1->sub;
         $resp->assertJson($expectedResults);
     }
@@ -223,15 +225,18 @@ class AgsResultTest extends TestCase
         // request should match what we faked for the platform url
         $resp->assertStatus(Response::HTTP_OK);
 
+        $results = AgsResult::get();
+        $resultUrl1 = 'http://localhost/lti/ags/platform/'. $this->ags->id .
+            '/lineitem/'. $this->lineitem->id .'/results/'. $results[1]->id;
+        $resultUrl2 = 'http://localhost/lti/ags/platform/'. $this->ags->id .
+            '/lineitem/'. $this->lineitem->id .'/results/'. $results[2]->id;
         // make sure that the link header was properly replaced and that
         // the correct Ags entries are in the database
         $resp->assertHeader('link',
-            '<http://localhost/lti/ags/platform/1/lineitem/1/results/2>; rel="current",<http://localhost/lti/ags/platform/1/lineitem/1/results/3>; rel="next"');
-        $result = AgsResult::find(2);
-        $this->assertEquals($result->result,
+            '<'.$resultUrl1.'>; rel="current",<'.$resultUrl2.'>; rel="next"');
+        $this->assertEquals($results[1]->result,
             'http://192.168.55.182:8900/api/lti/courses/1/lineitems/1/results?page=1&per_page=1');
-        $this->assertEquals($result->shim_url,
-            'http://localhost/lti/ags/platform/1/lineitem/1/results/2');
+        $this->assertEquals($results[1]->shim_url, $resultUrl1);
     }
 
     /**
@@ -256,15 +261,16 @@ class AgsResultTest extends TestCase
         $fakeUser2 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
             $this->ags->tool_id, $this->realUser2);
         $expectedResults = $this->fakeResults;
+        $results = AgsResult::get();
         $expectedResults[0]['scoreOf'] =
             $this->lineitem->getShimLineitemUrl();
         $expectedResults[0]['id'] =
-            $this->lineitem->shim_lineitem_results_url . '/2';
+            $this->lineitem->shim_lineitem_results_url . '/' . $results[1]->id;
         $expectedResults[0]['userId'] = $fakeUser1->sub;
         $expectedResults[1]['scoreOf'] =
             $this->lineitem->getShimLineitemUrl();
         $expectedResults[1]['id'] =
-            $this->lineitem->shim_lineitem_results_url . '/3';
+            $this->lineitem->shim_lineitem_results_url . '/' . $results[2]->id;
         $expectedResults[1]['userId'] = $fakeUser2->sub;
         $resp->assertJson($expectedResults);
     }
@@ -288,11 +294,12 @@ class AgsResultTest extends TestCase
         $resp->assertStatus(Response::HTTP_OK);
         $fakeUser1 = LtiFakeUser::getByRealUser($this->ags->course_context_id,
             $this->ags->tool_id, $this->realUser1);
+        $results = AgsResult::get();
         $expectedResults = [$this->fakeResults[0]];
         $expectedResults[0]['scoreOf'] =
             $this->lineitem->getShimLineitemUrl();
         $expectedResults[0]['id'] =
-            $this->lineitem->shim_lineitem_results_url . '/2';
+            $this->lineitem->shim_lineitem_results_url . '/' . $results[1]->id;
         $expectedResults[0]['userId'] = $fakeUser1->sub;
         $resp->assertJson($expectedResults);
     }

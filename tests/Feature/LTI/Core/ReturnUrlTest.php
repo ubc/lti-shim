@@ -43,8 +43,9 @@ class ReturnUrlTest extends TestCase
         parent::setUp();
         // setup the database
         $this->seed();
-        $this->tool = Tool::find(2);
-        $this->platform = Platform::find(3); // canvas test
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+        $this->platform = Platform::where('iss',
+            'https://canvas.test.instructure.com')->first(); // canvas test
         $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->platform->id
         ]);

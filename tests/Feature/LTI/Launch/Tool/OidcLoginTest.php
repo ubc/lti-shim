@@ -25,8 +25,10 @@ class OidcLoginTest extends TestCase
         parent::setUp();
         $this->seed();
 
-        $this->platform = Platform::find(2);
-        $this->tool = Tool::find(2);
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+        $this->platform = Platform::where('iss',
+            'https://lti-ri.imsglobal.org')->first();
+        
 
         $this->goodParams = [
             'iss' => $this->platform->iss,

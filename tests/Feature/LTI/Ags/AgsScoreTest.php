@@ -49,8 +49,9 @@ class AgsScoreTest extends TestCase
         parent::setUp();
         // setup the database
         $this->seed();
-        $this->tool = Tool::find(2);
-        $this->platform = Platform::find(3); // canvas test
+        $this->tool = Tool::where('name', 'Ltijs Demo Server')->first();
+        $this->platform = Platform::where('iss',
+            'https://canvas.test.instructure.com')->first(); // canvas test
         $this->deployment = Deployment::factory()->create([
             'platform_id' => $this->platform->id
         ]);
@@ -120,7 +121,7 @@ class AgsScoreTest extends TestCase
         //$resp->dump();
         $resp->assertStatus(Response::HTTP_OK);
         // should've created a result entry in the database
-        $result = AgsResult::find(1);
+        $result = AgsResult::first();
         $expectedResultUrl = [
             'resultUrl' => $result->shim_url
         ];

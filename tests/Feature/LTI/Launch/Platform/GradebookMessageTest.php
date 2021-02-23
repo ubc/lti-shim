@@ -49,7 +49,10 @@ class GradebookMessageTest extends TestCase
         parent::setUp();
         // set up a known good request
         $this->tool = Tool::factory()->create();
-        $this->shimPlatform = Platform::factory()->create(['id' => 1]);
+        $this->shimPlatform = Platform::factory()->create([
+            'id' => 1,
+            'iss' => config('lti.iss')
+        ]);
         $this->platform = Platform::factory()->create(['id' => 2]);
         $this->encryptionKey = EncryptionKey::factory()->create();
         $this->deployment = Deployment::factory()->create([

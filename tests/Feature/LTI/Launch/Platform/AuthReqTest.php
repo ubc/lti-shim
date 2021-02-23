@@ -35,7 +35,10 @@ class AuthReqTest extends TestCase
         $baseUrl = '/lti/launch/platform/auth';
         // known good request
         $tool = Tool::factory()->create();
-        $shimPlatform = Platform::factory()->create(['id' => 1]);
+        $shimPlatform = Platform::factory()->create([
+            'id' => 1,
+            'iss' => config('lti.iss')
+        ]);
         $platform = Platform::factory()->create(['id' => 2]);
         $platformClient = PlatformClient::factory()->create([
             'platform_id' => $platform->id,

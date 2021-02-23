@@ -14,17 +14,23 @@ class PlatformClientSeeder extends Seeder
      */
     public function run()
     {
+        $ltijsTool = DB::table('tools')->where('name', 'Ltijs Demo Server')
+                                       ->first();
+        $riPlatform = DB::table('platforms')
+            ->where('iss', 'https://lti-ri.imsglobal.org')->first();
         // insert ltijs tool client_id on reference implementation platform
         DB::table('platform_clients')->insert([
-            'platform_id' => 2,
-            'tool_id' => 2,
+            'platform_id' => $riPlatform->id,
+            'tool_id' => $ltijsTool->id,
             'client_id' => 'StrawberryCat'
         ]);
 
+        $testCanvasPlatform = DB::table('platforms')
+            ->where('iss', 'https://canvas.test.instructure.com')->first();
         // insert ltijs tool client_id on test canavas
         DB::table('platform_clients')->insert([
-            'platform_id' => 3,
-            'tool_id' => 2,
+            'platform_id' => $testCanvasPlatform->id,
+            'tool_id' => $ltijsTool->id,
             'client_id' => '112240000000000113'
         ]);
     }

@@ -19,7 +19,10 @@ class JwksTest extends TestCase
     {
         $baseUrl = '/lti/platform/jwks';
         // the factory should've created at least 1 key
-        $myPlatform = Platform::factory()->create(['id' => 1]);
+        $myPlatform = Platform::factory()->create([
+            'id' => 1,
+            'iss' => config('lti.iss')
+        ]);
         $keys = $myPlatform->keys;
         $expectedJson = ['keys' => []];
         foreach ($keys as $key) {
@@ -40,7 +43,10 @@ class JwksTest extends TestCase
     {
         $baseUrl = '/lti/tool/jwks';
         // the factory should've created at least 1 key
-        $myTool = Tool::factory()->create(['id' => 1]);
+        $myTool = Tool::factory()->create([
+            'id' => 1,
+            'client_id' => config('lti.own_tool_client_id')
+        ]);
         $keys = $myTool->keys;
         $expectedJson = ['keys' => []];
         foreach ($keys as $key) {
