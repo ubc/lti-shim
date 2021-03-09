@@ -1,9 +1,6 @@
 import axios from 'axios'
 import Vue from 'vue'
 
-// calls Laravel Fortify provided methods for authentication, also will
-// initialize the CSRF token
-
 const USERS_URL = '/api/midway/users/'
 
 const lookup = {
@@ -13,7 +10,8 @@ const lookup = {
     toolName: '',
     toolId: null,
     courseContextId: null,
-    users: []
+    users: [],
+    totalUsers: 0
   },
   mutations: {
     setPlatformName(state, value) {
@@ -33,19 +31,22 @@ const lookup = {
     },
     setUsers(state, value) {
       state.users = value
+    },
+    setTotalUsers(state, value) {
+      state.totalUsers = value
     }
   },
   getters: {
   },
   actions: {
-    getUsers(context) {
+    getUsers(context, params) {
       let url = USERS_URL + 'course_context/' + context.state.courseContextId +
         '/tool/' + context.state.toolId
-      // axios should automatically set the CSRF header from the returned
-      // values
-      return axios.get(url)
+      // encode the params in the URL query.
+      return axios.get(url, {'params': params})
         .then(response => {
-          context.commit('setUsers', response.data)
+          context.commit('setUsers', response.data.data)
+          context.commit('setTotalUsers', response.data.total)
           return response
         })
         .catch(response => {

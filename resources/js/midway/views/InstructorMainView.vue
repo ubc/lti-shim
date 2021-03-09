@@ -76,13 +76,16 @@ export default {
   methods: {
   },
   mounted() {
+    this.$refs.continueButton.focus();
+  },
+  created() {
+    // Initialization needs to be in created() cause mounted() is too late.
+    // Child components will make api calls before our mounted() is called.
     axios.defaults.headers.common['Authorization'] = 'Bearer ' + this.token;
     this.$store.commit('lookup/setCourseContextId', this.courseContextId)
     this.$store.commit('lookup/setPlatformName', this.platformName)
     this.$store.commit('lookup/setToolName', this.toolName)
     this.$store.commit('lookup/setToolId', this.toolId)
-    this.$store.dispatch('lookup/getUsers')
-    this.$refs.continueButton.focus();
   }
 }
 </script>
