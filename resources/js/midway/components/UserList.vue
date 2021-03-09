@@ -6,28 +6,52 @@
         <h5>
         Search for Identities:
         </h5>
+        <!-- Toggle between Tool (fake users) and Platform (real users) -->
         <div class="custom-control custom-radio custom-control-inline">
           <input type="radio" id="searchTargetTool" name="searchTarget"
-            v-model='isSearchTargetTool' :value='true'
+            v-model='serverParams.isToolSide' :value='true'
             class="custom-control-input">
           <label for="searchTargetTool" class="custom-control-label">
             in {{ tool }}</label>
         </div>
         <div class="custom-control custom-radio custom-control-inline">
           <input type="radio" id="searchTargetPlatform" name="searchTarget"
-            v-model='isSearchTargetTool' :value='false'
+            v-model='serverParams.isToolSide' :value='false'
             class="custom-control-input">
           <label for="searchTargetPlatform" class="custom-control-label">
             in {{ platform }}</label>
         </div>
-
-        <vue-good-table :columns='columns' :rows='usersComputed' class='mt-3'
-             :sort-options='sortOptions' :search-options='searchOptions'
-             @on-row-click='showRealUser'
-          >
-          <div slot='emptystate'>
-            No users found!
+        <!-- Search box  -->
+        <form class='form mt-4' v-on:submit.prevent="onSearch">
+          <div class='d-flex'>
+            <label for="search" class='flex-shrink-1 mr-1'>
+              <SearchIcon title='Search' class='h2 text-secondary' />
+            </label>
+            <input type="text" name="search" id="search" v-model='search'
+              class='form-control flex-grow-1 mr-2'
+              :placeholder='searchPlaceholder' />
+            <div class='flex-shrink-1'>
+              <button type='submit' class='btn btn-secondary'>Search</button>
+            </div>
           </div>
+        </form>
+        <!-- Search indicator -->
+        <div v-if='serverParams.search' class='text-muted'>
+          <small>
+          Searching for "{{ serverParams.search }}"
+          </small>
+        </div>
+        <!-- Users table -->
+        <vue-good-table mode='remote'
+                        @on-page-change='onPageChange'
+                        @on-sort-change='onSortChange'
+                        @on-per-page-change='onPerPageChange'
+                        @on-row-click='showRealUser'
+                        :pagination-options='paginationOptions'
+                        :search-options='{enabled: true, externalQuery: search}'
+                        :totalRows="totalUsers"
+                        :columns='columns'
+                        :rows='usersComputed' />
         </vue-good-table>
       </div>
     </div>
@@ -62,6 +86,7 @@
 
 <script>
 import BackIcon from 'icons/ArrowLeft'
+import SearchIcon from 'icons/Magnify'
 
 import { VueGoodTable } from 'vue-good-table'
 
@@ -69,11 +94,12 @@ export default {
   name: "UserList",
   components: {
     BackIcon,
+    SearchIcon,
     VueGoodTable
   },
   computed: {
     columns() {
-      if (this.isSearchTargetTool) {
+      if (this.serverParams.isToolSide) {
         return [
           {
             label: 'Name in ' + this.tool,
@@ -97,20 +123,12 @@ export default {
       ]
     },
     platform() { return this.$store.state.lookup.platformName },
-    sortOptions() {
-      if (this.isSearchTargetTool) {
-        return {
-          enabled: true,
-          initialSortBy: {field: 'name', type: 'asc'}
-        }
-      }
-      return {
-        enabled: true,
-        initialSortBy: {field: 'lti_real_user.name', type: 'asc'}
-      }
+    searchPlaceholder() {
+      return 'Search identities in ' + this.tool
     },
     tool() { return this.$store.state.lookup.toolName },
     users() { return this.$store.state.lookup.users },
+    totalUsers() { return this.$store.state.lookup.totalUsers },
     // some real users do not have student numbers, but vue-good-table will
     // complain if the student number column is missing, so we need to put an
     // empty string there to keep vue-good-table happy
@@ -127,10 +145,9 @@ export default {
     },
   },
   data() { return {
-    isSearchTargetTool: true,
-    searchOptions: {
+    paginationOptions: {
       enabled: true,
-      placeholder: 'Search identities in ' + this.tool
+      dropdownAllowAll: false
     },
     userInfo: {
       selectedName: '',
@@ -138,11 +155,25 @@ export default {
       revealedName: '',
       revealedStudentNumber: ''
     },
-    showUserInfo: false
+    showUserInfo: false,
+    // since the user list could be huge (thousands of users), we don't want to
+    // rely on the client side for paging/sort/filtering. So have to tell the
+    // server  about paging/sort/filter params.
+    serverParams: {
+      isToolSide: true,
+      search: '',
+      sortType: '',
+      sortField: '',
+      page: 1,
+      perPage: 10
+    },
+    search: '' // NOT a dup of serverParams.search. This holds the value of the
+               // search input box, which is updated on every keypress. The one
+               // in serverParams only gets updated when we submit the search.
   }},
   methods: {
     showRealUser(params) {
-      if (this.isSearchTargetTool) {
+      if (this.serverParams.isToolSide) {
         this.userInfo.selectedName = params.row.name
         this.userInfo.selectedStudentNumber = params.row.student_number
         this.userInfo.revealedName = params.row.lti_real_user.name
@@ -160,9 +191,37 @@ export default {
     },
     hideRealUser() {
       this.showUserInfo = false
+    },
+
+    updateServerParams(params) {
+      this.serverParams = Object.assign({}, this.serverParams, params)
+    },
+
+    onPageChange(params) {
+      this.updateServerParams({page: params.currentPage})
+      this.loadItems()
+    },
+    onPerPageChange(params) {
+      this.updateServerParams({perPage: params.currentPerPage})
+      this.loadItems()
+    },
+    onSortChange(params) {
+      this.updateServerParams({
+        sortType: params[0].type,
+        sortField: params[0].field
+      })
+      this.loadItems()
+    },
+    onSearch(params) {
+      this.updateServerParams({search: this.search})
+      this.loadItems()
+    },
+    loadItems() {
+      this.$store.dispatch('lookup/getUsers', this.serverParams)
     }
   },
   mounted() {
+    this.loadItems()
   }
 }
 </script>
