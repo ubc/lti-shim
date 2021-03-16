@@ -9,15 +9,15 @@
         <!-- Toggle between Tool (fake users) and Platform (real users) -->
         <div class="custom-control custom-radio custom-control-inline">
           <input type="radio" id="searchTargetTool" name="searchTarget"
-            v-model='serverParams.isToolSide' :value='true'
-            class="custom-control-input">
+            v-model='serverParams.showToolUsers' :value='true'
+            class="custom-control-input" @change='onToolPlatformToggle'>
           <label for="searchTargetTool" class="custom-control-label">
             in {{ tool }}</label>
         </div>
         <div class="custom-control custom-radio custom-control-inline">
           <input type="radio" id="searchTargetPlatform" name="searchTarget"
-            v-model='serverParams.isToolSide' :value='false'
-            class="custom-control-input">
+            v-model='serverParams.showToolUsers' :value='false'
+            class="custom-control-input" @change='onToolPlatformToggle'>
           <label for="searchTargetPlatform" class="custom-control-label">
             in {{ platform }}</label>
         </div>
@@ -47,6 +47,7 @@
                         @on-sort-change='onSortChange'
                         @on-per-page-change='onPerPageChange'
                         @on-row-click='showRealUser'
+                        :isLoading.sync='isLoading'
                         :pagination-options='paginationOptions'
                         :search-options='{enabled: true, externalQuery: search}'
                         :totalRows="totalUsers"
@@ -65,8 +66,8 @@
         <table class='table table-bordered mt-3'>
           <thead class='theadVueGoodTable'>
             <tr>
-              <th scope='col'>Name in {{ platform }}</th>
-              <th scope='col'>Student Number in {{ platform }}</th>
+              <th scope='col'>Name in {{ userInfo.appName }}</th>
+              <th scope='col'>Student Number in {{ userInfo.appName }}</th>
             </tr>
           </thead>
           <tbody>
@@ -99,7 +100,7 @@ export default {
   },
   computed: {
     columns() {
-      if (this.serverParams.isToolSide) {
+      if (this.serverParams.showToolUsers) {
         return [
           {
             label: 'Name in ' + this.tool,
@@ -113,18 +114,20 @@ export default {
       }
       return [
         {
-          label: 'Name in ' + this.tool,
+          label: 'Name in ' + this.platform,
           field: 'lti_real_user.name'
         },
         {
-          label: 'Student Number in ' + this.tool,
+          label: 'Student Number in ' + this.platform,
           field: 'lti_real_user.student_number'
         }
       ]
     },
     platform() { return this.$store.state.lookup.platformName },
     searchPlaceholder() {
-      return 'Search identities in ' + this.tool
+      if (this.serverParams.showToolUsers)
+        return 'Search identities in ' + this.tool
+      return 'Search identities in ' + this.platform
     },
     tool() { return this.$store.state.lookup.toolName },
     users() { return this.$store.state.lookup.users },
@@ -145,35 +148,38 @@ export default {
     },
   },
   data() { return {
+    isLoading: false,
     paginationOptions: {
       enabled: true,
       dropdownAllowAll: false
-    },
-    userInfo: {
-      selectedName: '',
-      selectedStudentNumber: '',
-      revealedName: '',
-      revealedStudentNumber: ''
     },
     showUserInfo: false,
     // since the user list could be huge (thousands of users), we don't want to
     // rely on the client side for paging/sort/filtering. So have to tell the
     // server  about paging/sort/filter params.
     serverParams: {
-      isToolSide: true,
+      showToolUsers: true,
       search: '',
       sortType: '',
       sortField: '',
       page: 1,
       perPage: 10
     },
-    search: '' // NOT a dup of serverParams.search. This holds the value of the
-               // search input box, which is updated on every keypress. The one
-               // in serverParams only gets updated when we submit the search.
+    search: '', // NOT a dup of serverParams.search. This holds the value of the
+                // search input box, which is updated on every keypress. The one
+                // in serverParams only gets updated when we submit the search.
+    userInfo: {
+      appName: '',
+      selectedName: '',
+      selectedStudentNumber: '',
+      revealedName: '',
+      revealedStudentNumber: ''
+    },
   }},
   methods: {
     showRealUser(params) {
-      if (this.serverParams.isToolSide) {
+      if (this.serverParams.showToolUsers) {
+        this.userInfo.appName = this.platform
         this.userInfo.selectedName = params.row.name
         this.userInfo.selectedStudentNumber = params.row.student_number
         this.userInfo.revealedName = params.row.lti_real_user.name
@@ -181,6 +187,7 @@ export default {
           params.row.lti_real_user.student_number
       }
       else {
+        this.userInfo.appName = this.tool
         this.userInfo.selectedName = params.row.lti_real_user.name
         this.userInfo.selectedStudentNumber =
           params.row.lti_real_user.student_number
@@ -216,8 +223,19 @@ export default {
       this.updateServerParams({search: this.search})
       this.loadItems()
     },
+    onToolPlatformToggle() {
+      this.isLoading = true
+      // need to reset sort as API will error out if we try to sort by real
+      // user fields when on the tool side
+      this.updateServerParams({
+        sortType: '',
+        sortField: ''
+      })
+      this.loadItems()
+    },
     loadItems() {
       this.$store.dispatch('lookup/getUsers', this.serverParams)
+        .finally(() => { this.isLoading = false })
     }
   },
   mounted() {

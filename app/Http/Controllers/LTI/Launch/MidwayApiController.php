@@ -33,47 +33,79 @@ class MidwayApiController extends Controller
         }
 
         $queryParams = $request->validate([
-            'isToolSide' => 'required|in:true,false',
+            'showToolUsers' => 'required|in:true,false',
             'perPage' => 'integer|between:1,100',
             'page' => 'integer|min:1',
-            'sortField' => 'nullable|in:name,student_number,lti_real_user.name',
+            'sortField' => [
+                'nullable',
+                'in:name,student_number,lti_real_user.name,lti_real_user.student_number',
+            ],
             'sortType' => 'nullable|in:asc,desc',
             'search' => 'nullable|string'
         ]);
         // set default values
-        $queryParams['isToolSide'] = filter_var($queryParams['isToolSide'],
-                                                FILTER_VALIDATE_BOOLEAN);
-        $queryParams['perPage'] = $queryParams['perPage'] ?? '10';
         $queryParams['sortType'] = $queryParams['sortType'] ?? 'asc';
-        $queryParams['sortField'] = $queryParams['sortField'] ?? 'name';
-
+        $queryParams['perPage'] = $queryParams['perPage'] ?? '10';
+        // for more complicated values, we want to set defaults and put them in
+        // their own variable for convenience
+        $showFakeUsers = filter_var($queryParams['showToolUsers'],
+                                    FILTER_VALIDATE_BOOLEAN); // cast from str
+        $sortField = '';
+        if ($showFakeUsers)
+            $sortField = $queryParams['sortField'] ?? 'name';
+        else
+            $sortField = $queryParams['sortField'] ?? 'lti_real_user.name';
 
         // return the users for this course context/tool pair
         $users = LtiFakeUser::where('course_context_id', $courseContext->id)
                             ->where('tool_id', $tool->id)
-                            ->orderBy($queryParams['sortField'],
+                            ->orderBy($sortField,
                                       $queryParams['sortType']);
+        if (!$showFakeUsers) {
+            // we need to sort by real user fields, so need to join the tables
+            $users = $users->join(
+                    'lti_real_users AS lti_real_user',
+                    'lti_fake_users.lti_real_user_id',
+                    '=',
+                    'lti_real_user.id'
+                )
+                ->select(
+                    'lti_fake_users.*',
+                    'lti_real_user.name',
+                    'lti_real_user.student_number'
+                );
+        }
         if ($queryParams['search']) {
             // escape special characters used in sql LIKE patterns
             $searchTerm = Str::of($queryParams['search'])
                             ->replace('%', '\\%')
                             ->replace('_', '\\_')
                             ->lower();
+            $nameField = DB::raw('LOWER(name)');
+            $studentNumberField = DB::raw('LOWER(student_number)');
+            if (!$showFakeUsers) {
+                $nameField = DB::raw('LOWER(lti_real_user.name)');
+                $studentNumberField =
+                    DB::raw('LOWER(lti_real_user.student_number)');
+            }
             // while postgres has a special case insensitive version of LIKE,
             // other databases need to use the trick of lower casing everything
             // to get case insensitive comparisons
-            $users = $users->where(function($query) use($searchTerm) {
-                $query->where(
-                        DB::raw('LOWER(name)'),
-                        'LIKE',
-                        '%'.$searchTerm.'%'
-                    )
-                    ->orWhere(
-                        DB::raw('LOWER(student_number)'),
-                        'LIKE',
-                        '%'.$searchTerm.'%'
-                    );
-            });
+            $users = $users->where(
+                function($query) use($searchTerm,$nameField,$studentNumberField)
+                {
+                    $query->where(
+                            $nameField,
+                            'LIKE',
+                            '%'.$searchTerm.'%'
+                        )
+                        ->orWhere(
+                            $studentNumberField,
+                            'LIKE',
+                            '%'.$searchTerm.'%'
+                        );
+                }
+            );
         }
         // execute the search with pagination
         $users = $users->paginate($queryParams['perPage']);
