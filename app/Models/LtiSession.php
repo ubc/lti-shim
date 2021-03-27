@@ -46,6 +46,10 @@ class LtiSession extends Model
     {
         return $this->belongsTo('App\Models\LtiRealUser');
     }
+    public function platform_client()
+    {
+        return $this->belongsTo('App\Models\PlatformClient');
+    }
     public function tool()
     {
         return $this->belongsTo('App\Models\Tool');
