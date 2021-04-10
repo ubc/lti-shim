@@ -5,8 +5,10 @@
   * Launch: Many specs extend the launch, but it is primarily defined by the core spec
     * [LTI 1.3 Core Spec](https://www.imsglobal.org/spec/lti/v1p3/)
     * Gradebook Message: Companion spec to AGS
+    * Deep Link (currently a separate implementation but should be merged into launch proper)
   * Core: Parts of the Core spec that isn't handled by the Launch
   * Security: [IMS Security Framework](https://www.imsglobal.org/spec/security/v1p0) - Mainly OAuth2 related implementations.
   * Nrps: [Names and Role Provisioning Services](http://www.imsglobal.org/spec/lti-nrps/v2p0)
   * Ags: [Assignment and Grade Services](http://www.imsglobal.org/spec/lti-ags/v2p0)
+  * DeepLink: [Deep Linking](https://www.imsglobal.org/spec/lti-dl/v2p0)
 

@@ -54,4 +54,30 @@ class LtiSession extends Model
     {
         return $this->belongsTo('App\Models\Tool');
     }
+
+    /**
+     * Store the LtiSession's id inside an encrypted JWT.
+     */
+    public function createEncryptedId(): string
+    {
+        return EncryptedState::encrypt(['ltiSessionId' => $this->id]);
+    }
+
+    /**
+     * Retrieve the LtiSession entry based on the id stored inside the
+     * encrypted JWT.
+     */
+    public static function decodeEncryptedId(string $token): self
+    {
+        $jwt = EncryptedState::decrypt($token);
+        $sessionId = $jwt->claims->get('ltiSessionId');
+        if (!$sessionId) {
+            throw new LtiException('Missing LTI Session');
+        }
+        $session = self::find($sessionId);
+        if (!$sessionId) {
+            throw new LtiException('Invalid LTI Session');
+        }
+        return $session;
+    }
 }
