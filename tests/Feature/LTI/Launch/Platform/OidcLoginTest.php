@@ -15,6 +15,7 @@ use App\Models\LtiSession;
 use App\Models\LtiRealUser;
 use App\Models\LtiFakeUser;
 use App\Models\Platform;
+use App\Models\PlatformClient;
 use App\Models\Tool;
 
 use Tests\TestCase;
@@ -52,6 +53,10 @@ class OidcLoginTest extends TestCase
             'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id
         ]);
+        $platformClient = PlatformClient::factory()->create([
+            'platform_id' => $platform->id,
+            'tool_id' => $tool->id
+        ]);
         // prepare session
         $ltiSession = LtiSession::factory()->create([
             'token' => [
@@ -62,6 +67,7 @@ class OidcLoginTest extends TestCase
             'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id,
             'deployment_id' => $deployment->id,
+            'platform_client_id' => $platformClient->id
         ]);
         $time = time();
         $encryptedSession = Build::jwe()

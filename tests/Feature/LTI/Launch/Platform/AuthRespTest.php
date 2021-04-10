@@ -19,6 +19,7 @@ use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\Nrps;
 use App\Models\Platform;
+use App\Models\PlatformClient;
 use App\Models\ReturnUrl;
 use App\Models\Tool;
 
@@ -71,6 +72,10 @@ class AuthRespTest extends TestCase
             'course_context_id' => $this->courseContext->id,
             'tool_id' => $this->tool->id
         ]);
+        $platformClient = PlatformClient::factory()->create([
+            'platform_id' => $this->platform->id,
+            'tool_id' => $this->tool->id
+        ]);
         // prepare session
         $this->ltiSession = LtiSession::factory()->create([
             'token' => [
@@ -89,6 +94,7 @@ class AuthRespTest extends TestCase
             'course_context_id' => $this->courseContext->id,
             'tool_id' => $this->tool->id,
             'deployment_id' => $this->deployment->id,
+            'platform_client_id' => $platformClient->id
         ]);
         // create an encrypted jwt to pass the LtiSession, passed as lti
         // message hint
