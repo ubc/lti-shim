@@ -62,6 +62,12 @@ class Platform extends AbstractLtiEntity
         return self::where('iss', '!=', config('lti.iss'))->get();
     }
 
+    public static function hasIss(string $iss): bool
+    {
+        if (!$iss) return false;
+        return self::where('iss', $iss)->exists();
+    }
+
     public static function getByIss(string $iss): ?self
     {
         return self::firstWhere('iss', $iss);

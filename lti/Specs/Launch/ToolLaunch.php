@@ -62,11 +62,9 @@ class ToolLaunch
         $this->checker->requireParams($requiredParams);
 
         // check that the request is coming from a platform we know
-        $iss = $this->request->input(Param::ISS);
-        $platform = Platform::getByIss($iss);
-        if (!$platform)
-            throw new LtiException($this->ltiLog->msg(
-                "Unknown platform iss: $iss", $this->request));
+        if (!Platform::hasIss($this->request->input(Param::ISS)))
+            throw new LtiException($this->ltiLog->msg("Unknown platform iss.",
+                $this->request));
         // make sure that target_link_uri is pointing to us
         $target = $this->request->input(Param::TARGET_LINK_URI);
         if (strpos($target, config('app.url')) !== 0)

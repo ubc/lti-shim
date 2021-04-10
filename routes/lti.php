@@ -50,6 +50,12 @@ Route::namespace('LTI')->name('lti.')->group(function() {
                 'PlatformLaunchController@auth'
             )->name('authReq');
         });
+        // DEEP LINK - TODO replace regular launch
+        Route::match(
+            ['get', 'post'],
+            '/launch/login',
+            'DeepLinkController@login'
+        );
     });
     // LTI Core Spec
     Route::namespace('Core')->name('core.')->group(function() {
