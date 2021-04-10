@@ -74,6 +74,7 @@ class AuthReqTest extends TestCase
             'course_context_id' => $courseContext->id,
             'tool_id' => $tool->id,
             'deployment_id' => $deployment->id,
+            'platform_client_id' => $platformClient->id
         ]);
         $time = time();
         $encryptedSession = Build::jwe()

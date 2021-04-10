@@ -188,6 +188,7 @@ class ToolLaunch
         $ltiSession->course_context_id = $courseContext->id;
         $ltiSession->token = $idToken->claims->all();
         $ltiSession->log_stream = $this->ltiLog->getStreamId();
+        $ltiSession->platform_client_id = $platformClient->id;
         $ltiSession->save();
         $this->ltiLog->debug('Auth Resp: ' . 'context: ' . $courseContext->id .
             ' real user: ' . $user->id . ' session: ' . $ltiSession->id,
