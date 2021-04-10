@@ -85,11 +85,11 @@ class PlatformSeeder extends Seeder
             'name' => 'UBC Test Canvas',
             'iss' => 'https://canvas.test.instructure.com',
             'auth_req_url' =>
-                'https://ubc.test.instructure.com/api/lti/authorize',
+                'https://canvas.test.instructure.com/api/lti/authorize_redirect',
             'jwks_url' =>
-                'https://ubc.test.instructure.com/api/lti/security/jwks',
+                'https://canvas.test.instructure.com/api/lti/security/jwks',
             'access_token_url' =>
-                'https://ubc.test.instructure.com/login/oauth2/token'
+                'https://canvas.test.instructure.com/login/oauth2/token'
         ]);
     }
 }
