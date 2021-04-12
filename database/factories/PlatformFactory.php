@@ -25,7 +25,8 @@ class PlatformFactory extends Factory
 
     public function definition()
     {
-        $domain = $this->faker->domainName;
+        $domain = $this->faker->domainWord;
+        $domain = $domain . '.' . $this->faker->safeEmailDomain();
         return [
             'name' => $domain,
             'iss' => 'https://' . $domain,
