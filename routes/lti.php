@@ -55,7 +55,7 @@ Route::namespace('LTI')->name('lti.')->group(function() {
             ['get', 'post'],
             '/launch/login',
             'DeepLinkController@login'
-        );
+        )->name('deepLinkLogin');
     });
     // LTI Core Spec
     Route::namespace('Core')->name('core.')->group(function() {

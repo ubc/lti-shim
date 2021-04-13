@@ -19,7 +19,7 @@ class DeepLinkController extends Controller
     public function login(Request $request)
     {
         $handler = new LoginHandler($request);
-        return $handler->createLogin();
+        return $handler->sendLogin();
     }
 
 }
