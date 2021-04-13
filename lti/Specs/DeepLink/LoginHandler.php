@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\ParamChecker;
@@ -38,9 +39,9 @@ class LoginHandler
      * Returns the OIDC login parameters we should send to the target tool. This
      * is the shim acting as a platform.
      */
-    public function createLogin(): Response
+    public function sendLogin(): Response
     {
-        $this->processLogin();
+        $this->receiveLogin();
         $this->ltiLog->info('Platform Side, send OIDC login.', $this->request);
         $ltiSession = $this->createSession();
         $loginParams = [
@@ -68,7 +69,7 @@ class LoginHandler
      * Just validates to see if the OIDC login request we received from the
      * platform was valid. This is the shim acting as a tool.
      */
-    private function processLogin()
+    private function receiveLogin()
     {
         $this->ltiLog->info('Tool Side, recv OIDC login: ' .
             json_encode($this->request->input()), $this->request);
@@ -121,16 +122,19 @@ class LoginHandler
                 $this->request, $platformClient));
         }
 
-        // keep track of optional params, that if they exist, needs to be used
-        // at some later step in the launch
-        $state = [];
-        // with the shim acting as a tool, we need to return lti_message_hint
-        // to the original platform in the auth req step.
+        // keep track of params that needs to be used at some later step in the
+        // launch
+        $state = [
+            // needs to be passed back in the auth req stage
+            Param::LOGIN_HINT => $this->request->input(Param::LOGIN_HINT)
+        ];
+        // optional params that might not be present
+        // - lti_message_hint needs to be passed back in the auth req step
         if ($this->request->has(Param::LTI_MESSAGE_HINT)) {
             $state[Param::LTI_MESSAGE_HINT] =
                 $this->request->input(Param::LTI_MESSAGE_HINT);
         }
-        // the lti_deployment_id must match the deployment ID given later in
+        // - lti_deployment_id must match the deployment ID given later in
         // the original platform's auth resp step's id_token
         if ($this->request->has(Param::LTI_DEPLOYMENT_ID)) {
             $state[Param::LTI_DEPLOYMENT_ID] =

@@ -39,6 +39,22 @@ class Tool extends AbstractLtiEntity
         return $this->clients()->firstWhere('platform_id', $platformId);
     }
 
+    public function getShimLoginUrlAttribute()
+    {
+        // could get same info from looking at shim's tool side config, but
+        // that requires a db lookup, so probably faster to just use grab it
+        // from the router
+        // TODO: update if using Deep Link flow for launch
+        $uri = Uri::createFromString(route('lti.launch.deepLinkLogin'));
+        return UriModifier::appendQuery($uri, self::TARGET_TOOL_PARAM . '=' .
+                                              $this->id);
+    }
+
+    /**
+     * TODO: could be replaced by getShimLoginUrl if Deep Link flow works out
+     * TODO: avoid database query for own tool
+     * TODO: if keeping, $value is not used and can be removed
+     */
     public function getShimTargetLinkUriAttribute($value)
     {
         $shimTool = Tool::getOwnTool();

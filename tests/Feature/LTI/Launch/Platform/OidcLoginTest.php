@@ -35,8 +35,9 @@ class OidcLoginTest extends TestCase
         $baseUrl = '/lti/launch/platform/login';
         // known good request
         $tool = Tool::factory()->create();
-        $shimPlatform = Platform::factory()->create(['id' => 1]);
-        $platform = Platform::factory()->create(['id' => 2]);
+        $shimPlatform = Platform::factory()->create(['iss' =>
+                                                            config('lti.iss')]);
+        $platform = Platform::factory()->create();
         $encryptionKey = EncryptionKey::factory()->create();
         $deployment = Deployment::factory()->create([
             'platform_id' => $shimPlatform->id
