@@ -27,6 +27,7 @@ class LoginTest extends LtiBasicTestCase
     {
         parent::setUp();
 
+        $this->ltiSession->delete(); // delete the seed session
         $this->loginUrl = $this->loginUrlBase . '?target_tool_id=' .
                           $this->tool->id;
         $this->basicLoginParams = [
@@ -88,7 +89,8 @@ class LoginTest extends LtiBasicTestCase
         $this->assertEquals($this->tool->id, $session->tool_id);
         $this->assertEquals($this->platformClient->id,
                             $session->platform_client_id);
-        $this->assertNotEmpty($session->log_stream);
+        // default val for log_stream is 'Unavailable', we don't want that
+        $this->assertNotEquals('Unavailable', $session->log_stream);
         // check that session has required params
         $this->assertEquals($expectedParams['login_hint'],
                             $session->token['login_hint']);

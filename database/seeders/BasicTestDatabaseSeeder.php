@@ -8,6 +8,7 @@ use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\EncryptionKey;
 use App\Models\LtiRealUser;
+use App\Models\LtiSession;
 use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\Tool;
@@ -72,6 +73,14 @@ class BasicTestDatabaseSeeder extends Seeder
         $realUser2 = LtiRealUser::factory()->create([
             'name' => 'A Student01',
             'platform_id' => $platform1->id
+        ]);
+        // create a LtiSession
+        $ltiSession1 = LtiSession::factory()->create([
+            'deployment_id' => $deployment1->id,
+            'course_context_id' => $course1->id,
+            'tool_id' => $tool1->id,
+            'lti_real_user_id' => $realUser1->id,
+            'platform_client_id' => $platformClient1->id
         ]);
     }
 }

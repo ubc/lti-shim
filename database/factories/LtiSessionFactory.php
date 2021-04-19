@@ -15,6 +15,7 @@ class LtiSessionFactory extends Factory
     public function definition()
     {
         return [
+            'token' => [],
             'log_stream' => $this->faker->word
         ];
     }
