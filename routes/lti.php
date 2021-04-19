@@ -35,7 +35,8 @@ Route::namespace('LTI')->name('lti.')->group(function() {
                    ->name('authResp');
         });
         // MIDWAY - transfer station from the tool side to the platform side
-        Route::get('/launch/midway/arrival', 'MidwayController@arrival');
+        Route::get('/launch/midway/arrival', 'MidwayController@arrival')
+               ->name('midway');
         Route::post('/launch/midway/departure', 'MidwayController@departure');
         // PLATFORM
         Route::name('platform.')->group(function() {
@@ -56,6 +57,11 @@ Route::namespace('LTI')->name('lti.')->group(function() {
             '/launch/login',
             'DeepLinkController@login'
         )->name('deepLinkLogin');
+        Route::match(
+            ['get', 'post'],
+            '/launch/auth',
+            'DeepLinkController@auth'
+        )->name('deepLinkAuth');
     });
     // LTI Core Spec
     Route::namespace('Core')->name('core.')->group(function() {
