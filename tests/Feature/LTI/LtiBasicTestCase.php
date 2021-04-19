@@ -8,6 +8,7 @@ use Tests\TestCase;
 
 use Database\Seeders\BasicTestDatabaseSeeder;
 
+use App\Models\LtiSession;
 use App\Models\Platform;
 use App\Models\PlatformClient;
 use App\Models\Tool;
@@ -47,6 +48,7 @@ abstract class LtiBasicTestCase extends TestCase
     //protected $seed = true;
 
     // commonly used models we need to setup tests
+    protected LtiSession $ltiSession;
     protected Platform $platform; // lti launch's originating lti platform
     protected PlatformClient $platformClient; // lti platform/tool pair
     protected Tool $tool; // lti launch's target/destination lti tool
@@ -60,6 +62,7 @@ abstract class LtiBasicTestCase extends TestCase
         // TODO: remove this in favor of using $seed for speedup
         $this->seed(BasicTestDatabaseSeeder::class);
 
+        $this->ltiSession = LtiSession::first();
         $this->platformClient = PlatformClient::first();
         $this->platform = $this->platformClient->platform;
         $this->tool = $this->platformClient->tool;

@@ -36,7 +36,11 @@ class JwksTest extends TestCase
         ]);
         $expectedJson['keys'][] = $newKey->public_key->all();
         $resp = $this->get($baseUrl);
-        $resp->assertExactJson($expectedJson);
+        // was using assertExactJson before, but that checks for order as
+        // well which sometimes changes, causing failed tests that would pass
+        // again when rerun
+        $resp->assertJsonCount(2, 'keys');
+        $resp->assertJson($expectedJson);
     }
 
     public function testToolJwks()

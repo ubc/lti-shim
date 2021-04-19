@@ -7,15 +7,14 @@ use Illuminate\Http\Response;
 
 use League\Uri\Uri;
 
+use UBC\LTI\Specs\ParamChecker;
+use UBC\LTI\Specs\Security\Nonce;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
-use UBC\LTI\Specs\ParamChecker;
-use UBC\LTI\Specs\Security\Nonce;
+use UBC\LTI\Utils\UriUtil;
 
 use App\Models\LtiSession;
-use App\Models\Platform;
-use App\Models\Tool;
 
 /**
  * SECOND STAGE of LTI launch, the Authorization Request
@@ -57,7 +56,7 @@ class AuthReqHandler
             // REQUIRED dynamic
             Param::CLIENT_ID => $this->session->platform_client->client_id,
             Param::NONCE => Nonce::create(),
-            Param::REDIRECT_URI => route('lti.launch.midway'),
+            Param::REDIRECT_URI => route('lti.launch.deepLinkAuth'),
             // Not required by spec, but needed for us to track session
             Param::STATE => $this->session->createEncryptedId()
         ];
@@ -104,20 +103,24 @@ class AuthReqHandler
         ];
         $this->checker->requireValues($requiredValues);
 
-        // redirect uri, aka auth resp url, needs to match what was configured
-        // for the target tool
-        $expectedRedirectUri = Uri::createFromString(
-            $this->session->tool->auth_resp_url);
-        $actualRedirectUri = Uri::createFromString(
-            $this->request->input(Param::REDIRECT_URI));
-        if ($expectedRedirectUri != $actualRedirectUri) {
+        // technically, the redirect uri, aka auth resp url, needs to match
+        // what was configured for the target tool. However, I suspect a strict
+        // match is probably too restrictive. Tools might want to add queries
+        // and such to the redirect_uri. So we'll just make sure they're the
+        // same site.
+        $redirectUri = $this->request->input(Param::REDIRECT_URI);
+        if (!UriUtil::isSameSite($this->session->tool->auth_resp_url,
+                                 $redirectUri))
+        {
             throw new LtiException($this->ltiLog->msg(
-                'redirect_uri does not match configuration', $this->request));
+                'redirect_uri not same site as configured (' .
+                $this->session->tool->auth_resp_url . ')', $this->request));
         }
 
         // nonce and state needs to be stored for the next auth resp step
         $sessionState = $this->session->token;
         $sessionState[Param::NONCE] = $this->request->input(Param::NONCE);
+        $sessionState[Param::REDIRECT_URI] = $redirectUri;
         if ($this->request->has(Param::STATE))
             $sessionState[Param::STATE] = $this->request->input(Param::STATE);
 
