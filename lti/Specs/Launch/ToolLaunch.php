@@ -169,7 +169,6 @@ class ToolLaunch
         );
         $user = LtiRealUser::getFromLaunch(
             $platform->id,
-            $state->claims->get(Param::LOGIN_HINT),
             $idToken->claims->all()
         );
         $courseId = CourseContextFilter::getContextId($idToken->claims->all());

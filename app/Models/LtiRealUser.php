@@ -92,10 +92,9 @@ class LtiRealUser extends Model
      */
     public static function getFromLaunch(
         int $platformId,
-        string $loginHint,
         array $claims
     ): LtiRealUser {
-        $info = ['login_hint' => $loginHint];
+        $info = [];
         if (isset($claims[Param::NAME])) $info['name'] = $claims[Param::NAME];
         if (isset($claims[Param::EMAIL])) $info['email'] =$claims[Param::EMAIL];
         if (isset($claims[Param::LIS_URI]) &&
