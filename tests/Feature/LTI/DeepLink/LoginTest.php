@@ -7,13 +7,15 @@ use Illuminate\Testing\TestResponse;
 
 use Symfony\Component\HttpFoundation\Response;
 
+use League\Uri\Uri;
+
 use Tests\Feature\LTI\LtiBasicTestCase;
 
 use Database\Seeders\BasicTestDatabaseSeeder;
 
 use App\Models\LtiSession;
 
-// tests the return url endpoint on the shim
+// tests the first stage of launch, mainly the LoginHandler
 class LoginTest extends LtiBasicTestCase
 {
     // hardcoded as a check that the router is using the urls we expect
@@ -140,6 +142,20 @@ class LoginTest extends LtiBasicTestCase
     {
         $params = $this->basicLoginParams;
         $params['iss'] = 'InvalidIss';
+        $resp = $this->post($this->loginUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Error out if we're sent a target_link_uri that's not the same site as
+     * the shim.
+     */
+    public function testRejectInvalidTargetLinkUri()
+    {
+        $params = $this->basicLoginParams;
+        // we make an invalid target_link_uri by changing the host
+        $uri = Uri::createFromString($params['target_link_uri']);
+        $params['target_link_uri'] = $uri->withHost('invalid.example.com');
         $resp = $this->post($this->loginUrl, $params);
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }

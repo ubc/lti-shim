@@ -5,10 +5,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
-use UBC\LTI\Specs\ParamChecker;
+use UBC\LTI\Utils\UriUtil;
 
 use App\Models\LtiSession;
 use App\Models\Platform;
@@ -89,7 +90,7 @@ class LoginHandler
         // recommended security check from OIDC. Not currently necessary for the
         // shim, since we don't actually use the value, but here just in case.
         $target = $this->request->input(Param::TARGET_LINK_URI);
-        if (strpos($target, config('app.url')) !== 0)
+        if (!UriUtil::isSameSite(config('lti.iss'), $target))
             throw new LtiException($this->ltiLog->msg(
                 "target_link_uri is some other site: $target", $this->request));
     }
