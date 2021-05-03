@@ -30,7 +30,7 @@ class LtiRealUser extends Model
 
     public function lti_fake_users()
     {
-        return $this->hasMany('App\Models\LtiFakeuser');
+        return $this->hasMany('App\Models\LtiFakeUser');
     }
 
     /**

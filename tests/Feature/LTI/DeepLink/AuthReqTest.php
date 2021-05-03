@@ -110,7 +110,7 @@ class AuthReqTest extends LtiBasicTestCase
         $resp->assertViewHas('params.client_id',
                              $this->platformClient->client_id);
         $resp->assertViewhas('params.redirect_uri',
-                             'http://localhost/lti/launch/auth');
+                             'http://localhost/lti/launch/redirect');
         // make sure state can be decoded
         $decodedSession = LtiSession::decodeEncryptedId(
                                                       $resp['params']['state']);

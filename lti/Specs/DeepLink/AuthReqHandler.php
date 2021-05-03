@@ -56,7 +56,9 @@ class AuthReqHandler
             // REQUIRED dynamic
             Param::CLIENT_ID => $this->session->platform_client->client_id,
             Param::NONCE => Nonce::create(),
-            Param::REDIRECT_URI => route('lti.launch.deepLinkAuth'),
+            // TODO: tmp redirect_uri, this should go to midway when we
+            // replace the previous launch implementation
+            Param::REDIRECT_URI => route('lti.launch.deepLinkRedirect'),
             // Not required by spec, but needed for us to track session
             Param::STATE => $this->session->createEncryptedId()
         ];

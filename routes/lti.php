@@ -62,6 +62,8 @@ Route::namespace('LTI')->name('lti.')->group(function() {
             '/launch/auth',
             'DeepLinkController@auth'
         )->name('deepLinkAuth');
+        Route::post('/launch/redirect', 'DeepLinkController@redirect')
+             ->name('deepLinkRedirect');
     });
     // LTI Core Spec
     Route::namespace('Core')->name('core.')->group(function() {
