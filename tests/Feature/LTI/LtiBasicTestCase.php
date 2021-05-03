@@ -8,6 +8,9 @@ use Tests\TestCase;
 
 use Database\Seeders\BasicTestDatabaseSeeder;
 
+use App\Models\CourseContext;
+use App\Models\Deployment;
+use App\Models\LtiRealUser;
 use App\Models\LtiSession;
 use App\Models\Platform;
 use App\Models\PlatformClient;
@@ -48,10 +51,15 @@ abstract class LtiBasicTestCase extends TestCase
     //protected $seed = true;
 
     // commonly used models we need to setup tests
+    protected CourseContext $courseContext;
+    protected Deployment $deployment;
+    protected LtiRealUser $realUser;
     protected LtiSession $ltiSession;
     protected Platform $platform; // lti launch's originating lti platform
+    protected Platform $shimPlatform; // shim's own platform entry
     protected PlatformClient $platformClient; // lti platform/tool pair
     protected Tool $tool; // lti launch's target/destination lti tool
+    protected Tool $shimTool; // shim's own tool entry
 
     /**
      * Retrieve commonly used models from the seeded database.
@@ -63,8 +71,13 @@ abstract class LtiBasicTestCase extends TestCase
         $this->seed(BasicTestDatabaseSeeder::class);
 
         $this->ltiSession = LtiSession::first();
+        $this->courseContext = $this->ltiSession->course_context;
+        $this->deployment = $this->ltiSession->deployment;
+        $this->realUser = $this->ltiSession->lti_real_user;
         $this->platformClient = PlatformClient::first();
         $this->platform = $this->platformClient->platform;
         $this->tool = $this->platformClient->tool;
+        $this->shimPlatform = Platform::getOwnPlatform();
+        $this->shimTool = Tool::getOwnTool();
     }
 }
