@@ -1,0 +1,534 @@
+<?php
+
+namespace Tests\Feature\LTI\DeepLink;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
+
+use Symfony\Component\HttpFoundation\Response;
+
+use Jose\Easy\Build;
+use Jose\Easy\JWT;
+use Jose\Easy\Load;
+
+use Tests\Feature\LTI\LtiBasicTestCase;
+
+use Database\Seeders\BasicTestDatabaseSeeder;
+
+use App\Models\Ags;
+use App\Models\AgsLineitem;
+use App\Models\LtiSession;
+use App\Models\Nrps;
+use App\Models\Platform;
+use App\Models\ReturnUrl;
+
+use UBC\LTI\Specs\Security\Nonce;
+
+// tests second stage of launch, mainly the AuthReqHandler
+class AuthRespTest extends LtiBasicTestCase
+{
+    private const CLAIM_AGS_URI = 'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
+    private const CLAIM_NRPS_URI = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
+    private const CLAIM_LPRESENT_URI = 'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
+    private const TOOL_NONCE = 'SomeNonceFromTargetTool';
+    private const TOOL_STATE = 'SomeFakeStateFromTargetTool';
+    private const RESOURCE_LINK_ID = 'SomeResourceLinkId';
+    // hardcoded as a check that the router is using the urls we expect
+    private string $authUrl = '/lti/launch/redirect';
+    private array $basicAuthParams = [];
+    private array $expectedRoles =
+        ['http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // the LtiSession at this stage wouldn't have all fields populated
+        $this->ltiSession->deployment_id = null;
+        $this->ltiSession->course_context_id = null;
+        $this->ltiSession->lti_real_user_id = null;
+        $this->ltiSession->token = [
+            'redirect_uri' => route('lti.launch.deepLinkRedirect'),
+            'nonce' => self::TOOL_NONCE
+        ];
+        $this->ltiSession->save();
+
+        $this->basicAuthParams = [
+            'state' => $this->ltiSession->createEncryptedId(),
+            'id_token' => $this->createIdToken(Nonce::create())
+        ];
+    }
+
+    /**
+     * Create an id_token to send as part of the auth resp to the shim (we're
+     * pretending that this is an auth resp from the originating platform).
+     */
+    private function createIdToken(
+        string $nonce,
+        array $claims=[], // additional claims to add into id_token
+        bool $isExpired=false
+    ): string {
+        $time = time();
+        if ($isExpired) {
+            $time -= 3601;
+        }
+        $jws = Build::jws()
+            ->alg('RS256')
+            ->iat($time)
+            ->exp($time + 3600)
+            ->iss($this->platform->iss)
+            ->aud($this->platformClient->client_id)
+            ->sub($this->realUser->sub)
+            ->claim('nonce', $nonce)
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
+                    'LtiResourceLinkRequest')
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
+                    '1.3.0')
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/deployment_id',
+                    $this->deployment->lti_deployment_id)
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/target_link_uri',
+                    route('lti.launch.midway'))
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/resource_link',
+                    ['id' => self::RESOURCE_LINK_ID])
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/roles',
+                    $this->expectedRoles)
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/custom',
+                    ['target_tool_id' => $this->tool->id])
+            ->claim('https://purl.imsglobal.org/spec/lti/claim/context',
+                    ['id' => $this->courseContext->real_context_id])
+            ->claim('name', $this->realUser->name)
+            ->claim('email', $this->realUser->email);
+        foreach ($claims as $key => $val) {
+            $jws->claim($key, $val);
+        }
+        return $jws->sign($this->platform->getKey()->key);
+    }
+
+    /**
+     * For decoding the id_token that we get back as the auth resp that we're
+     * supposed to send to the target tool.
+     */
+    private function verifyAndGetJwt($token)
+    {
+        $key = $this->shimPlatform->getKey();
+
+        return Load::jws($token)
+            ->algs(['RS256'])
+            ->exp()
+            ->iat(2000)
+            ->nbf()
+            ->aud($this->tool->client_id)
+            ->iss(config('lti.iss'))
+            ->key($key->public_key)
+            ->run();
+    }
+
+    /**
+     * Test a minimal launch sent using a POST request.
+     */
+    public function testMinimalAuthResp()
+    {
+        $this->assertEquals(0, $this->realUser->lti_fake_users()->count());
+
+        // call the shim results endpoint
+        $resp = $this->post($this->authUrl, $this->basicAuthParams);
+        $resp->assertStatus(Response::HTTP_OK);
+
+        $this->checkSuccessfulResponse($resp);
+    }
+
+    /**
+     * If the target tool left us a state, it should have been persisted in
+     * LtiSession. So if such a state is there, we should see it passed back
+     * in the auth resp.
+     */
+    public function testStatePassthrough()
+    {
+        $this->ltiSession->token += ['state' => self::TOOL_STATE];
+        $this->ltiSession->save();
+
+        $resp = $this->post($this->authUrl, $this->basicAuthParams);
+        $resp->assertStatus(Response::HTTP_OK);
+        $this->checkSuccessfulResponse($resp);
+    }
+
+    /**
+     * Test that missing required params returns an error
+     */
+    public function testMissingRequiredParams()
+    {
+        $resp = $this->post($this->authUrl);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+
+        $params = $this->basicAuthParams;
+        unset($params['state']);
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+
+        $params = $this->basicAuthParams;
+        unset($params['id_token']);
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Test that LTI service NRPS claims are properly filtered
+     */
+    public function testNrpsClaimFiltering()
+    {
+        // add an NRPS claim
+        $extraClaims = [
+            self::CLAIM_NRPS_URI => ["context_memberships_url" =>
+                "https://ubc.test.instructure.com/api/lti/courses/9999999999/names_and_roles"]
+        ];
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $extraClaims);
+
+        // there should be NRPS entries right now
+        $this->assertEquals(0, Nrps::count());
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+        $this->checkSuccessfulResponse($resp, $extraClaims);
+    }
+
+    /**
+     * Test that LTI service AGS claims are properly filtered
+     */
+    public function testAgsClaimFiltering()
+    {
+        $extraClaims = [self::CLAIM_AGS_URI =>[
+            'scope' => [
+                'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+                'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly',
+                'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
+                'https://purl.imsglobal.org/spec/lti-ags/scope/score'
+            ],
+            'lineitems' => 'https://something.example.com/ags/1/lineitems'
+        ]];
+        $addedClaims = $extraClaims;
+        // this extra scope should be removed by filter
+        array_push($addedClaims[self::CLAIM_AGS_URI]['scope'],
+                   'https://purl.imsglobal.org/spec/lti-ags/scope/removeme');
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $addedClaims);
+
+        $this->assertEquals(0, Ags::count());
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+        $this->checkSuccessfulResponse($resp, $extraClaims);
+    }
+
+    /**
+     * While a lineitems is required, an optional lineitem can also be present
+     * if the launch refers to a single assignment. Make sure we properly
+     * filter this too.
+     */
+    public function testAgsClaimWithLineitemFiltering()
+    {
+        $extraClaims = [self::CLAIM_AGS_URI => [
+            'scope' => [
+                'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+                'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly',
+                'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
+                'https://purl.imsglobal.org/spec/lti-ags/scope/score'
+            ],
+            'lineitems' => 'https://something.example.com/ags/1/lineitems',
+            'lineitem' => 'https://something.example.com/ags/1/lineitems/5',
+        ]];
+        $addedClaims = $extraClaims;
+        // this extra scope should be removed by filter
+        array_push($addedClaims[self::CLAIM_AGS_URI]['scope'],
+                   'https://purl.imsglobal.org/spec/lti-ags/scope/removeme');
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $addedClaims);
+
+        $this->assertEquals(0, Ags::count());
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+        $this->checkSuccessfulResponse($resp, $extraClaims);
+    }
+
+    /**
+     * The launch presentation claim could contain a return URL.  We have to
+     * make sure that the return URL is converted to a shim URL. Also,
+     * unrecognized params should be dropped.
+     */
+    public function testLaunchPresentationFiltering()
+    {
+        $extraClaims = [self::CLAIM_LPRESENT_URI => [
+            'document_target' => 'iframe',
+            'height' => '800',
+            'width' => '600',
+            'locale' => 'en-CA',
+            'return_url' => 'https://example.com/lti/return_url/1?blah=abc'
+        ]];
+        $addedClaims = $extraClaims;
+        $addedClaims[self::CLAIM_LPRESENT_URI]['unknownKey'] = 'removeMe';
+
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $addedClaims);
+
+        $this->assertEquals(0, ReturnUrl::count());
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+        $this->checkSuccessfulResponse($resp, $extraClaims);
+    }
+
+    /**
+     * Check that the returned auth resp has all the expected values
+     */
+    public function checkSuccessfulResponse(
+        TestResponse $resp,
+        array $extraClaims = []
+    ) {
+        $this->assertTrue(isset($resp['params']['id_token']));
+        // Check state is passed if we were given one.
+        // NOTE: this would not work if LtiSession was refreshed. The auth resp
+        // should've overwritten the token in LtiSession. However, since we
+        // haven't told LtiSession to refresh itself, it should still have the
+        // old state.
+        if (isset($this->ltiSession->token['state'])) {
+            $this->assertTrue(isset($resp['params']['state']));
+            $this->assertEquals($this->ltiSession->token['state'],
+                                $resp['params']['state']);
+        }
+        // TODO: check state is passed if included, problem is ltiSession's
+        // token has lost all history
+
+        // should've created a fake user entry for the real user
+        $this->assertEquals(1, $this->realUser->lti_fake_users()->count());
+        $fakeUser = $this->realUser->lti_fake_users()->first();
+
+        $jwt = $this->verifyAndGetJwt($resp['params']['id_token']);
+
+        // test required params
+        $this->assertEquals(self::TOOL_NONCE, $jwt->claims->get('nonce'));
+        $key = $this->shimPlatform->getKey();
+        $this->assertEquals($key->kid, $jwt->claims->get('kid'));
+        $this->assertEquals('JWT', $jwt->claims->get('typ'));
+        $this->assertEquals(
+            'LtiResourceLinkRequest',
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/message_type')
+        );
+        $this->assertEquals(
+            '1.3.0',
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/version')
+        );
+        $this->deployment->refresh(); // reload fake_lti_deployment_id value
+        $this->assertEquals(
+            $this->deployment->fake_lti_deployment_id,
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/deployment_id')
+        );
+        $this->assertEquals(
+            $this->tool->target_link_uri,
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/target_link_uri')
+        );
+        $this->assertEquals(
+            self::RESOURCE_LINK_ID,
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/resource_link')['id']
+        );
+        $this->assertNotNull(
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/roles')
+        );
+        $this->assertEquals(
+            $this->expectedRoles,
+            $jwt->claims->get('https://purl.imsglobal.org/spec/lti/claim/roles')
+        );
+
+        // test optional params
+        $this->courseContext->refresh();
+        $this->assertEquals(
+            $this->courseContext->fake_context_id,
+            $jwt->claims->get(
+                'https://purl.imsglobal.org/spec/lti/claim/context')['id']
+        );
+
+        // test user filter
+        $this->assertEquals($fakeUser->name, $jwt->claims->get('name'));
+        $this->assertEquals($fakeUser->first_name,
+                            $jwt->claims->get('given_name'));
+        $this->assertEquals($fakeUser->last_name,
+                            $jwt->claims->get('family_name'));
+        $this->assertEquals($fakeUser->email, $jwt->claims->get('email'));
+
+        // test 'extra' claims, mainly lti service claims that we need to filter
+        //
+        // NRPS check
+        if (isset($extraClaims[self::CLAIM_NRPS_URI])) {
+            $this->assertTrue( $jwt->claims->has(self::CLAIM_NRPS_URI));
+            $nrps = Nrps::first();
+            $this->assertNotNull($nrps);
+            // check that original claim is saved
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_NRPS_URI]['context_memberships_url'],
+                $nrps->context_memberships_url
+            );
+            // check that we hand out shim based urls instead of the original
+            $this->assertNotEquals($nrps->context_memberships_url,
+                                   $nrps->getShimUrl());
+            $this->assertTrue(isset(
+                $jwt->claims->get(self::CLAIM_NRPS_URI)['context_memberships_url']));
+            $this->assertEquals(
+                $jwt->claims->get(self::CLAIM_NRPS_URI)['context_memberships_url'],
+                $nrps->getShimUrl()
+            );
+        }
+        else {
+            $this->assertFalse( $jwt->claims->has(self::CLAIM_NRPS_URI));
+        }
+
+        // AGS check
+        if (isset($extraClaims[self::CLAIM_AGS_URI])) {
+            $this->assertTrue( $jwt->claims->has(self::CLAIM_AGS_URI));
+            // an entry should now be in the ags table
+            $ags = Ags::first();
+            $this->assertNotNull($ags);
+
+            // original claim should be saved in ags
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_AGS_URI]['lineitems'],
+                $ags->lineitems
+            );
+
+            // unrecognized scopes should be removed but otherwise passed
+            // through
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_AGS_URI]['scope'],
+                $jwt->claims->get(self::CLAIM_AGS_URI)['scope']
+            );
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_AGS_URI]['scope'],
+                $ags->scopes
+            );
+
+            // make sure the lineitems url now points to the shim ags
+            $this->assertEquals(
+                $ags->getShimLineitemsUrl(),
+                $jwt->claims->get(self::CLAIM_AGS_URI)['lineitems']
+            );
+
+            // lineitem is optional and creates a separate AgsLineitem entry
+            if (isset($extraClaims[self::CLAIM_AGS_URI]['lineitem'])) {
+                $agsLineitem = AgsLineitem::first();
+                $this->assertNotNull($agsLineitem);
+                $this->assertEquals(
+                    $extraClaims[self::CLAIM_AGS_URI]['lineitem'],
+                    $agsLineitem->lineitem
+                );
+                $this->assertEquals(
+                    $agsLineitem->getShimLineitemUrl(),
+                    $jwt->claims->get(self::CLAIM_AGS_URI)['lineitem']
+                );
+            }
+            else {
+                $this->assertEmpty($ags->lineitem);
+                $this->assertArrayNotHasKey('lineitem',
+                    $jwt->claims->get(self::CLAIM_AGS_URI));
+            }
+
+        }
+        else {
+            $this->assertFalse( $jwt->claims->has(self::CLAIM_AGS_URI));
+        }
+
+        // Launch Presentation
+        if (isset($extraClaims[self::CLAIM_LPRESENT_URI])) {
+            $this->assertTrue( $jwt->claims->has(self::CLAIM_LPRESENT_URI));
+            $returnUrl = ReturnUrl::first();
+            $this->assertNotNull($returnUrl);
+            // make sure original claim was saved
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_LPRESENT_URI]['return_url'],
+                $returnUrl->url
+            );
+            // make sure we got the filtered results
+            $expectedLPresent = $extraClaims[self::CLAIM_LPRESENT_URI];
+            $expectedLPresent['return_url'] = $returnUrl->getShimUrl();
+            $this->assertEquals(
+                $expectedLPresent,
+                $jwt->claims->get(self::CLAIM_LPRESENT_URI)
+            );
+        }
+        else {
+            $this->assertFalse( $jwt->claims->has(self::CLAIM_LPRESENT_URI));
+        }
+    }
+
+    /**
+     * Test that params being set to invalid values return an error
+     */
+    public function testInvalidParams()
+    {
+        $params = $this->basicAuthParams;
+        $params['state'] = 'ThisIsNowInvalid';
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+
+        $params = $this->basicAuthParams;
+        $params['id_token'] = 'ThisIsNowInvalid';
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Nonce is generated by enforced by the tool side. We need to make sure
+     * that the nonce passed back to us in the id_token is valid.
+     *
+     * This test rejects a nonce that has (presumably) been replayed.
+     */
+    public function testRejectUsedNonce()
+    {
+        $nonce = Nonce::create();
+        Nonce::used($nonce); // mark this nonce as used
+
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken($nonce);
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Check that if the nonce given in the id_token is expired, we properly
+     * reject it.
+     */
+    public function testRejectExpiredNonce()
+    {
+        $nonce = Nonce::create();
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken($nonce);
+
+        // set the nonce expiration to the past
+        DB::table('cache_nonce')->update(['expiration' => time() - 5]);
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Check that if the id_token itself is expired, we properly reject it.
+     */
+    public function testRejectExpiredIdToken()
+    {
+        $nonce = Nonce::create();
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken($nonce, [], true);
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+}
