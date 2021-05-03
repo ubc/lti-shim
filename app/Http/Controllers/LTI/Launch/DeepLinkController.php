@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Specs\DeepLink\LoginHandler;
 use UBC\LTI\Specs\DeepLink\AuthReqHandler;
+use UBC\LTI\Specs\DeepLink\AuthRespHandler;
 
 class DeepLinkController extends Controller
 {
@@ -33,6 +34,18 @@ class DeepLinkController extends Controller
     public function auth(Request $request)
     {
         $handler = new AuthReqHandler($request);
+        return $handler->sendAuth();
+    }
+
+    /**
+     * Receive LTI launch request's third stage, auth response, from a platform.
+     * Returns an auth response to the target tool.
+     *
+     * @param Request $request
+     */
+    public function redirect(Request $request)
+    {
+        $handler = new AuthRespHandler($request);
         return $handler->sendAuth();
     }
 
