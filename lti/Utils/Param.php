@@ -76,9 +76,14 @@ class Param
     // LTI message types
     public const MESSAGE_TYPE_RESOURCE_LINK = 'LtiResourceLinkRequest';
     public const MESSAGE_TYPE_GRADEBOOK = 'LtiSubmissionReviewRequest';
+    public const MESSAGE_TYPE_DEEP_LINK_REQUEST = 'LtiDeepLinkingRequest';
+    public const MESSAGE_TYPE_DEEP_LINK_RESPONSE = 'LtiDeepLinkingResponse';
+    // deep link response is not included here as it's not a valid type
+    // for an LTI launch claim
     public const MESSAGE_TYPES = [
         self::MESSAGE_TYPE_RESOURCE_LINK,
-        self::MESSAGE_TYPE_GRADEBOOK
+        self::MESSAGE_TYPE_GRADEBOOK,
+        self::MESSAGE_TYPE_DEEP_LINK_REQUEST
     ];
     // LTI service oauth token request
     public const GRANT_TYPE = 'grant_type';
@@ -175,4 +180,27 @@ class Param
     public const REVIEWABLE_STATUS = 'reviewableStatus';
     public const URL = 'url';
     public const CUSTOM = 'custom';
+
+    // Deep Linking
+    // dl launch claim required
+    public const DL_CLAIM_URI = 'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
+    public const DL_RETURN_URL = 'deep_link_return_url';
+    public const DL_ACCEPT_TYPES = 'accept_types';
+    public const DL_ACCEPT_PRESENTATION_DOCUMENT_TARGETS = 'accept_presentation_document_targets';
+    // dl launch claim optional
+    public const DL_ACCEPT_MEDIA_TYPES = 'accept_media_types';
+    public const DL_ACCEPT_MULTIPLE = 'accept_multiple';
+    public const DL_AUTO_CREATE = 'auto_create';
+    public const TEXT = 'text';
+    public const DATA = 'data';
+    // dl response
+    public const DL_CONTENT_ITEMS_URI = 'https://purl.imsglobal.org/spec/lti-dl/claim/content_items';
+    // message we can show to the user on return to platform
+    public const DL_MSG = 'https://purl.imsglobal.org/spec/lti-dl/claim/msg';
+    // message we can log on the platform
+    public const DL_LOG = 'https://purl.imsglobal.org/spec/lti-dl/claim/log';
+    // error message we can show to the user
+    public const DL_ERRORMSG = 'https://purl.imsglobal.org/spec/lti-dl/claim/errormsg';
+    // error message we can log on the platform
+    public const DL_ERRORLOG = 'https://purl.imsglobal.org/spec/lti-dl/claim/errorlog';
 }

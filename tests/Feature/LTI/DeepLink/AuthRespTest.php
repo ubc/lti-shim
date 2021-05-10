@@ -31,6 +31,8 @@ class AuthRespTest extends LtiBasicTestCase
     private const CLAIM_AGS_URI = 'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
     private const CLAIM_NRPS_URI = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     private const CLAIM_LPRESENT_URI = 'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
+    private const CLAIM_DL_URI = 'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
+    private const CLAIM_MESSAGE_TYPE_URI = 'https://purl.imsglobal.org/spec/lti/claim/message_type';
     private const TOOL_NONCE = 'SomeNonceFromTargetTool';
     private const TOOL_STATE = 'SomeFakeStateFromTargetTool';
     private const RESOURCE_LINK_ID = 'SomeResourceLinkId';
@@ -81,7 +83,7 @@ class AuthRespTest extends LtiBasicTestCase
             ->aud($this->platformClient->client_id)
             ->sub($this->realUser->sub)
             ->claim('nonce', $nonce)
-            ->claim('https://purl.imsglobal.org/spec/lti/claim/message_type',
+            ->claim(self::CLAIM_MESSAGE_TYPE_URI,
                     'LtiResourceLinkRequest')
             ->claim('https://purl.imsglobal.org/spec/lti/claim/version',
                     '1.3.0')
@@ -186,7 +188,7 @@ class AuthRespTest extends LtiBasicTestCase
         $params['id_token'] = $this->createIdToken(Nonce::create(),
                                                    $extraClaims);
 
-        // there should be NRPS entries right now
+        // there should be no NRPS entries yet
         $this->assertEquals(0, Nrps::count());
 
         $resp = $this->post($this->authUrl, $params);
@@ -284,6 +286,43 @@ class AuthRespTest extends LtiBasicTestCase
     }
 
     /**
+     * Test that LTI service Deep Link claims are properly filtered
+     */
+    public function testDeepLinkClaimFiltering()
+    {
+        // add an NRPS claim
+        $extraClaims = [
+            self::CLAIM_DL_URI => [
+                'deep_link_return_url' =>
+                    'https://platform.example.com/deep_links',
+                'accept_types' => ['link', 'ltiResourceLink', 'image'],
+                'accept_presentation_document_targets' =>
+                    ['iframe', 'window', 'embed'],
+                'accept_media_types' => 'image/:::asterisk:::,text/html',
+                'accept_multiple' => true,
+                'auto_create' => true,
+                'title' => 'Some Deep Link Title',
+                'text' => 'Some Deep Link Text',
+                'data' => 'Some Deep Link Opaque Platform State'
+            ],
+            self::CLAIM_MESSAGE_TYPE_URI => 'LtiDeepLinkingRequest'
+        ];
+        // if message type is a regular launch, what do we do about
+        // dl claim?
+        $addedClaims = $extraClaims;
+        $addedClaims[self::CLAIM_DL_URI]['invalid_dl_claim'] = 'removeMe';
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $addedClaims);
+        // TODO: test that if message type is regular launch, the deep launch
+        // claim should be dropped
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+        $this->checkSuccessfulResponse($resp, $extraClaims);
+    }
+
+    /**
      * Check that the returned auth resp has all the expected values
      */
     public function checkSuccessfulResponse(
@@ -315,11 +354,15 @@ class AuthRespTest extends LtiBasicTestCase
         $key = $this->shimPlatform->getKey();
         $this->assertEquals($key->kid, $jwt->claims->get('kid'));
         $this->assertEquals('JWT', $jwt->claims->get('typ'));
-        $this->assertEquals(
-            'LtiResourceLinkRequest',
-            $jwt->claims->get(
-                'https://purl.imsglobal.org/spec/lti/claim/message_type')
-        );
+
+        $expectedMessageType = 'LtiResourceLinkRequest';
+        if (isset($extraClaims[self::CLAIM_MESSAGE_TYPE_URI])) {
+            // we've overridden the message type, so should expect that
+            $expectedMessageType = $extraClaims[self::CLAIM_MESSAGE_TYPE_URI];
+        }
+        $this->assertEquals($expectedMessageType,
+            $jwt->claims->get(self::CLAIM_MESSAGE_TYPE_URI));
+
         $this->assertEquals(
             '1.3.0',
             $jwt->claims->get(
@@ -466,6 +509,55 @@ class AuthRespTest extends LtiBasicTestCase
         }
         else {
             $this->assertFalse( $jwt->claims->has(self::CLAIM_LPRESENT_URI));
+        }
+
+        // Deep Link
+        if (isset($extraClaims[self::CLAIM_DL_URI])) {
+            // Deep Link requests should use a different message type
+            $this->assertEquals('LtiDeepLinkingRequest',
+                $jwt->claims->get(self::CLAIM_MESSAGE_TYPE_URI));
+
+            $actualDlClaims = $jwt->claims->get(self::CLAIM_DL_URI);
+            $this->assertNotNull($actualDlClaims);
+            $this->assertFalse(isset($actualDlClaims['invalid_dl_claim']));
+            // -- required claims
+            // TODO: deep link return url
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_DL_URI]['accept_types'],
+                $jwt->claims->get(self::CLAIM_DL_URI)['accept_types']
+            );
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_DL_URI]['accept_presentation_document_targets'],
+                $actualDlClaims['accept_presentation_document_targets']
+            );
+            // -- optional claims
+            if (isset($extraClaims[self::CLAIM_DL_URI]['accept_media_types'])) {
+                $this->assertEquals(
+                    $extraClaims[self::CLAIM_DL_URI]['accept_media_types'],
+                    $actualDlClaims['accept_media_types']
+                );
+            }
+            if (isset($extraClaims[self::CLAIM_DL_URI]['accept_multiple'])) {
+                $this->assertEquals(
+                    $extraClaims[self::CLAIM_DL_URI]['accept_multiple'],
+                    $actualDlClaims['accept_multiple']
+                );
+            }
+            if (isset($extraClaims[self::CLAIM_DL_URI]['auto_create'])) {
+                $this->assertEquals(
+                    $extraClaims[self::CLAIM_DL_URI]['auto_create'],
+                    $actualDlClaims['auto_create']
+                );
+            }
+            if (isset($extraClaims[self::CLAIM_DL_URI]['title'])) {
+                $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['title'],
+                    $actualDlClaims['title']);
+            }
+            if (isset($extraClaims[self::CLAIM_DL_URI]['text'])) {
+                $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['text'],
+                    $actualDlClaims['text']);
+            }
+            // TODO: data
         }
     }
 

@@ -72,7 +72,8 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         Param::CONTEXT_URI => 4,
         Param::NRPS_CLAIM_URI => 5,
         Param::AGS_CLAIM_URI => 6,
-        Param::FOR_USER_URI => 7
+        Param::FOR_USER_URI => 7,
+        Param::DL_CLAIM_URI => 8
     ];
 
     protected array $whitelists = [
