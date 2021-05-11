@@ -64,6 +64,8 @@ Route::namespace('LTI')->name('lti.')->group(function() {
         )->name('deepLinkAuth');
         Route::post('/launch/redirect', 'DeepLinkController@redirect')
              ->name('deepLinkRedirect');
+        Route::post('/launch/return/{deepLink}', 'DeepLinkController@return')
+             ->name('deepLinkReturn');
     });
     // LTI Core Spec
     Route::namespace('Core')->name('core.')->group(function() {
@@ -108,5 +110,8 @@ Route::namespace('LTI')->name('lti.')->group(function() {
         Route::post('/ags/platform/{ags}/lineitem/{lineitem}/scores',
                     'AgsController@postScore')
             ->name('scores');
+    });
+    // TODO: LTI Deep Linking
+    Route::namespace('DeepLink')->name('dl.')->group(function() {
     });
 });

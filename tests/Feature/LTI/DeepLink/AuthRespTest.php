@@ -18,6 +18,7 @@ use Database\Seeders\BasicTestDatabaseSeeder;
 
 use App\Models\Ags;
 use App\Models\AgsLineitem;
+use App\Models\DeepLink;
 use App\Models\LtiSession;
 use App\Models\Nrps;
 use App\Models\Platform;
@@ -314,12 +315,38 @@ class AuthRespTest extends LtiBasicTestCase
         $params = $this->basicAuthParams;
         $params['id_token'] = $this->createIdToken(Nonce::create(),
                                                    $addedClaims);
-        // TODO: test that if message type is regular launch, the deep launch
-        // claim should be dropped
+        // there should be no Deep Link entries yet
+        $this->assertEquals(0, DeepLink::count());
 
         $resp = $this->post($this->authUrl, $params);
         $resp->assertStatus(Response::HTTP_OK);
         $this->checkSuccessfulResponse($resp, $extraClaims);
+    }
+
+    /**
+     * Test that Deep Link claims are dropped if message type isn't deep link.
+     */
+    public function testDeepLinkClaimDroppedIfNotDeepLinkMessage()
+    {
+        // add an NRPS claim
+        $extraClaims = [
+            self::CLAIM_DL_URI => [
+                'deep_link_return_url' =>
+                    'https://platform.example.com/deep_links',
+                'accept_types' => ['link', 'ltiResourceLink', 'image'],
+                'accept_presentation_document_targets' =>
+                    ['iframe', 'window', 'embed']
+            ]
+        ];
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $extraClaims);
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+
+        $jwt = $this->verifyAndGetJwt($resp['params']['id_token']);
+        $this->assertFalse($jwt->claims->has(self::CLAIM_DL_URI));
     }
 
     /**
@@ -340,8 +367,6 @@ class AuthRespTest extends LtiBasicTestCase
             $this->assertEquals($this->ltiSession->token['state'],
                                 $resp['params']['state']);
         }
-        // TODO: check state is passed if included, problem is ltiSession's
-        // token has lost all history
 
         // should've created a fake user entry for the real user
         $this->assertEquals(1, $this->realUser->lti_fake_users()->count());
@@ -520,11 +545,26 @@ class AuthRespTest extends LtiBasicTestCase
             $actualDlClaims = $jwt->claims->get(self::CLAIM_DL_URI);
             $this->assertNotNull($actualDlClaims);
             $this->assertFalse(isset($actualDlClaims['invalid_dl_claim']));
+
+            // an entry should now be in the ags table
+            $this->assertEquals(1, DeepLink::count());
+            $dl = DeepLink::first();
+            $this->assertNotNull($dl);
+            // make sure we've saved the data claim for use later
+            $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['data'],
+                                $dl->state);
+            // make sure that we can retrieve the DeepLink entry from the state
+            // we passed to the target tool
+            $decodedDl = DeepLink::decodeEncryptedId($actualDlClaims['data']);
+            $this->assertNotNull($decodedDl);
+            $this->assertEquals($dl->id, $decodedDl->id);
+
             // -- required claims
-            // TODO: deep link return url
+            $this->assertEquals($dl->shim_return_url,
+                                $actualDlClaims['deep_link_return_url']);
             $this->assertEquals(
                 $extraClaims[self::CLAIM_DL_URI]['accept_types'],
-                $jwt->claims->get(self::CLAIM_DL_URI)['accept_types']
+                $actualDlClaims['accept_types']
             );
             $this->assertEquals(
                 $extraClaims[self::CLAIM_DL_URI]['accept_presentation_document_targets'],
@@ -557,7 +597,6 @@ class AuthRespTest extends LtiBasicTestCase
                 $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['text'],
                     $actualDlClaims['text']);
             }
-            // TODO: data
         }
     }
 
