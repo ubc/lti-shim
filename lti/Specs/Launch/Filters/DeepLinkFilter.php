@@ -5,6 +5,7 @@ namespace UBC\LTI\Specs\Launch\Filters;
 use Illuminate\Support\Facades\Log;
 
 use App\Models\LtiSession;
+use App\Models\DeepLink;
 use App\Models\Deployment;
 
 use UBC\LTI\Filters\AbstractWhitelistFilter;
@@ -53,16 +54,21 @@ class DeepLinkFilter extends AbstractWhitelistFilter implements FilterInterface
         ];
         $checker->requireParams($requiredParams);
 
-        // TODO: deep link return needs to be mapped to the shim
-        // TODO: opaque state in 'data' that needs to be preserved for pass
-        // back to originating platform
+        // the 'data' claim is an opaque platform state string that we need to
+        // pass back to the originating platform in the deep link response
+        $state = null;
+        if (isset($settings[Param::DATA])) $state = $settings[Param::DATA];
+        $dl = DeepLink::createOrGet($settings[Param::DL_RETURN_URL],
+            $session->deployment_id, $session->tool_id, $state);
 
-        // set required claims
         $newSettings = [
-            Param::DL_RETURN_URL => 'TODO', // TODO
+            // set required claims
+            Param::DL_RETURN_URL => $dl->shim_return_url,
             Param::DL_ACCEPT_TYPES => $settings[Param::DL_ACCEPT_TYPES],
             Param::DL_ACCEPT_PRESENTATION_DOCUMENT_TARGETS =>
-                $settings[Param::DL_ACCEPT_PRESENTATION_DOCUMENT_TARGETS]
+                $settings[Param::DL_ACCEPT_PRESENTATION_DOCUMENT_TARGETS],
+            // encrypted JWT that we'll need to retrieve the DeepLink entry
+            Param::DATA => $dl->createEncryptedId()
         ];
         // optional claims that can be passed through as is
         if (isset($settings[Param::DL_ACCEPT_MEDIA_TYPES]))
@@ -78,7 +84,6 @@ class DeepLinkFilter extends AbstractWhitelistFilter implements FilterInterface
             $newSettings[Param::TITLE] = $settings[Param::TITLE];
         if (isset($settings[Param::TEXT]))
             $newSettings[Param::TEXT] = $settings[Param::TEXT];
-        // TODO: generate our own state 'data'
 
         $params[Param::DL_CLAIM_URI] = $newSettings;
         return $params;
