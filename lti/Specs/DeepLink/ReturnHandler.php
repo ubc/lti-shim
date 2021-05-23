@@ -7,41 +7,26 @@ use Illuminate\Http\Response;
 
 use Jose\Easy\Build;
 use Jose\Easy\JWT;
-use Jose\Easy\Load;
 
-use App\Models\CourseContext;
-use App\Models\Deployment;
-use App\Models\LtiFakeUser;
-use App\Models\LtiRealUser;
-use App\Models\LtiSession;
-use App\Models\Platform;
+use App\Models\DeepLink;
+use App\Models\Tool;
 
 use UBC\LTI\Specs\JwsUtil;
-use UBC\LTI\Specs\Launch\Filters\AgsFilter;
-use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
-use UBC\LTI\Specs\Launch\Filters\DeepLinkFilter;
-use UBC\LTI\Specs\Launch\Filters\DeploymentFilter;
-use UBC\LTI\Specs\Launch\Filters\GradebookMessageFilter;
-use UBC\LTI\Specs\Launch\Filters\LaunchPresentationFilter;
-use UBC\LTI\Specs\Launch\Filters\NrpsFilter;
-use UBC\LTI\Specs\Launch\Filters\UserFilter;
-use UBC\LTI\Specs\Launch\Filters\WhitelistFilter;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\Nonce;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
-use UBC\LTI\Utils\UriUtil;
 
 /**
- * SECOND STAGE of LTI launch, the Authorization Request
+ * FOURTH (LAST) STAGE of Deep Linking launch, the Deep Link Return.
  *
- * We first receive an auth req from the target tool.
- * We restore state from LtiSession.
- * We then send an auth req to the originating platform.
+ * We restore Deep Link state from the 'data' claim.
+ * We then relay filtered data back to the originating platform's return url.
  */
 class ReturnHandler
 {
+    private DeepLink $dl;
     private LtiLog $ltiLog;
     private LtiSession $session;
     private ParamChecker $checker;
@@ -52,7 +37,7 @@ class ReturnHandler
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->ltiLog = new LtiLog('Launch (Auth Resp)');
+        $this->ltiLog = new LtiLog('Launch Deep Link (Return)');
         $this->checker = new ParamChecker($request->input(), $this->ltiLog);
     }
 
@@ -62,32 +47,134 @@ class ReturnHandler
      */
     public function sendReturn(): Response
     {
-        return response('Not Implemented', 501);
-        /*
+        $jwt = $this->receiveReturn();
+
+        $time = time();
+        // required params
+        $payload = [
+            Param::ISS => $this->dl->platform_client->client_id,
+            param::AUD => $this->dl->deployment->platform->iss,
+            Param::EXP => $time + Param::EXP_TIME, // expires in 1 hour
+            Param::IAT => $time, // issued at
+            Param::NBF => $time, // not before
+            Param::MESSAGE_TYPE_URI => Param::MESSAGE_TYPE_DEEP_LINK_RESPONSE,
+            Param::VERSION_URI => Param::VERSION_130,
+            Param::DEPLOYMENT_ID_URI =>
+                                 $this->dl->deployment->lti_deployment_id,
+            Param::NONCE => Nonce::create(),
+            Param::DL_DATA_URI => $this->dl->state,
+            // don't know what could be in there yet, so just going to pass it
+            // through as is
+            Param::DL_CONTENT_ITEMS_URI =>
+                $jwt->claims->get(Param::DL_CONTENT_ITEMS_URI),
+        ];
+        // optional params
+        if ($this->dl->state) $payload[Param::DL_DATA_URI] = $this->dl->state;
+        if ($jwt->claims->has(Param::DL_MSG))
+            $payload[Param::DL_MSG] = $jwt->claims->get(Param::DL_MSG);
+        if ($jwt->claims->has(Param::DL_LOG))
+            $payload[Param::DL_LOG] = $jwt->claims->get(Param::DL_LOG);
+        if ($jwt->claims->has(Param::DL_ERRORMSG))
+            $payload[Param::DL_ERRORMSG] = $jwt->claims->get(Param::DL_ERRORMSG);
+        if ($jwt->claims->has(Param::DL_ERRORLOG))
+            $payload[Param::DL_ERRORLOG] = $jwt->claims->get(Param::DL_ERRORLOG);
+
+        $key = Tool::getOwnTool()->getKey();
+
+        $params = [
+            Param::JWT => Build::jws()
+                               ->typ(Param::JWT)
+                               ->alg(Param::RS256)
+                               ->header(Param::KID, $key->kid)
+                               ->payload($payload)
+                               ->sign($key->key)
+        ];
+
+        $this->ltiLog->info('Tool Side, send deep link return: ' .
+            json_encode($payload), $this->request);
         return response()->view(
             'lti/launch/auto_submit_form',
             [
                 'title' => 'Deep Link Return',
-                'formUrl' => '',
-                'params' => ''
+                'formUrl' => $this->dl->return_url,
+                'params' => $params
             ]
         );
-         */
     }
 
     /**
-     * Load the LtiSession from the state param.
-     * TODO: modify for deep link return's 'data' value
+     * Return the decoded JWT from the deep link return.
+     * We should've gotten a POST request with only 1 param named 'JWT'.
      */
-    private function loadSession()
+    public function receiveReturn(): JWT
     {
-        if (!$this->request->has(Param::STATE))
-            throw new LtiException($this->ltiLog->msg(
-                'Missing state in auth response', $this->request));
+        $this->ltiLog->info('Platform Side, recv deep link return: ' .
+            json_encode($this->request->input()), $this->request);
 
-        $this->session = LtiSession::decodeEncryptedId(
-            $this->request->input(Param::STATE));
-        $this->ltiLog->setStreamid($this->session->log_stream);
+        $this->checker->requireParams([Param::JWT]);
+        // we can't verify the JWT since we don't know what tool it came from,
+        // so we need to load the Deep State state first then verify the
+        // JWT signature
+        $tokenString = $this->request->input(Param::JWT);
+        $this->ltiLog->debug('Deep Link return JWT: ' . $tokenString);
+        $jwsUtil = new JwsUtil($tokenString, $this->ltiLog);
+        // get the Deep Link entry
+        $this->dl = DeepLink::decodeEncryptedId(
+                                        $jwsUtil->getClaim(Param::DL_DATA_URI));
+        // verify the signature unpack into JWT object
+        $jwt = $jwsUtil->verifyAndDecode(
+            $this->dl->tool,
+            config('lti.iss'),
+            $this->dl->tool->client_id
+        );
+
+        $this->checkClaims($jwt);
+        $this->handleLoggingClaims($jwt);
+
+        return $jwt;
+    }
+
+    /**
+     * Make sure that the required claims are present and have the required
+     * values (if any).
+     */
+    private function checkClaims(JWT $jwt)
+    {
+        $checker = new ParamChecker($jwt->claims->all(), $this->ltiLog);
+
+        $requiredValues = [
+            Param::MESSAGE_TYPE_URI => Param::MESSAGE_TYPE_DEEP_LINK_RESPONSE,
+            Param::VERSION_URI => Param::VERSION_130,
+            Param::DEPLOYMENT_ID_URI =>
+                                  $this->dl->deployment->fake_lti_deployment_id,
+        ];
+        $checker->requireValues($requiredValues);
+
+        if (!$jwt->claims->has(Param::DL_CONTENT_ITEMS_URI)) {
+            throw new LtiException($this->ltiLog->msg(
+                'Deep Link response missing content items'));
+        }
+    }
+
+    /**
+     * There are claims specifically for logging, add them to the LTI log.
+     */
+    private function handleLoggingClaims(JWT $jwt)
+    {
+        if ($jwt->claims->has(Param::DL_MSG)) {
+            $this->ltiLog->info('msg: ' . $jwt->claims->get(Param::DL_MSG));
+        }
+        if ($jwt->claims->has(Param::DL_LOG)) {
+            $this->ltiLog->info('log: ' . $jwt->claims->get(Param::DL_LOG));
+        }
+        if ($jwt->claims->has(Param::DL_ERRORMSG)) {
+            $this->ltiLog->error('error msg: ' .
+                $jwt->claims->get(Param::DL_ERRORMSG));
+        }
+        if ($jwt->claims->has(Param::DL_ERRORLOG)) {
+            $this->ltiLog->error('error log: ' .
+                $jwt->claims->get(Param::DL_ERRORLOG));
+        }
     }
 
 }

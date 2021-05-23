@@ -22,6 +22,11 @@ class DeepLink extends Model
         return $this->belongsTo('App\Models\Tool');
     }
 
+    public function getPlatformClientAttribute()
+    {
+        return $this->tool->getPlatformClient($this->deployment->platform_id);
+    }
+
     public function getShimReturnUrlAttribute()
     {
         return route('lti.launch.deepLinkReturn', ['deepLink' => $this->id]);
@@ -44,9 +49,9 @@ class DeepLink extends Model
         $jwt = EncryptedState::decrypt($token);
         $sessionId = $jwt->claims->get('deepLinkId');
         if (!$sessionId) {
-            throw new LtiException('Missing Deep Link');
+            throw new LtiException('Missing Deep Link ID');
         }
-        $session = self::find($sessionId);
+        $session = self::with('deployment')->find($sessionId);
         if (!$sessionId) {
             throw new LtiException('Invalid Deep Link');
         }

@@ -222,7 +222,9 @@ class AuthRespHandler
         // check for required params in token
         $checker = new ParamChecker($jwt->claims->all(), $this->ltiLog);
 
-        $requiredValues = [ Param::VERSION_URI => '1.3.0' ];
+        $requiredValues = [ Param::VERSION_URI => Param::VERSION_130 ];
+        // if oidc login contains lti_deployment_id, we need to check that it
+        // matches the one given in the id_token
         if (isset($this->session->token[Param::LTI_DEPLOYMENT_ID])) {
             $requiredValues[Param::DEPLOYMENT_ID_URI] =
                 $this->session->token[Param::LTI_DEPLOYMENT_ID];
