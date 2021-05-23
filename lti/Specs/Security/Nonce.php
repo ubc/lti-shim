@@ -5,10 +5,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 use UBC\LTI\Utils\LtiException;
+use UBC\LTI\Utils\Param;
 
 class Nonce
 {
-    public const EXPIRY_TIME = 3600; // default nonce expiration
+    public const EXPIRY_TIME = Param::EXP_TIME; // default nonce expiration
     public const NONCE_LENGTH = 16; // number of bytes to generate for nonce
     public const NONCE_STORE = 'nonce';
 

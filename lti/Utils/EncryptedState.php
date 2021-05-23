@@ -19,7 +19,7 @@ class EncryptedState
     {
         $time = time();
         $jwe = Build::jwe() // We build a JWE
-            ->exp($time + 3600)
+            ->exp($time + Param::EXP_TIME)
             ->iat($time)
             ->nbf($time)
             ->alg(Param::RSA_OAEP_256) // key encryption alg

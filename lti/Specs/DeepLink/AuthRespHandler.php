@@ -97,15 +97,11 @@ class AuthRespHandler
 
         // set payload for id_token
         $time = time();
-        $key = Platform::getOwnPlatform()->getKey();
         $payload = [
-            Param::TYP => Param::JWT,
-            Param::KID => $key->kid,
             Param::ISS => config('lti.iss'),
             Param::SUB => $gotJwt->claims->get(Param::SUB), // user id
             Param::AUD => $this->session->tool->client_id,
-            Param::EXP => $time + 3600, // expires 1 hour, give leeway for
-                                        // midway operations
+            Param::EXP => $time + Param::EXP_TIME, // expires 1 hour
             Param::IAT => $time, // issued at
             Param::NBF => $time, // not before
             Param::NONCE => $nonce,
@@ -136,6 +132,7 @@ class AuthRespHandler
         $this->ltiLog->debug('Post-filter id_token: ' . json_encode($payload),
             $this->request, $this->session);
         // encode into jwt
+        $key = Platform::getOwnPlatform()->getKey();
         $this->ltiLog->debug('id_token: key: '. $key->id .' kid: ' . $key->kid,
             $this->request, $this->session);
         $authRespParams[Param::ID_TOKEN] = Build::jws()

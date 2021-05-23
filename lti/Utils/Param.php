@@ -35,6 +35,7 @@ class Param
     public const IAT = 'iat'; // timestamp, issued at
     public const AZP = 'azp';
     public const NBF = 'nbf'; // timestamp, not before
+    public const EXP_TIME = 3600; // time in seconds for token expiration window
     // encrypted jwt used for state & access tokens
     public const AT_JWT = 'at+JWT'; // typ value for access tokens
     public const RSA_OAEP_256 = 'RSA-OAEP-256';

@@ -218,6 +218,19 @@ class PlatformAccessTokenTest extends TestCase
 
     public function testRequestTooOld()
     {
+        // just within validity
+        $builder = $this->getRequestJwtBuilder();
+        $builder = $builder
+            ->iat(time() - JwsUtil::TOKEN_OLD_AGE + 1)
+            ->exp(time() + 60);
+
+        $badParams = $this->goodParams;
+        $badParams['client_assertion'] = $this->signJwtBuilder($builder);
+
+        $resp = $this->post($this->baseUrl, $badParams);
+        $resp->assertStatus(Response::HTTP_OK);
+
+        // just out of validity
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
             ->iat(time() - JwsUtil::TOKEN_OLD_AGE - 1)

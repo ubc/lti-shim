@@ -123,7 +123,7 @@ class AuthRespTest extends TestCase
     {
         $time = time();
         if ($isExpired) {
-            $time -= 3601;
+            $time -= 3661;
         }
         $this->idToken = Build::jws()
             ->alg('RS256')

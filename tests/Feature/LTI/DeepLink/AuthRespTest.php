@@ -74,7 +74,9 @@ class AuthRespTest extends LtiBasicTestCase
     ): string {
         $time = time();
         if ($isExpired) {
-            $time -= 3601;
+            // while tokens should be valid for only 1 hour, there's a 1 minute
+            // leeway allowed for expiration checks, so we allow another 60 sec
+            $time -= 3661;
         }
         $jws = Build::jws()
             ->alg('RS256')
@@ -377,8 +379,8 @@ class AuthRespTest extends LtiBasicTestCase
         // test required params
         $this->assertEquals(self::TOOL_NONCE, $jwt->claims->get('nonce'));
         $key = $this->shimPlatform->getKey();
-        $this->assertEquals($key->kid, $jwt->claims->get('kid'));
-        $this->assertEquals('JWT', $jwt->claims->get('typ'));
+        $this->assertEquals($key->kid, $jwt->header->get('kid'));
+        $this->assertEquals('JWT', $jwt->header->get('typ'));
 
         $expectedMessageType = 'LtiResourceLinkRequest';
         if (isset($extraClaims[self::CLAIM_MESSAGE_TYPE_URI])) {
