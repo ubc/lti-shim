@@ -27,7 +27,6 @@ use UBC\LTI\Specs\Launch\Filters\NrpsFilter;
 use UBC\LTI\Specs\Launch\Filters\UserFilter;
 use UBC\LTI\Specs\Launch\Filters\WhitelistFilter;
 use UBC\LTI\Specs\ParamChecker;
-use UBC\LTI\Specs\Security\Nonce;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
@@ -182,8 +181,15 @@ class AuthRespHandler
         ];
         $this->checker->requireParams($requiredParams);
 
-        $jwt = $this->verifyTokenSignature(
-                                        $this->request->input(Param::ID_TOKEN));
+        // Verify the id_token JWT's signature and unpack it into a JWT object
+        $jwsUtil = new JwsUtil($this->request->input(Param::ID_TOKEN),
+                               $this->ltiLog);
+        $jwt = $jwsUtil->verifyAndDecode(
+            $this->session->platform_client->platform,
+            $this->session->platform_client->client_id,
+            $this->session->platform_client->platform->iss
+        );
+
         $this->checkTokenParams($jwt);
 
         return $jwt;
@@ -208,14 +214,6 @@ class AuthRespHandler
      */
     private function checkTokenParams(JWT $jwt)
     {
-        // security checks
-        JwsUtil::verifyTimestamps($jwt, $this->ltiLog);
-
-        $nonce = $jwt->claims->get(Param::NONCE);
-        if (Nonce::isValid($nonce)) Nonce::used($nonce);
-        else throw new LtiException($this->ltiLog->msg('Invalid nonce',
-            $this->request));
-
         // check if message type is supported
         $messageType = $jwt->claims->get(Param::MESSAGE_TYPE_URI);
         if (!in_array($messageType, Param::MESSAGE_TYPES)) {
@@ -294,41 +292,5 @@ class AuthRespHandler
         $this->session->lti_real_user_id = $user->id;
         $this->session->token = $jwt->claims->all(); // replace previous data
         $this->session->save();
-    }
-
-    /**
-     * Verify the id_token JWT's signature and unpack it into a JWT object
-     */
-    private function verifyTokenSignature(string $token): JWT
-    {
-        // get the key ID (if given) we should use for signature verification
-        $jwt;
-        $kid = '';
-        try {
-            $this->ltiLog->debug('Decode id_token', $this->request);
-            $jwt = Load::jws($token);
-            $jwsUtil = new JwsUtil($token, $this->ltiLog);
-            $kid = $jwsUtil->getKid();
-            $this->ltiLog->debug('id_token: kid: ' . $kid, $this->request);
-        } catch(InvalidArgumentException $e) {
-            throw new LtiException(
-                $this->ltiLog->msg('invalid id_token',$this->request,$e),0,$e);
-        }
-        // grab the key based on the key id. If key id is empty, it should just
-        // return the first key found
-        $jwk = $this->session->platform_client->platform->getKey($kid);
-        $this->ltiLog->debug('id_token: key: ' . $jwk->id, $this->request);
-        // verify signature
-        $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
-                   ->aud($this->session->platform_client->client_id)
-                   ->iss($this->session->platform_client->platform->iss)
-                   ->key($jwk->public_key); // Key used to verify the signature
-        try {
-            $jwt = $jwt->run();
-        } catch(\Exception $e) { // invalid signature throws a bare Exception
-            throw new LtiException(
-                $this->ltiLog->msg('Invalid id_token',$this->request,$e),0,$e);
-        }
-        return $jwt;
     }
 }
