@@ -26,7 +26,7 @@ use App\Models\ReturnUrl;
 
 use UBC\LTI\Specs\Security\Nonce;
 
-// tests second stage of launch, mainly the AuthReqHandler
+// tests last stage of launch, mainly the AuthRespHandler
 class AuthRespTest extends LtiBasicTestCase
 {
     private const CLAIM_AGS_URI = 'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
@@ -359,6 +359,7 @@ class AuthRespTest extends LtiBasicTestCase
         array $extraClaims = []
     ) {
         $this->assertTrue(isset($resp['params']['id_token']));
+        $this->assertTrue(isset($resp['formUrl']));
         // Check state is passed if we were given one.
         // NOTE: this would not work if LtiSession was refreshed. The auth resp
         // should've overwritten the token in LtiSession. However, since we
@@ -369,6 +370,9 @@ class AuthRespTest extends LtiBasicTestCase
             $this->assertEquals($this->ltiSession->token['state'],
                                 $resp['params']['state']);
         }
+        // this also has to be done before LtiSession refresh
+        $this->assertEquals($this->ltiSession->token['redirect_uri'],
+                            $resp['formUrl']);
 
         // should've created a fake user entry for the real user
         $this->assertEquals(1, $this->realUser->lti_fake_users()->count());
