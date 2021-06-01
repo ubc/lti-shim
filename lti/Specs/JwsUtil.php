@@ -95,11 +95,16 @@ class JwsUtil
      * grab the correct RSA key needed to verify the siganture. This will also
      * require the expected value for aud and iss. There's 3 parts to the
      * security verification: signature, timestamps, and nonce.
+     *
+     * The $canAddNonce param tells us that since the nonce was not generated
+     * by the shim itself, we should try to add it into the nonce store first
+     * before checking validity.
      */
     public function verifyAndDecode(
         AbstractLtiEntity $ltiEntity,
         string $aud,
-        string $iss
+        string $iss,
+        bool $canAddNonce = false
     ): JWT {
         $jwt;
         try {
@@ -119,6 +124,7 @@ class JwsUtil
         self::verifyTimestamps($jwt, $this->ltiLog);
 
         $nonce = $jwt->claims->get(Param::NONCE);
+        if ($canAddNonce) Nonce::store($nonce);
         if (Nonce::isValid($nonce)) Nonce::used($nonce);
         else throw new LtiException($this->ltiLog->msg('Invalid nonce'));
 

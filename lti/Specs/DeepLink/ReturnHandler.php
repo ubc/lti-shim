@@ -125,7 +125,8 @@ class ReturnHandler
         $jwt = $jwsUtil->verifyAndDecode(
             $this->dl->tool,
             config('lti.iss'),
-            $this->dl->tool->client_id
+            $this->dl->tool->client_id,
+            true
         );
 
         $this->checkClaims($jwt);

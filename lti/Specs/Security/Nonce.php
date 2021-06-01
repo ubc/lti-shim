@@ -60,14 +60,15 @@ class Nonce
      * Will ignore nonces that have already been seen. Cause that might mean
      * we've already marked that one as used.
      */
-    public static function store(string $nonce, int $expiresIn)
-    {
+    public static function store(
+        string $nonce,
+        int $expiresIn=self::EXPIRY_TIME
+    ) {
         $store = Cache::store(self::NONCE_STORE);
         if ($store->has($nonce)) return;
         if ($expiresIn <= 0) return; // don't care about already expired nonces
         $store->add($nonce, 0, $expiresIn);
     }
-
 
     /**
      * @return true if the nonce is valid. A valid nonce is one that can be
