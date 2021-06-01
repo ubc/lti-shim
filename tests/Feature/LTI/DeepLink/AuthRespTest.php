@@ -52,7 +52,7 @@ class AuthRespTest extends LtiBasicTestCase
         $this->ltiSession->course_context_id = null;
         $this->ltiSession->lti_real_user_id = null;
         $this->ltiSession->token = [
-            'redirect_uri' => route('lti.launch.deepLinkRedirect'),
+            'redirect_uri' => route('lti.launch.redirect'),
             'nonce' => self::TOOL_NONCE
         ];
         $this->ltiSession->save();

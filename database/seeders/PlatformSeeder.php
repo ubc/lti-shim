@@ -18,7 +18,7 @@ class PlatformSeeder extends Seeder
         $platformId = DB::table('platforms')->insertGetId([
             'name' => 'LTI Shim Platform Side',
             'iss' => config('lti.iss'),
-            'auth_req_url' => route('lti.launch.platform.authReq'),
+            'auth_req_url' => route('lti.launch.auth'),
             'jwks_url' => route('lti.jwks.platform'),
             'access_token_url' => route('lti.token')
         ]);

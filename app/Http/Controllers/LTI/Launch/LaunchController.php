@@ -13,7 +13,7 @@ use UBC\LTI\Specs\DeepLink\AuthReqHandler;
 use UBC\LTI\Specs\DeepLink\AuthRespHandler;
 use UBC\LTI\Specs\DeepLink\ReturnHandler;
 
-class DeepLinkController extends Controller
+class LaunchController extends Controller
 {
     /**
      * Receive LTI launch request's first stage, OIDC login, from a platform.

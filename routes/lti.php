@@ -24,6 +24,7 @@ Route::namespace('LTI')->name('lti.')->group(function() {
     // LTI Launch (many specs, such as Core)
     Route::namespace('Launch')->name('launch.')->group(function() {
         // TOOL
+        /* TODO delete
         Route::name('tool.')->group(function() {
             Route::match(
                 ['get', 'post'],
@@ -34,11 +35,13 @@ Route::namespace('LTI')->name('lti.')->group(function() {
             Route::post('/launch/tool/auth', 'ToolLaunchController@auth')
                    ->name('authResp');
         });
+         */
         // MIDWAY - transfer station from the tool side to the platform side
         Route::get('/launch/midway/arrival', 'MidwayController@arrival')
                ->name('midway');
         Route::post('/launch/midway/departure', 'MidwayController@departure');
         // PLATFORM
+        /* TODO delete
         Route::name('platform.')->group(function() {
             Route::match(
                 ['get', 'post'],
@@ -51,20 +54,21 @@ Route::namespace('LTI')->name('lti.')->group(function() {
                 'PlatformLaunchController@auth'
             )->name('authReq');
         });
+         */
         // DEEP LINK - TODO replace regular launch
         Route::match(
             ['get', 'post'],
             '/launch/login',
-            'DeepLinkController@login'
-        )->name('deepLinkLogin');
+            'LaunchController@login'
+        )->name('login');
         Route::match(
             ['get', 'post'],
             '/launch/auth',
-            'DeepLinkController@auth'
-        )->name('deepLinkAuth');
-        Route::post('/launch/redirect', 'DeepLinkController@redirect')
-             ->name('deepLinkRedirect');
-        Route::post('/launch/return/{deepLink}', 'DeepLinkController@return')
+            'LaunchController@auth'
+        )->name('auth');
+        Route::post('/launch/redirect', 'LaunchController@redirect')
+             ->name('redirect');
+        Route::post('/launch/return/{deepLink}', 'LaunchController@return')
              ->name('deepLinkReturn');
     });
     // LTI Core Spec

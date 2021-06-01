@@ -28,7 +28,7 @@ class BasicTestDatabaseSeeder extends Seeder
         $shimPlatform = Platform::factory()->create([
             'name' => 'LTI Shim Platform Side',
             'iss' => config('lti.iss'),
-            'auth_req_url' => route('lti.launch.platform.authReq'),
+            'auth_req_url' => route('lti.launch.auth'),
             'jwks_url' => route('lti.jwks.platform'),
             'access_token_url' => route('lti.token')
         ]);
@@ -36,9 +36,9 @@ class BasicTestDatabaseSeeder extends Seeder
         $shimTool = Tool::factory()->create([
             'name' => 'LTI Shim Tool Side',
             'client_id' => config('lti.own_tool_client_id'),
-            'oidc_login_url' => route('lti.launch.tool.login'),
-            'auth_resp_url' => route('lti.launch.tool.authResp'),
-            'target_link_uri' => route('lti.launch.platform.login'),
+            'oidc_login_url' => route('lti.launch.login'),
+            'auth_resp_url' => route('lti.launch.redirect'),
+            'target_link_uri' => route('lti.launch.midway'),
             'jwks_url' => route('lti.jwks.tool')
         ]);
         // create 2 platforms

@@ -45,7 +45,7 @@ class Tool extends AbstractLtiEntity
         // that requires a db lookup, so probably faster to just use grab it
         // from the router
         // TODO: update if using Deep Link flow for launch
-        $uri = Uri::createFromString(route('lti.launch.deepLinkLogin'));
+        $uri = Uri::createFromString(route('lti.launch.login'));
         return UriModifier::appendQuery($uri, self::TARGET_TOOL_PARAM . '=' .
                                               $this->id);
     }

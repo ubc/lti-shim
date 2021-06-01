@@ -18,9 +18,9 @@ class ToolSeeder extends Seeder
         $toolId = DB::table('tools')->insertGetId([
             'name' => 'LTI Shim Tool Side',
             'client_id' => config('lti.own_tool_client_id'),
-            'oidc_login_url' => route('lti.launch.tool.login'),
-            'auth_resp_url' => route('lti.launch.tool.authResp'),
-            'target_link_uri' => route('lti.launch.platform.login'),
+            'oidc_login_url' => route('lti.launch.login'),
+            'auth_resp_url' => route('lti.launch.redirect'),
+            'target_link_uri' => route('lti.launch.midway'),
             'jwks_url' => route('lti.jwks.tool')
         ]);
         DB::table('tool_keys')->insert([

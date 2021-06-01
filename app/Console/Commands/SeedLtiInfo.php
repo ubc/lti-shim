@@ -57,7 +57,7 @@ class SeedLtiInfo extends Command
         $platform = new Platform;
         $platform->name = 'LTI Shim Platform Side';
         $platform->iss = config('lti.iss');
-        $platform->auth_req_url = route('lti.launch.platform.authReq');
+        $platform->auth_req_url = route('lti.launch.auth');
         $platform->jwks_url = route('lti.jwks.platform');
         $platform->access_token_url = route('lti.token');
         $platform->save();
@@ -76,9 +76,9 @@ class SeedLtiInfo extends Command
         $tool = new Tool;
         $tool->name = 'LTI Shim Tool Side';
         $tool->client_id = 'Not used for shim, look up in platform_client';
-        $tool->oidc_login_url = route('lti.launch.tool.login');
-        $tool->auth_resp_url = route('lti.launch.tool.authResp');
-        $tool->target_link_uri = route('lti.launch.platform.login');
+        $tool->oidc_login_url = route('lti.launch.login');
+        $tool->auth_resp_url = route('lti.launch.redirect');
+        $tool->target_link_uri = route('lti.launch.midway');
         $tool->jwks_url = route('lti.jwks.tool');
         $tool->save();
         // generate a new key
