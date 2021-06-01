@@ -37,21 +37,5 @@ class MidwayController extends Controller
             abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
     }
-
-    /**
-     * Deals with requests leaving for the platform side.
-     *
-     * @param Request $request
-     */
-    public function departure(Request $request)
-    {
-        try {
-            $midwayLaunch = new MidwayLaunch($request);
-            return $midwayLaunch->getDepartureResponse();
-        } catch (LtiException $e) {
-            report($e);
-            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
-        }
-    }
 }
 

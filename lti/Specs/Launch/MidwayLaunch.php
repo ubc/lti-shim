@@ -23,7 +23,7 @@ class MidwayLaunch
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->ltiSession = LtiSession::getSession($this->request);
+        $this->ltiSession = $this->getSession();
         $this->ltiLog = new LtiLog('Launch (Midway)',
                                    $this->ltiSession->log_stream);
     }
@@ -31,6 +31,33 @@ class MidwayLaunch
     public function getArrivalResponse(): Response
     {
         $this->ltiLog->debug('Arrived from Tool Side', $this->request);
+        if (!$this->request->has(Param::MIDWAY_REDIRECT_URI)) {
+            throw new LtiException($this->ltiLog->msg(
+                'Invalid Midway request, missing redirect uri.'));
+        }
+
+        // don't bother with user lookup if this is a deep link request
+        if ($this->ltiSession->token[Param::MESSAGE_TYPE_URI] ==
+            Param::MESSAGE_TYPE_DEEP_LINK_REQUEST) {
+            return $this->getAutoSubmitResponse();
+        }
+
+        $roleVo = new RoleVocabulary();
+        if ($roleVo->canLookupRealUsers(
+                $this->ltiSession->token[Param::ROLES_URI])
+        ) {
+            return $this->getLookupResponse();
+        }
+        return $this->getAutoSubmitResponse();
+    }
+
+    /**
+     * User is allowed to lookup real users, so we have to send them to the
+     * midway user lookup tool.
+     */
+    private function getLookupResponse(): Response
+    {
+        $this->ltiLog->debug('Access lookup tool', $this->request);
 
         $courseContextId = $this->ltiSession->course_context_id;
         $toolId = $this->ltiSession->tool_id;
@@ -43,37 +70,52 @@ class MidwayLaunch
             [$user->getLookupAbility($courseContextId, $toolId)]);
 
         $response = [
-            Param::LTI_MESSAGE_HINT =>
-                $this->request->input(Param::LTI_MESSAGE_HINT),
+            Param::ID_TOKEN => $this->request->input(Param::ID_TOKEN),
+            Param::MIDWAY_REDIRECT_URI =>
+                            $this->request->input(Param::MIDWAY_REDIRECT_URI),
             'courseContextId' => $courseContextId,
             'platformName' => $this->ltiSession->deployment->platform->name,
             'toolId' => $toolId,
             'toolName' => $this->ltiSession->tool->name,
             'token' => $token->plainTextToken
         ];
+        if ($this->request->has(Param::STATE)) {
+            $response[Param::STATE] = $this->request->input(Param::STATE);
+        }
 
-        $roleVo = new RoleVocabulary();
-        if ($roleVo->canLookupRealUsers(
-                $this->ltiSession->token[Param::ROLES_URI])
-        ) {
-            $this->ltiLog->debug('Access lookup tool', $this->request);
-            return response()->view('lti/launch/midway/lookup', $response);
-        }
-        else {
-            $this->ltiLog->debug('No lookup, continue', $this->request);
-            return response()->view('lti/launch/midway/auto', $response);
-        }
+        return response()->view('lti/launch/midway/lookup', $response);
     }
 
-    public function getDepartureResponse()
+    /**
+     * User does not have access to lookup real users, so just continue on
+     * with sending the auth resp to the target tool.
+     */
+    private function getAutoSubmitResponse(): Response
     {
-        $this->ltiLog->debug('Depart to Platform Side', $this->request);
-        return redirect()->action(
-            'LTI\Launch\PlatformLaunchController@login',
+        $this->ltiLog->debug('No lookup, continue', $this->request);
+        $autoParams = [
+            Param::ID_TOKEN => $this->request->input(Param::ID_TOKEN) ];
+        if ($this->request->has(Param::STATE))
+            $autoParams[Param::STATE] = $this->request->input(Param::STATE);
+
+        return response()->view(
+            'lti/launch/auto_submit_form',
             [
-                Param::LTI_MESSAGE_HINT =>
-                    $this->request->input(Param::LTI_MESSAGE_HINT)
+                'title' => 'Auth Response After Midway',
+                'formUrl' => $this->request->input(Param::MIDWAY_REDIRECT_URI),
+                'params' => $autoParams
             ]
         );
+    }
+
+    /**
+     * Get the LtiSession from the session param.
+     */
+    private function getSession(): LtiSession
+    {
+        if (!$this->request->has(Param::MIDWAY_SESSION))
+            throw new LtiException('No LTI session was passed to Midway.');
+        return LtiSession::decodeEncryptedId(
+                                    $this->request->get(Param::MIDWAY_SESSION));
     }
 }

@@ -3,7 +3,7 @@
 
     <div class='d-lg-flex justify-content-lg-between align-items-lg-center'>
       <form :action='action' :method='method' ref='form' class='order-lg-1'>
-        <slot name='session'></slot>
+        <slot name='redirect-params'></slot>
         <button type='submit' class='btn btn-primary' ref='continueButton'>
           <ContinueIcon />
           Continue to {{ toolName }}

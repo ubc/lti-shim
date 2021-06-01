@@ -37,9 +37,8 @@ Route::namespace('LTI')->name('lti.')->group(function() {
         });
          */
         // MIDWAY - transfer station from the tool side to the platform side
-        Route::get('/launch/midway/arrival', 'MidwayController@arrival')
+        Route::post('/launch/midway', 'MidwayController@arrival')
                ->name('midway');
-        Route::post('/launch/midway/departure', 'MidwayController@departure');
         // PLATFORM
         /* TODO delete
         Route::name('platform.')->group(function() {

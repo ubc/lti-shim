@@ -142,6 +142,11 @@ class AuthRespHandler
             ->payload($payload)
             ->sign($key->key);
 
+        // params for midway where users interact with the shim (if any)
+        $authRespParams[Param::MIDWAY_REDIRECT_URI] = $authRespUri;
+        $authRespParams[Param::MIDWAY_SESSION] =
+                                            $this->session->createEncryptedId();
+
         $fakeUser = LtiFakeUser::getByRealUser(
             $this->session->course_context_id,
             $this->session->tool_id,
@@ -155,8 +160,8 @@ class AuthRespHandler
         return response()->view(
             'lti/launch/auto_submit_form',
             [
-                'title' => 'Auth Response',
-                'formUrl' => $authRespUri,
+                'title' => 'Auth Response to Midway',
+                'formUrl' => route('lti.launch.midway'),
                 'params' => $authRespParams
             ]
         );

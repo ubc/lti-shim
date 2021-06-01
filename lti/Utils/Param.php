@@ -207,4 +207,9 @@ class Param
     public const DL_ERRORMSG = 'https://purl.imsglobal.org/spec/lti-dl/claim/errormsg';
     // error message we can log on the platform
     public const DL_ERRORLOG = 'https://purl.imsglobal.org/spec/lti-dl/claim/errorlog';
+
+    // Midway (not LTI), where users can interact with the shim directly
+    public const MIDWAY_REDIRECT_URI = 'midwayRedirectUri'; // where to go after
+                                                    // user is done with Midway
+    public const MIDWAY_SESSION = 'midwaySession'; // stores LtiSession
 }
