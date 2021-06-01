@@ -60,8 +60,7 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         Param::VERSION_URI => 13,
         Param::DEPLOYMENT_ID_URI => 14,
         Param::TARGET_LINK_URI_URI => 15,
-        Param::RESOURCE_LINK_URI => 16,
-        Param::ROLES_URI => 17
+        Param::ROLES_URI => 16
     ];
 
     // list of claims that could be in id_token
@@ -73,7 +72,10 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         Param::NRPS_CLAIM_URI => 5,
         Param::AGS_CLAIM_URI => 6,
         Param::FOR_USER_URI => 7,
-        Param::DL_CLAIM_URI => 8
+        Param::DL_CLAIM_URI => 8,
+        // resource link is not required for deep link messages, but is required
+        // by other message types. So kinda optional?
+        Param::RESOURCE_LINK_URI => 9,
     ];
 
     protected array $whitelists = [

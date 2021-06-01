@@ -47,6 +47,7 @@ class AuthRespHandler
     private Request $request;
 
     private array $filters;
+    private bool $isDeepLink;
 
     public function __construct(Request $request)
     {
@@ -112,8 +113,6 @@ class AuthRespHandler
             Param::DEPLOYMENT_ID_URI =>
                                   $this->session->deployment->lti_deployment_id,
             Param::TARGET_LINK_URI_URI => $this->session->tool->target_link_uri,
-            Param::RESOURCE_LINK_URI =>
-                                  $gotJwt->claims->get(Param::RESOURCE_LINK_URI)
         ];
         // pass through optional params if they exist
         foreach (
@@ -223,6 +222,9 @@ class AuthRespHandler
                 'Unsupported Message Type: ' . $messageType,
                 $this->request));
         }
+        $this->isDeepLink = false;
+        if ($messageType == Param::MESSAGE_TYPE_DEEP_LINK_REQUEST)
+            $this->isDeepLink = true;
 
         // check for required params in token
         $checker = new ParamChecker($jwt->claims->all(), $this->ltiLog);
@@ -236,13 +238,17 @@ class AuthRespHandler
         }
         $checker->requireValues($requiredValues);
 
-        $checker->requireParams([
+        $requiredParams = [
             Param::TARGET_LINK_URI_URI,
-            Param::RESOURCE_LINK_URI,
             Param::ROLES_URI,
             Param::NONCE,
             Param::MESSAGE_TYPE_URI
-        ]);
+        ];
+        // deep link does not have require resource link
+        if (!$this->isDeepLink) {
+            $requireParams[] = Param::RESOURCE_LINK_URI;
+        }
+        $checker->requireParams($requiredParams);
 
         // verify that the target_link_uri points to the shim
         $target = $jwt->claims->get(Param::TARGET_LINK_URI_URI);
