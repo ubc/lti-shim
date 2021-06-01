@@ -1,5 +1,5 @@
 <?php
-namespace UBC\LTI\Specs\DeepLink;
+namespace UBC\LTI\Specs\Launch;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;

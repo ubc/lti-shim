@@ -14,7 +14,7 @@ use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\RoleVocabulary;
 
-class MidwayLaunch
+class MidwayHandler
 {
     private LtiLog $ltiLog;
     private Request $request;

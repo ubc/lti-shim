@@ -8,9 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\DeepLink;
 
 use UBC\LTI\Utils\LtiException;
-use UBC\LTI\Specs\DeepLink\LoginHandler;
-use UBC\LTI\Specs\DeepLink\AuthReqHandler;
-use UBC\LTI\Specs\DeepLink\AuthRespHandler;
+use UBC\LTI\Specs\Launch\LoginHandler;
+use UBC\LTI\Specs\Launch\AuthReqHandler;
+use UBC\LTI\Specs\Launch\AuthRespHandler;
 use UBC\LTI\Specs\DeepLink\ReturnHandler;
 
 class LaunchController extends Controller
@@ -54,6 +54,10 @@ class LaunchController extends Controller
     /**
      * Receive LTI deep linking's last stage (adds a 4th stage to lti launch)
      * from a tool. Returns the deep link return to the originating platform
+     *
+     * This is technically deep link only, but since deep link adds an
+     * additional stage to launch, it makes more sense to have it here in the
+     * LaunchController.
      *
      * @param Request $request
      */
