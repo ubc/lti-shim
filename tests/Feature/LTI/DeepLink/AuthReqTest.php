@@ -30,6 +30,10 @@ class AuthReqTest extends LtiBasicTestCase
         $this->ltiSession->deployment_id = null;
         $this->ltiSession->course_context_id = null;
         $this->ltiSession->lti_real_user_id = null;
+        // the OIDC login should've at least left us with a login_hint
+        $this->ltiSession->token = [
+            'login_hint' => 'OriginalLoginHintFromThePlatform'
+        ];
         $this->ltiSession->save();
 
         $this->basicAuthParams = [
@@ -107,6 +111,8 @@ class AuthReqTest extends LtiBasicTestCase
         $resp->assertViewHas('params.response_type', 'id_token');
         $resp->assertViewHas('params.response_mode', 'form_post');
         // dynamic values
+        $resp->assertViewHas('params.login_hint',
+                             $this->ltiSession->token['login_hint']);
         $resp->assertViewHas('params.client_id',
                              $this->platformClient->client_id);
         $resp->assertViewhas('params.redirect_uri',

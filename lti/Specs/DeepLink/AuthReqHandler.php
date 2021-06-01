@@ -40,8 +40,8 @@ class AuthReqHandler
     }
 
     /**
-     * Returns the OIDC login parameters we should send to the target tool. This
-     * is the shim acting as a platform.
+     * Returns the auth req parameters we should send to the originating
+     * platform. This is the shim acting as a tool.
      */
     public function sendAuth(): Response
     {
@@ -56,9 +56,8 @@ class AuthReqHandler
             // REQUIRED dynamic
             Param::CLIENT_ID => $this->session->platform_client->client_id,
             Param::NONCE => Nonce::create(),
-            // TODO: tmp redirect_uri, this should go to midway when we
-            // replace the previous launch implementation
-            Param::REDIRECT_URI => route('lti.launch.deepLinkRedirect'),
+            Param::REDIRECT_URI => route('lti.launch.redirect'),
+            Param::LOGIN_HINT => $this->session->token[Param::LOGIN_HINT],
             // Not required by spec, but needed for us to track session
             Param::STATE => $this->session->createEncryptedId()
         ];
@@ -78,8 +77,8 @@ class AuthReqHandler
     }
 
     /**
-     * Just validates to see if the OIDC login request we received from the
-     * platform was valid. This is the shim acting as a tool.
+     * Just validates to see if the auth req we received from the tool was
+     * valid. This is the shim acting as a platform.
      */
     private function receiveAuth()
     {
