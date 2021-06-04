@@ -52,8 +52,10 @@ class SeedLtiInfo extends Command
 
     private function seedPlatform()
     {
-        $platform = Platform::getOwnPlatform();
-        if ($platform) return; // we only want to seed empty databases
+        try {
+            $platform = Platform::getOwnPlatform();
+            return; // we only want to seed empty databases
+        } catch (\UnexpectedValueException $e) {}
         $platform = new Platform;
         $platform->name = 'LTI Shim Platform Side';
         $platform->iss = config('lti.iss');
@@ -71,11 +73,13 @@ class SeedLtiInfo extends Command
 
     private function seedTool()
     {
-        $tool = Tool::getOwnTool();
-        if ($tool) return; // we only want to seed empty databases
+        try {
+            $tool = Tool::getOwnTool();
+            return; // we only want to seed empty databases
+        } catch (\UnexpectedValueException $e) {}
         $tool = new Tool;
         $tool->name = 'LTI Shim Tool Side';
-        $tool->client_id = 'Not used for shim, look up in platform_client';
+        $tool->client_id = config('lti.own_tool_client_id');
         $tool->oidc_login_url = route('lti.launch.login');
         $tool->auth_resp_url = route('lti.launch.redirect');
         $tool->target_link_uri = route('lti.launch.midway');
