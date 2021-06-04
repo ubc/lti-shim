@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\LTI\DeepLink;
+namespace Tests\Feature\LTI\Launch;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
