@@ -33,6 +33,7 @@ class AuthRespTest extends LtiBasicTestCase
     private const CLAIM_NRPS_URI = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     private const CLAIM_LPRESENT_URI = 'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
     private const CLAIM_DL_URI = 'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
+    private const CLAIM_GM_URI = 'https://purl.imsglobal.org/spec/lti/claim/for_user';
     private const CLAIM_MESSAGE_TYPE_URI = 'https://purl.imsglobal.org/spec/lti/claim/message_type';
     private const TOOL_NONCE = 'SomeNonceFromTargetTool';
     private const TOOL_STATE = 'SomeFakeStateFromTargetTool';
@@ -352,6 +353,26 @@ class AuthRespTest extends LtiBasicTestCase
     }
 
     /**
+     * Test that gradebook message get properly filtered
+     */
+    public function testGradebookMessageClaimFiltering()
+    {
+        $extraClaims = [
+            self::CLAIM_GM_URI => [
+                'user_id' => $this->realUser->sub
+            ],
+            self::CLAIM_MESSAGE_TYPE_URI => 'LtiSubmissionReviewRequest'
+        ];
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $extraClaims);
+
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+        $this->checkSuccessfulResponse($resp, $extraClaims);
+    }
+
+    /**
      * Check that the returned auth resp has all the expected values
      */
     private function checkSuccessfulResponse(
@@ -463,6 +484,10 @@ class AuthRespTest extends LtiBasicTestCase
         // Deep Link
         if (isset($extraClaims[self::CLAIM_DL_URI]))
             $this->checkSuccessfulDeepLink($jwt, $extraClaims);
+
+        // Deep Link
+        if (isset($extraClaims[self::CLAIM_GM_URI]))
+            $this->checkSuccessfulGradebookMsg($jwt, $extraClaims);
     }
 
     /**
@@ -637,6 +662,27 @@ class AuthRespTest extends LtiBasicTestCase
     }
 
     /**
+     * Assuming a successful launch with Gradebook Message claims, check that
+     * the Gradebook Message claim values match what we expect.
+     */
+    private function checkSuccessfulGradebookMsg(JWT $jwt, array $extraClaims)
+    {
+        $this->assertEquals(
+            'LtiSubmissionReviewRequest',
+            $jwt->claims->get(self::CLAIM_MESSAGE_TYPE_URI)
+        );
+        $fakeUser = $this->realUser->lti_fake_users()->first();
+        $this->assertEquals(
+            [
+                'user_id' => $fakeUser->sub,
+                'name' => $fakeUser->name,
+                'email' => $fakeUser->email
+            ],
+            $jwt->claims->get(self::CLAIM_GM_URI)
+        );
+    }
+
+    /**
      * Test that params being set to invalid values return an error
      */
     public function testInvalidParams()
@@ -652,6 +698,22 @@ class AuthRespTest extends LtiBasicTestCase
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
 
+    /**
+     * Test that if the message type claim indicates a message we don't support,
+     * the request fails.
+     */
+    public function testRejectUnsupportedMessageType()
+    {
+        // override the message type
+        $extraClaims = [
+            self::CLAIM_MESSAGE_TYPE_URI => 'BadMessageType'
+        ];
+        $params = $this->basicAuthParams;
+        $params['id_token'] = $this->createIdToken(Nonce::create(),
+                                                   $extraClaims);
+        $resp = $this->post($this->authUrl, $params);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
     /**
      * Nonce uniqueness is enforced by the tool side. We need to make sure that
      * the nonce passed back to us from the platform in the id_token is valid.
