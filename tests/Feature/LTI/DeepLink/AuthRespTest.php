@@ -354,7 +354,7 @@ class AuthRespTest extends LtiBasicTestCase
     /**
      * Check that the returned auth resp has all the expected values
      */
-    public function checkSuccessfulResponse(
+    private function checkSuccessfulResponse(
         TestResponse $resp,
         array $extraClaims = []
     ) {
@@ -443,166 +443,196 @@ class AuthRespTest extends LtiBasicTestCase
         // test 'extra' claims, mainly lti service claims that we need to filter
         //
         // NRPS check
-        if (isset($extraClaims[self::CLAIM_NRPS_URI])) {
-            $this->assertTrue( $jwt->claims->has(self::CLAIM_NRPS_URI));
-            $nrps = Nrps::first();
-            $this->assertNotNull($nrps);
-            // check that original claim is saved
-            $this->assertEquals(
-                $extraClaims[self::CLAIM_NRPS_URI]['context_memberships_url'],
-                $nrps->context_memberships_url
-            );
-            // check that we hand out shim based urls instead of the original
-            $this->assertNotEquals($nrps->context_memberships_url,
-                                   $nrps->getShimUrl());
-            $this->assertTrue(isset(
-                $jwt->claims->get(self::CLAIM_NRPS_URI)['context_memberships_url']));
-            $this->assertEquals(
-                $jwt->claims->get(self::CLAIM_NRPS_URI)['context_memberships_url'],
-                $nrps->getShimUrl()
-            );
-        }
-        else {
+        if (isset($extraClaims[self::CLAIM_NRPS_URI]))
+            $this->checkSuccessfulNrps($jwt, $extraClaims);
+        else
             $this->assertFalse( $jwt->claims->has(self::CLAIM_NRPS_URI));
-        }
 
         // AGS check
-        if (isset($extraClaims[self::CLAIM_AGS_URI])) {
-            $this->assertTrue( $jwt->claims->has(self::CLAIM_AGS_URI));
-            // an entry should now be in the ags table
-            $ags = Ags::first();
-            $this->assertNotNull($ags);
-
-            // original claim should be saved in ags
-            $this->assertEquals(
-                $extraClaims[self::CLAIM_AGS_URI]['lineitems'],
-                $ags->lineitems
-            );
-
-            // unrecognized scopes should be removed but otherwise passed
-            // through
-            $this->assertEquals(
-                $extraClaims[self::CLAIM_AGS_URI]['scope'],
-                $jwt->claims->get(self::CLAIM_AGS_URI)['scope']
-            );
-            $this->assertEquals(
-                $extraClaims[self::CLAIM_AGS_URI]['scope'],
-                $ags->scopes
-            );
-
-            // make sure the lineitems url now points to the shim ags
-            $this->assertEquals(
-                $ags->getShimLineitemsUrl(),
-                $jwt->claims->get(self::CLAIM_AGS_URI)['lineitems']
-            );
-
-            // lineitem is optional and creates a separate AgsLineitem entry
-            if (isset($extraClaims[self::CLAIM_AGS_URI]['lineitem'])) {
-                $agsLineitem = AgsLineitem::first();
-                $this->assertNotNull($agsLineitem);
-                $this->assertEquals(
-                    $extraClaims[self::CLAIM_AGS_URI]['lineitem'],
-                    $agsLineitem->lineitem
-                );
-                $this->assertEquals(
-                    $agsLineitem->getShimLineitemUrl(),
-                    $jwt->claims->get(self::CLAIM_AGS_URI)['lineitem']
-                );
-            }
-            else {
-                $this->assertEmpty($ags->lineitem);
-                $this->assertArrayNotHasKey('lineitem',
-                    $jwt->claims->get(self::CLAIM_AGS_URI));
-            }
-
-        }
-        else {
+        if (isset($extraClaims[self::CLAIM_AGS_URI]))
+            $this->checkSuccessfulAgs($jwt, $extraClaims);
+        else
             $this->assertFalse( $jwt->claims->has(self::CLAIM_AGS_URI));
-        }
 
         // Launch Presentation
-        if (isset($extraClaims[self::CLAIM_LPRESENT_URI])) {
-            $this->assertTrue( $jwt->claims->has(self::CLAIM_LPRESENT_URI));
-            $returnUrl = ReturnUrl::first();
-            $this->assertNotNull($returnUrl);
-            // make sure original claim was saved
+        if (isset($extraClaims[self::CLAIM_LPRESENT_URI]))
+            $this->checkSuccessfulLaunchPresent($jwt, $extraClaims);
+        else
+            $this->assertFalse( $jwt->claims->has(self::CLAIM_LPRESENT_URI));
+
+        // Deep Link
+        if (isset($extraClaims[self::CLAIM_DL_URI]))
+            $this->checkSuccessfulDeepLink($jwt, $extraClaims);
+    }
+
+    /**
+     * Assuming a successful launch with NRPS claims, check that the NRPS claim
+     * values match what we expect.
+     */
+    private function checkSuccessfulNrps(JWT $jwt, array $extraClaims)
+    {
+        $this->assertTrue( $jwt->claims->has(self::CLAIM_NRPS_URI));
+        $nrps = Nrps::first();
+        $this->assertNotNull($nrps);
+        // check that original claim is saved
+        $this->assertEquals(
+            $extraClaims[self::CLAIM_NRPS_URI]['context_memberships_url'],
+            $nrps->context_memberships_url
+        );
+        // check that we hand out shim based urls instead of the original
+        $this->assertNotEquals($nrps->context_memberships_url,
+            $nrps->getShimUrl());
+        $this->assertTrue(isset(
+            $jwt->claims->get(self::CLAIM_NRPS_URI)['context_memberships_url']
+        ));
+        $this->assertEquals(
+            $jwt->claims->get(self::CLAIM_NRPS_URI)['context_memberships_url'],
+            $nrps->getShimUrl()
+        );
+    }
+
+    /**
+     * Assuming a successful launch with AGS claims, check that the AGS claim
+     * values match what we expect.
+     */
+    private function checkSuccessfulAgs(JWT $jwt, array $extraClaims)
+    {
+        $this->assertTrue( $jwt->claims->has(self::CLAIM_AGS_URI));
+        // an entry should now be in the ags table
+        $ags = Ags::first();
+        $this->assertNotNull($ags);
+
+        // original claim should be saved in ags
+        $this->assertEquals(
+            $extraClaims[self::CLAIM_AGS_URI]['lineitems'],
+            $ags->lineitems
+        );
+
+        // unrecognized scopes should be removed but otherwise passed
+        // through
+        $this->assertEquals(
+            $extraClaims[self::CLAIM_AGS_URI]['scope'],
+            $jwt->claims->get(self::CLAIM_AGS_URI)['scope']
+        );
+        $this->assertEquals(
+            $extraClaims[self::CLAIM_AGS_URI]['scope'],
+            $ags->scopes
+        );
+
+        // make sure the lineitems url now points to the shim ags
+        $this->assertEquals(
+            $ags->getShimLineitemsUrl(),
+            $jwt->claims->get(self::CLAIM_AGS_URI)['lineitems']
+        );
+
+        // lineitem is optional and creates a separate AgsLineitem entry
+        if (isset($extraClaims[self::CLAIM_AGS_URI]['lineitem'])) {
+            $agsLineitem = AgsLineitem::first();
+            $this->assertNotNull($agsLineitem);
             $this->assertEquals(
-                $extraClaims[self::CLAIM_LPRESENT_URI]['return_url'],
-                $returnUrl->url
+                $extraClaims[self::CLAIM_AGS_URI]['lineitem'],
+                $agsLineitem->lineitem
             );
-            // make sure we got the filtered results
-            $expectedLPresent = $extraClaims[self::CLAIM_LPRESENT_URI];
-            $expectedLPresent['return_url'] = $returnUrl->getShimUrl();
             $this->assertEquals(
-                $expectedLPresent,
-                $jwt->claims->get(self::CLAIM_LPRESENT_URI)
+                $agsLineitem->getShimLineitemUrl(),
+                $jwt->claims->get(self::CLAIM_AGS_URI)['lineitem']
             );
         }
         else {
-            $this->assertFalse( $jwt->claims->has(self::CLAIM_LPRESENT_URI));
+            $this->assertEmpty($ags->lineitem);
+            $this->assertArrayNotHasKey('lineitem',
+                $jwt->claims->get(self::CLAIM_AGS_URI));
         }
+    }
 
-        // Deep Link
-        if (isset($extraClaims[self::CLAIM_DL_URI])) {
-            // Deep Link requests should use a different message type
-            $this->assertEquals('LtiDeepLinkingRequest',
-                $jwt->claims->get(self::CLAIM_MESSAGE_TYPE_URI));
 
-            $actualDlClaims = $jwt->claims->get(self::CLAIM_DL_URI);
-            $this->assertNotNull($actualDlClaims);
-            $this->assertFalse(isset($actualDlClaims['invalid_dl_claim']));
+    /**
+     * Assuming a successful launch with Launch Presentation claims, check that
+     * the Launch Presentation claim values match what we expect.
+     */
+    private function checkSuccessfulLaunchPresent(JWT $jwt, array $extraClaims)
+    {
+        $this->assertTrue( $jwt->claims->has(self::CLAIM_LPRESENT_URI));
+        $returnUrl = ReturnUrl::first();
+        $this->assertNotNull($returnUrl);
+        // make sure original claim was saved
+        $this->assertEquals(
+            $extraClaims[self::CLAIM_LPRESENT_URI]['return_url'],
+            $returnUrl->url
+        );
+        // make sure we got the filtered results
+        $expectedLPresent = $extraClaims[self::CLAIM_LPRESENT_URI];
+        $expectedLPresent['return_url'] = $returnUrl->getShimUrl();
+        $this->assertEquals(
+            $expectedLPresent,
+            $jwt->claims->get(self::CLAIM_LPRESENT_URI)
+        );
+    }
 
-            // an entry should now be in the ags table
-            $this->assertEquals(1, DeepLink::count());
-            $dl = DeepLink::first();
-            $this->assertNotNull($dl);
-            // make sure we've saved the data claim for use later
-            $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['data'],
-                                $dl->state);
-            // make sure that we can retrieve the DeepLink entry from the state
-            // we passed to the target tool
-            $decodedDl = DeepLink::decodeEncryptedId($actualDlClaims['data']);
-            $this->assertNotNull($decodedDl);
-            $this->assertEquals($dl->id, $decodedDl->id);
+    /**
+     * Assuming a successful launch with Deep Linking claims, check that the
+     * Deep Linking claim values match what we expect.
+     */
+    private function checkSuccessfulDeepLink(JWT $jwt, array $extraClaims)
+    {
+        // Deep Link requests should use a different message type
+        $this->assertEquals('LtiDeepLinkingRequest',
+            $jwt->claims->get(self::CLAIM_MESSAGE_TYPE_URI));
 
-            // -- required claims
-            $this->assertEquals($dl->shim_return_url,
-                                $actualDlClaims['deep_link_return_url']);
+        $actualDlClaims = $jwt->claims->get(self::CLAIM_DL_URI);
+        $this->assertNotNull($actualDlClaims);
+        $this->assertFalse(isset($actualDlClaims['invalid_dl_claim']));
+
+        // an entry should now be in the ags table
+        $this->assertEquals(1, DeepLink::count());
+        $dl = DeepLink::first();
+        $this->assertNotNull($dl);
+        // make sure we've saved the data claim for use later
+        $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['data'],
+            $dl->state);
+        // make sure that we can retrieve the DeepLink entry from the state
+        // we passed to the target tool
+        $decodedDl = DeepLink::decodeEncryptedId($actualDlClaims['data']);
+        $this->assertNotNull($decodedDl);
+        $this->assertEquals($dl->id, $decodedDl->id);
+
+        // -- required claims
+        $this->assertEquals($dl->shim_return_url,
+            $actualDlClaims['deep_link_return_url']);
+        $this->assertEquals(
+            $extraClaims[self::CLAIM_DL_URI]['accept_types'],
+            $actualDlClaims['accept_types']
+        );
+        $this->assertEquals(
+            $extraClaims[self::CLAIM_DL_URI]['accept_presentation_document_targets'],
+            $actualDlClaims['accept_presentation_document_targets']
+        );
+        // -- optional claims
+        if (isset($extraClaims[self::CLAIM_DL_URI]['accept_media_types'])) {
             $this->assertEquals(
-                $extraClaims[self::CLAIM_DL_URI]['accept_types'],
-                $actualDlClaims['accept_types']
+                $extraClaims[self::CLAIM_DL_URI]['accept_media_types'],
+                $actualDlClaims['accept_media_types']
             );
+        }
+        if (isset($extraClaims[self::CLAIM_DL_URI]['accept_multiple'])) {
             $this->assertEquals(
-                $extraClaims[self::CLAIM_DL_URI]['accept_presentation_document_targets'],
-                $actualDlClaims['accept_presentation_document_targets']
+                $extraClaims[self::CLAIM_DL_URI]['accept_multiple'],
+                $actualDlClaims['accept_multiple']
             );
-            // -- optional claims
-            if (isset($extraClaims[self::CLAIM_DL_URI]['accept_media_types'])) {
-                $this->assertEquals(
-                    $extraClaims[self::CLAIM_DL_URI]['accept_media_types'],
-                    $actualDlClaims['accept_media_types']
-                );
-            }
-            if (isset($extraClaims[self::CLAIM_DL_URI]['accept_multiple'])) {
-                $this->assertEquals(
-                    $extraClaims[self::CLAIM_DL_URI]['accept_multiple'],
-                    $actualDlClaims['accept_multiple']
-                );
-            }
-            if (isset($extraClaims[self::CLAIM_DL_URI]['auto_create'])) {
-                $this->assertEquals(
-                    $extraClaims[self::CLAIM_DL_URI]['auto_create'],
-                    $actualDlClaims['auto_create']
-                );
-            }
-            if (isset($extraClaims[self::CLAIM_DL_URI]['title'])) {
-                $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['title'],
-                    $actualDlClaims['title']);
-            }
-            if (isset($extraClaims[self::CLAIM_DL_URI]['text'])) {
-                $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['text'],
-                    $actualDlClaims['text']);
-            }
+        }
+        if (isset($extraClaims[self::CLAIM_DL_URI]['auto_create'])) {
+            $this->assertEquals(
+                $extraClaims[self::CLAIM_DL_URI]['auto_create'],
+                $actualDlClaims['auto_create']
+            );
+        }
+        if (isset($extraClaims[self::CLAIM_DL_URI]['title'])) {
+            $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['title'],
+                $actualDlClaims['title']);
+        }
+        if (isset($extraClaims[self::CLAIM_DL_URI]['text'])) {
+            $this->assertEquals($extraClaims[self::CLAIM_DL_URI]['text'],
+                $actualDlClaims['text']);
         }
     }
 
