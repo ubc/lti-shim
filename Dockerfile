@@ -16,7 +16,7 @@ RUN composer dump-autoload --optimize
 
 
 # install & compile frontend JS/CSS
-FROM node:14-alpine AS node
+FROM node:16-alpine AS node
 WORKDIR /app
 # copy package.json first so docker knows it can cache the npm install step
 COPY package.json package-lock.json webpack.mix.js /app/

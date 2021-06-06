@@ -11,10 +11,20 @@ let path = require('path');
  |
  */
 
-mix.sourceMaps()
+mix
   .js('resources/js/admin/admin.js', 'public/js').vue()
   .js('resources/js/midway/midway.js', 'public/js').vue()
   .sass('resources/sass/app.scss', 'public/css');
+
+if (mix.inProduction()) {
+  // generate a unique hash for filenames, prevent browsers are using old
+  // cached assets
+  mix.version();
+}
+else {
+  // only need to generate source maps in dev
+  mix.sourceMaps();
+}
 
 mix.options({
   hmrOptions: {
