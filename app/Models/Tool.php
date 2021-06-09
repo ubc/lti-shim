@@ -16,13 +16,17 @@ class Tool extends AbstractLtiEntity
 {
     use HasFactory;
 
-    public const TARGET_TOOL_PARAM = 'target_tool_id';
+    /**
+     * Route parameter for the OIDC login url that tells us what tool we're
+     * targeting the launch to.
+     */
+    public const TARGET_TOOL_PARAM = 'toolId';
 
     protected $fillable = ['name', 'client_id', 'oidc_login_url',
         'auth_resp_url', 'target_link_uri', 'jwks_url'];
     protected $with = ['keys']; // eager load keys
     // make sure shim_target_link_uri ends up in the JSON representation
-    protected $appends = ['shim_target_link_uri'];
+    protected $appends = ['shim_login_url', 'shim_target_link_uri'];
 
     public function keys()
     {
@@ -41,26 +45,17 @@ class Tool extends AbstractLtiEntity
 
     public function getShimLoginUrlAttribute()
     {
-        // could get same info from looking at shim's tool side config, but
-        // that requires a db lookup, so probably faster to just use grab it
-        // from the router
-        // TODO: update if using Deep Link flow for launch
-        $uri = Uri::createFromString(route('lti.launch.login'));
-        return UriModifier::appendQuery($uri, self::TARGET_TOOL_PARAM . '=' .
-                                              $this->id);
+        return route('lti.launch.login',
+                     [self::TARGET_TOOL_PARAM => $this->id]);
     }
 
     /**
-     * TODO: could be replaced by getShimLoginUrl if Deep Link flow works out
-     * TODO: avoid database query for own tool
-     * TODO: if keeping, $value is not used and can be removed
+     * Unlike login, this doesn't change depending on the tool, but going to
+     * keep using it in case we do need to do per-tool target_link_uri.
      */
-    public function getShimTargetLinkUriAttribute($value)
+    public function getShimTargetLinkUriAttribute()
     {
-        $shimTool = Tool::getOwnTool();
-        $uri = Uri::createFromString($shimTool->target_link_uri);
-        return UriModifier::appendQuery($uri, self::TARGET_TOOL_PARAM . '=' .
-                                              $this->id);
+        return route('lti.launch.midway');
     }
 
     public function updateWithRelations($info)

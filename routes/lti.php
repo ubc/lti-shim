@@ -23,41 +23,13 @@ Route::namespace('LTI')->name('lti.')->group(function() {
     });
     // LTI Launch (many specs, such as Core)
     Route::namespace('Launch')->name('launch.')->group(function() {
-        // TOOL
-        /* TODO delete
-        Route::name('tool.')->group(function() {
-            Route::match(
-                ['get', 'post'],
-                '/launch/tool/login',
-                'ToolLaunchController@login'
-            )->name('login');
-            // unlike login, only POST is allowed for the auth response
-            Route::post('/launch/tool/auth', 'ToolLaunchController@auth')
-                   ->name('authResp');
-        });
-         */
-        // MIDWAY - transfer station from the tool side to the platform side
+        // MIDWAY - perform operations on the shim
         Route::post('/launch/midway', 'MidwayController@arrival')
                ->name('midway');
-        // PLATFORM
-        /* TODO delete
-        Route::name('platform.')->group(function() {
-            Route::match(
-                ['get', 'post'],
-                '/launch/platform/login',
-                'PlatformLaunchController@login'
-            )->name('login');
-            Route::match(
-                ['get', 'post'],
-                '/launch/platform/auth',
-                'PlatformLaunchController@auth'
-            )->name('authReq');
-        });
-         */
-        // DEEP LINK - TODO replace regular launch
+        // LAUNCH
         Route::match(
             ['get', 'post'],
-            '/launch/login',
+            '/launch/login/tool/{toolId}',
             'LaunchController@login'
         )->name('login');
         Route::match(
@@ -67,6 +39,7 @@ Route::namespace('LTI')->name('lti.')->group(function() {
         )->name('auth');
         Route::post('/launch/redirect', 'LaunchController@redirect')
              ->name('redirect');
+        // DEEP LINK
         Route::post('/launch/return/{deepLink}', 'LaunchController@return')
              ->name('deepLinkReturn');
     });

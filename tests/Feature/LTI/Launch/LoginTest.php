@@ -19,7 +19,7 @@ use App\Models\LtiSession;
 class LoginTest extends LtiBasicTestCase
 {
     // hardcoded as a check that the router is using the urls we expect
-    private string $loginUrlBase = '/lti/launch/login';
+    private string $loginUrlBase = '/lti/launch/login/tool/';
     private string $loginUrl = '';
     private array $basicLoginParams = [];
 
@@ -28,8 +28,7 @@ class LoginTest extends LtiBasicTestCase
         parent::setUp();
 
         $this->ltiSession->delete(); // delete the seed session
-        $this->loginUrl = $this->loginUrlBase . '?target_tool_id=' .
-                          $this->tool->id;
+        $this->loginUrl = $this->loginUrlBase . $this->tool->id;
         $this->basicLoginParams = [
             'iss' => $this->platform->iss,
             'login_hint' => 'StoreMeInLtiSession',
@@ -168,6 +167,6 @@ class LoginTest extends LtiBasicTestCase
     public function testMissingTargetTool()
     {
         $resp = $this->post($this->loginUrlBase, $this->basicLoginParams);
-        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+        $resp->assertStatus(Response::HTTP_NOT_FOUND);
     }
 }

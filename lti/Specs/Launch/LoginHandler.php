@@ -78,8 +78,7 @@ class LoginHandler
         $requiredParams = [
             Param::ISS,
             Param::LOGIN_HINT,
-            Param::TARGET_LINK_URI,
-            Tool::TARGET_TOOL_PARAM
+            Param::TARGET_LINK_URI
         ];
         $this->checker->requireParams($requiredParams);
 
@@ -101,7 +100,7 @@ class LoginHandler
     private function createSession(): LtiSession
     {
         // find out what tool we need to relay this launch to
-        $tool = Tool::find($this->request->input(Tool::TARGET_TOOL_PARAM));
+        $tool = Tool::find($this->request->route(Tool::TARGET_TOOL_PARAM));
         if (!$tool)
             throw new LtiException($this->ltiLog->msg('Invalid target tool.'));
         // find out what platform we're coming from

@@ -80,7 +80,8 @@ class SeedLtiInfo extends Command
         $tool = new Tool;
         $tool->name = 'LTI Shim Tool Side';
         $tool->client_id = config('lti.own_tool_client_id');
-        $tool->oidc_login_url = route('lti.launch.login');
+        $tool->oidc_login_url = route('lti.launch.login',
+                                      [Tool::TARGET_TOOL_PARAM => 'toolId']);
         $tool->auth_resp_url = route('lti.launch.redirect');
         $tool->target_link_uri = route('lti.launch.midway');
         $tool->jwks_url = route('lti.jwks.tool');
