@@ -8,9 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DeepLink;
 
 use UBC\LTI\Utils\LtiException;
-use UBC\LTI\Specs\Launch\LoginHandler;
-use UBC\LTI\Specs\Launch\AuthReqHandler;
-use UBC\LTI\Specs\Launch\AuthRespHandler;
+use UBC\LTI\Specs\Launch\LaunchDirector;
 use UBC\LTI\Specs\DeepLink\ReturnHandler;
 
 class LaunchController extends Controller
@@ -23,8 +21,8 @@ class LaunchController extends Controller
      */
     public function login(Request $request)
     {
-        $handler = new LoginHandler($request);
-        return $handler->sendLogin();
+        $director = new LaunchDirector($request);
+        return $director->login();
     }
 
     /**
@@ -35,8 +33,8 @@ class LaunchController extends Controller
      */
     public function auth(Request $request)
     {
-        $handler = new AuthReqHandler($request);
-        return $handler->sendAuth();
+        $director = new LaunchDirector($request);
+        return $director->authReq();
     }
 
     /**
@@ -47,8 +45,8 @@ class LaunchController extends Controller
      */
     public function redirect(Request $request)
     {
-        $handler = new AuthRespHandler($request);
-        return $handler->sendAuth();
+        $director = new LaunchDirector($request);
+        return $director->authResp();
     }
 
     /**

@@ -49,12 +49,15 @@ class AuthRespHandler
     private array $filters;
     private bool $isDeepLink;
 
-    public function __construct(Request $request)
-    {
+    public function __construct(
+        Request $request,
+        string $streamId,
+        LtiSession $session
+    ) {
         $this->request = $request;
-        $this->ltiLog = new LtiLog('Launch (Auth Resp)');
+        $this->ltiLog = new LtiLog('Launch (Auth Resp)', $streamId);
         $this->checker = new ParamChecker($request->input(), $this->ltiLog);
-        $this->loadSession();
+        $this->session = $session;
         $this->filters = [
             new DeploymentFilter($this->ltiLog),
             new WhitelistFilter($this->ltiLog),
@@ -74,7 +77,6 @@ class AuthRespHandler
      */
     public function sendAuth(): Response
     {
-        $gotJwt = $this->receiveAuth();
         $this->ltiLog->info('Platform Side, send auth resp.', $this->request);
 
         // check to make sure that we have a valid session
@@ -91,21 +93,20 @@ class AuthRespHandler
         if (isset($this->session->state[Param::STATE]))
             $authRespParams[Param::STATE] = $this->session->state[Param::STATE];
 
-        $this->updateSession($gotJwt);
 
         // set payload for id_token
         $time = time();
         $payload = [
             Param::ISS => config('lti.iss'),
-            Param::SUB => $gotJwt->claims->get(Param::SUB), // user id
+            Param::SUB => $this->session->token[Param::SUB], // user id
             Param::AUD => $this->session->tool->client_id,
             Param::EXP => $time + Param::EXP_TIME, // expires 1 hour
             Param::IAT => $time, // issued at
             Param::NBF => $time, // not before
             Param::NONCE => $nonce,
             Param::MESSAGE_TYPE_URI =>
-                                  $gotJwt->claims->get(Param::MESSAGE_TYPE_URI),
-            Param::ROLES_URI => $gotJwt->claims->get(Param::ROLES_URI),
+                              $this->session->token[Param::MESSAGE_TYPE_URI],
+            Param::ROLES_URI => $this->session->token[Param::ROLES_URI],
             Param::VERSION_URI => '1.3.0',
             Param::DEPLOYMENT_ID_URI =>
                                   $this->session->deployment->lti_deployment_id,
@@ -118,8 +119,8 @@ class AuthRespHandler
             $optParam
         ) {
             $this->ltiLog->debug('Including optional param: ' . $optParam);
-            if ($gotJwt->claims->has($optParam))
-                $payload[$optParam] = $gotJwt->claims->get($optParam);
+            if (!empty($this->session->token[$optParam]))
+                $payload[$optParam] = $this->session->token[$optParam];
         }
         // filter payload
         $this->ltiLog->debug('Pre-filter id_token: ' . json_encode($payload),
@@ -167,14 +168,14 @@ class AuthRespHandler
      * Just validates to see if the OIDC login request we received from the
      * platform was valid. This is the shim acting as a tool.
      */
-    private function receiveAuth(): JWT
+    public function recvAuth()
     {
         $this->ltiLog->info('Tool Side, recv auth resp: ' .
             json_encode($this->request->input()), $this->request);
 
         // required params that needs to be present
         $requiredParams = [
-            //Param::STATE, // should be checked by loadSession() already
+            Param::STATE,
             Param::ID_TOKEN,
         ];
         $this->checker->requireParams($requiredParams);
@@ -190,7 +191,7 @@ class AuthRespHandler
 
         $this->checkTokenParams($jwt);
 
-        return $jwt;
+        $this->updateSession($jwt);
     }
 
     /**
@@ -236,6 +237,7 @@ class AuthRespHandler
         $checker->requireValues($requiredValues);
 
         $requiredParams = [
+            Param::SUB,
             Param::TARGET_LINK_URI_URI,
             Param::ROLES_URI,
             Param::NONCE,
@@ -252,20 +254,6 @@ class AuthRespHandler
         if (!UriUtil::isSameSite(config('lti.iss'), $target))
             throw new LtiException($this->ltiLog->msg(
                 "target_link_uri is some other site: $target", $this->request));
-    }
-
-    /**
-     * Load the LtiSession from the state param.
-     */
-    private function loadSession()
-    {
-        if (!$this->request->has(Param::STATE))
-            throw new LtiException($this->ltiLog->msg(
-                'Missing state in auth response', $this->request));
-
-        $this->session = LtiSession::decodeEncryptedId(
-            $this->request->input(Param::STATE));
-        $this->ltiLog->setStreamid($this->session->log_stream);
     }
 
     /**

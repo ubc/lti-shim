@@ -31,12 +31,15 @@ class AuthReqHandler
     private ParamChecker $checker;
     private Request $request;
 
-    public function __construct(Request $request)
-    {
+    public function __construct(
+        Request $request,
+        string $streamId,
+        LtiSession $session
+    ) {
         $this->request = $request;
-        $this->ltiLog = new LtiLog('Launch (Auth Req)');
+        $this->ltiLog = new LtiLog('Launch (Auth Req)', $streamId);
+        $this->session = $session;
         $this->checker = new ParamChecker($request->input(), $this->ltiLog);
-        $this->loadSession();
     }
 
     /**
@@ -45,7 +48,6 @@ class AuthReqHandler
      */
     public function sendAuth(): Response
     {
-        $this->receiveAuth();
         $this->ltiLog->info('Tool Side, send auth req.', $this->request);
         $authReqParams = [
             // REQUIRED static
@@ -63,14 +65,14 @@ class AuthReqHandler
         ];
         if (isset($this->session->state[Param::LTI_MESSAGE_HINT])) {
             $authReqParams[Param::LTI_MESSAGE_HINT] =
-                $this->session->state[Param::LTI_MESSAGE_HINT];
+                    $this->session->state[Param::LTI_MESSAGE_HINT];
         }
         return response()->view(
             'lti/launch/auto_submit_form',
             [
                 'title' => 'Auth Request',
                 'formUrl' =>
-                        $this->session->platform_client->platform->auth_req_url,
+                    $this->session->platform_client->platform->auth_req_url,
                 'params' => $authReqParams
             ]
         );
@@ -80,7 +82,7 @@ class AuthReqHandler
      * Just validates to see if the auth req we received from the tool was
      * valid. This is the shim acting as a platform.
      */
-    private function receiveAuth()
+    public function recvAuth()
     {
         $this->ltiLog->info('Platform Side, recv auth req: ' .
             json_encode($this->request->input()), $this->request);
@@ -88,7 +90,7 @@ class AuthReqHandler
         // required params that needs to be present
         $requiredParams = [
             Param::REDIRECT_URI,
-            //Param::LOGIN_HINT, // should be already checked by loadSession()
+            Param::LOGIN_HINT,
             Param::NONCE,
         ];
         $this->checker->requireParams($requiredParams);
@@ -127,19 +129,5 @@ class AuthReqHandler
 
         $this->session->state = $sessionState;
         $this->session->save();
-    }
-
-    /**
-     * Load the LtiSession from the login_hint param.
-     */
-    private function loadSession()
-    {
-        if (!$this->request->has(Param::LOGIN_HINT))
-            throw new LtiException($this->ltiLog->msg(
-                'Missing login_hint in auth request', $this->request));
-
-        $this->session = LtiSession::decodeEncryptedId(
-            $this->request->input(Param::LOGIN_HINT));
-        $this->ltiLog->setStreamid($this->session->log_stream);
     }
 }

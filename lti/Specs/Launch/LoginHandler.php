@@ -26,13 +26,14 @@ class LoginHandler
 {
 
     private LtiLog $ltiLog;
+    private LtiSession $session;
     private Request $request;
     private ParamChecker $checker;
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, string $streamId)
     {
         $this->request = $request;
-        $this->ltiLog = new LtiLog('Launch (OIDC Login)');
+        $this->ltiLog = new LtiLog('Launch (OIDC Login)', $streamId);
         $this->checker = new ParamChecker($request->input(), $this->ltiLog);
     }
 
@@ -42,25 +43,23 @@ class LoginHandler
      */
     public function sendLogin(): Response
     {
-        $this->receiveLogin();
         $this->ltiLog->info('Platform Side, send OIDC login.', $this->request);
-        $ltiSession = $this->createSession();
         $loginParams = [
             // REQUIRED
             Param::ISS => config('lti.iss'),
-            Param::LOGIN_HINT => $ltiSession->createEncryptedId(),
-            Param::TARGET_LINK_URI => $ltiSession->tool->target_link_uri,
+            Param::LOGIN_HINT => $this->session->createEncryptedId(),
+            Param::TARGET_LINK_URI => $this->session->tool->target_link_uri,
             // OPTIONAL
             // while client_id is technically optional, it seems that because
             // platforms usually send it, some tools started expecting it to be
             // present, so it's better for us to send it
-            Param::CLIENT_ID => $ltiSession->tool->client_id
+            Param::CLIENT_ID => $this->session->tool->client_id
         ];
         return response()->view(
             'lti/launch/auto_submit_form',
             [
                 'title' => 'OIDC Login',
-                'formUrl' => $ltiSession->tool->oidc_login_url,
+                'formUrl' => $this->session->tool->oidc_login_url,
                 'params' => $loginParams
             ]
         );
@@ -70,7 +69,7 @@ class LoginHandler
      * Just validates to see if the OIDC login request we received from the
      * platform was valid. This is the shim acting as a tool.
      */
-    private function receiveLogin()
+    public function recvLogin()
     {
         $this->ltiLog->info('Tool Side, recv OIDC login: ' .
             json_encode($this->request->input()), $this->request);
@@ -92,6 +91,7 @@ class LoginHandler
         if (!UriUtil::isSameSite(config('lti.iss'), $target))
             throw new LtiException($this->ltiLog->msg(
                 "target_link_uri is some other site: $target", $this->request));
+        $this->session = $this->createSession();
     }
 
     /**
@@ -143,14 +143,14 @@ class LoginHandler
 
         // the lti session is how we keep track of server side state (which lets
         // us avoid cookies and all the trouble that now entails)
-        $ltiSession = new LtiSession();
-        $ltiSession->platform_client_id = $platformClient->id;
-        $ltiSession->tool_id = $tool->id;
-        $ltiSession->state = $state;
-        $ltiSession->log_stream = $this->ltiLog->getStreamId();
-        $ltiSession->save();
+        $session = new LtiSession();
+        $session->platform_client_id = $platformClient->id;
+        $session->tool_id = $tool->id;
+        $session->state = $state;
+        $session->log_stream = $this->ltiLog->getStreamId();
+        $session->save();
 
-        return $ltiSession;
+        return $session;
     }
 
 }
