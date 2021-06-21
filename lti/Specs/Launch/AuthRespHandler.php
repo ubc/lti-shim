@@ -78,22 +78,19 @@ class AuthRespHandler
         $this->ltiLog->info('Platform Side, send auth resp.', $this->request);
 
         // check to make sure that we have a valid session
-        if (!isset($this->session->token[Param::REDIRECT_URI]) ||
-            !isset($this->session->token[Param::NONCE]))
+        if (!isset($this->session->state[Param::REDIRECT_URI]) ||
+            !isset($this->session->state[Param::NONCE]))
             throw new LtiException($this->ltiLog->msg(
                 'Invalid session, missing previous steps', $this->request));
 
-        $authRespUri = $this->session->token[Param::REDIRECT_URI];
-        $nonce = $this->session->token[Param::NONCE];
+        $authRespUri = $this->session->state[Param::REDIRECT_URI];
+        $nonce = $this->session->state[Param::NONCE];
 
         $authRespParams = [];
         // set state if target tool sent us one
-        if (isset($this->session->token[Param::STATE]))
-            $authRespParams[Param::STATE] = $this->session->token[Param::STATE];
+        if (isset($this->session->state[Param::STATE]))
+            $authRespParams[Param::STATE] = $this->session->state[Param::STATE];
 
-        // NOTE: this will remove values stored from previous steps
-        // I don't want to rewrite all the filters which expect that the
-        // id_token payload is stored in LtiSession's token
         $this->updateSession($gotJwt);
 
         // set payload for id_token
@@ -232,9 +229,9 @@ class AuthRespHandler
         $requiredValues = [ Param::VERSION_URI => Param::VERSION_130 ];
         // if oidc login contains lti_deployment_id, we need to check that it
         // matches the one given in the id_token
-        if (isset($this->session->token[Param::LTI_DEPLOYMENT_ID])) {
+        if (isset($this->session->state[Param::LTI_DEPLOYMENT_ID])) {
             $requiredValues[Param::DEPLOYMENT_ID_URI] =
-                $this->session->token[Param::LTI_DEPLOYMENT_ID];
+                $this->session->state[Param::LTI_DEPLOYMENT_ID];
         }
         $checker->requireValues($requiredValues);
 
@@ -277,10 +274,10 @@ class AuthRespHandler
      * - course_context_id
      * - deployment_id
      * - lti_real_user_id
+     * - token
      *
-     * Updating session is needed since the filters need access to that info.
-     * This also removes all data stored by previous steps, since it gets
-     * replaced by id_token's payload.
+     * Updating session is needed since the filters need access to the id_token
+     * claims.
      */
     private function updateSession(JWT $jwt)
     {

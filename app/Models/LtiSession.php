@@ -13,8 +13,9 @@ class LtiSession extends Model
 {
     use HasFactory;
 
-    // need to tell Laravel to auto decode our JSON column
+    // need to tell Laravel to auto decode our JSON columns
     protected $casts = [
+        'state' => 'array',
         'token' => 'array'
     ];
 

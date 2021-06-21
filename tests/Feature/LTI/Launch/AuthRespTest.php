@@ -52,7 +52,7 @@ class AuthRespTest extends LtiBasicTestCase
         $this->ltiSession->deployment_id = null;
         $this->ltiSession->course_context_id = null;
         $this->ltiSession->lti_real_user_id = null;
-        $this->ltiSession->token = [
+        $this->ltiSession->state = [
             'redirect_uri' => route('lti.launch.redirect'),
             'nonce' => self::TOOL_NONCE
         ];
@@ -151,7 +151,7 @@ class AuthRespTest extends LtiBasicTestCase
      */
     public function testStatePassthrough()
     {
-        $this->ltiSession->token += ['state' => self::TOOL_STATE];
+        $this->ltiSession->state += ['state' => self::TOOL_STATE];
         $this->ltiSession->save();
 
         $resp = $this->post($this->authUrl, $this->basicAuthParams);
@@ -382,16 +382,11 @@ class AuthRespTest extends LtiBasicTestCase
         $this->assertTrue(isset($resp['params']['id_token']));
         $this->assertTrue(isset($resp['formUrl']));
         // Check state is passed if we were given one.
-        // NOTE: this would not work if LtiSession was refreshed. The auth resp
-        // should've overwritten the token in LtiSession. However, since we
-        // haven't told LtiSession to refresh itself, it should still have the
-        // old state.
-        if (isset($this->ltiSession->token['state'])) {
+        if (isset($this->ltiSession->state['state'])) {
             $this->assertTrue(isset($resp['params']['state']));
-            $this->assertEquals($this->ltiSession->token['state'],
+            $this->assertEquals($this->ltiSession->state['state'],
                                 $resp['params']['state']);
         }
-        // this also has to be done before LtiSession refresh
         $this->assertEquals(route('lti.launch.midway'),
                             $resp['formUrl']);
 

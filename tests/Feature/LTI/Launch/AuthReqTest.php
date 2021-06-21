@@ -31,7 +31,7 @@ class AuthReqTest extends LtiBasicTestCase
         $this->ltiSession->course_context_id = null;
         $this->ltiSession->lti_real_user_id = null;
         // the OIDC login should've at least left us with a login_hint
-        $this->ltiSession->token = [
+        $this->ltiSession->state = [
             'login_hint' => 'OriginalLoginHintFromThePlatform'
         ];
         $this->ltiSession->save();
@@ -76,7 +76,7 @@ class AuthReqTest extends LtiBasicTestCase
     {
         // if the lti_message_hint was present, then it was stored in
         // LtiSession
-        $this->ltiSession->token += ['lti_message_hint' => 'DOIE*#)$_@KDUFJMN'];
+        $this->ltiSession->state += ['lti_message_hint' => 'DOIE*#)$_@KDUFJMN'];
         $this->ltiSession->save();
 
         $resp = $this->post($this->authUrl, $this->basicAuthParams);
@@ -112,7 +112,7 @@ class AuthReqTest extends LtiBasicTestCase
         $resp->assertViewHas('params.response_mode', 'form_post');
         // dynamic values
         $resp->assertViewHas('params.login_hint',
-                             $this->ltiSession->token['login_hint']);
+                             $this->ltiSession->state['login_hint']);
         $resp->assertViewHas('params.client_id',
                              $this->platformClient->client_id);
         $resp->assertViewhas('params.redirect_uri',
@@ -127,22 +127,22 @@ class AuthReqTest extends LtiBasicTestCase
         $this->assertTrue(isset($resp['params']['nonce']));
         $this->assertTrue(Nonce::isValid($resp['params']['nonce']));
         $this->assertEquals($sentParams['nonce'],
-                            $this->ltiSession->token['nonce']);
+                            $this->ltiSession->state['nonce']);
         // check if the optional lti_message_hint is there
-        if (isset($this->ltiSession->token['lti_message_hint'])) {
+        if (isset($this->ltiSession->state['lti_message_hint'])) {
             $resp->assertViewHas('params.lti_message_hint',
-                                 $this->ltiSession->token['lti_message_hint']); 
+                                 $this->ltiSession->state['lti_message_hint']);
         }
         else {
             $resp->assertViewMissing('params.lti_message_hint');
         }
         // check redirect_uri is persisted
         $this->assertEquals($sentParams['redirect_uri'],
-                            $this->ltiSession->token['redirect_uri']);
+                            $this->ltiSession->state['redirect_uri']);
         // check if the optional state is persisted
         if (isset($sentParams['state'])) {
             $this->assertEquals($sentParams['state'],
-                                $this->ltiSession->token['state']);
+                                $this->ltiSession->state['state']);
         }
     }
 

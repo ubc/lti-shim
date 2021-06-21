@@ -92,15 +92,15 @@ class LoginTest extends LtiBasicTestCase
         $this->assertNotEquals('Unavailable', $session->log_stream);
         // check that session has required params
         $this->assertEquals($expectedParams['login_hint'],
-                            $session->token['login_hint']);
+                            $session->state['login_hint']);
         // check that session has optional params, if present
         if (array_key_exists('lti_message_hint', $expectedParams)) {
             $this->assertEquals($expectedParams['lti_message_hint'],
-                                $session->token['lti_message_hint']);
+                                $session->state['lti_message_hint']);
         }
         if (array_key_exists('lti_deployment_id', $expectedParams)) {
             $this->assertEquals($expectedParams['lti_deployment_id'],
-                                $session->token['lti_deployment_id']);
+                                $session->state['lti_deployment_id']);
         }
         // check that returned view has params to send login to target tool
         $resp->assertViewHas('params.iss', config('lti.iss'));

@@ -146,7 +146,7 @@ class LoginHandler
         $ltiSession = new LtiSession();
         $ltiSession->platform_client_id = $platformClient->id;
         $ltiSession->tool_id = $tool->id;
-        $ltiSession->token = $state;
+        $ltiSession->state = $state;
         $ltiSession->log_stream = $this->ltiLog->getStreamId();
         $ltiSession->save();
 

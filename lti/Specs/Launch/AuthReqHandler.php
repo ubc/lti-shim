@@ -57,13 +57,13 @@ class AuthReqHandler
             Param::CLIENT_ID => $this->session->platform_client->client_id,
             Param::NONCE => Nonce::create(),
             Param::REDIRECT_URI => route('lti.launch.redirect'),
-            Param::LOGIN_HINT => $this->session->token[Param::LOGIN_HINT],
+            Param::LOGIN_HINT => $this->session->state[Param::LOGIN_HINT],
             // Not required by spec, but needed for us to track session
             Param::STATE => $this->session->createEncryptedId()
         ];
-        if (isset($this->session->token[Param::LTI_MESSAGE_HINT])) {
+        if (isset($this->session->state[Param::LTI_MESSAGE_HINT])) {
             $authReqParams[Param::LTI_MESSAGE_HINT] =
-                $this->session->token[Param::LTI_MESSAGE_HINT];
+                $this->session->state[Param::LTI_MESSAGE_HINT];
         }
         return response()->view(
             'lti/launch/auto_submit_form',
@@ -119,13 +119,13 @@ class AuthReqHandler
         }
 
         // nonce and state needs to be stored for the next auth resp step
-        $sessionState = $this->session->token;
+        $sessionState = $this->session->state;
         $sessionState[Param::NONCE] = $this->request->input(Param::NONCE);
         $sessionState[Param::REDIRECT_URI] = $redirectUri;
         if ($this->request->has(Param::STATE))
             $sessionState[Param::STATE] = $this->request->input(Param::STATE);
 
-        $this->session->token = $sessionState;
+        $this->session->state = $sessionState;
         $this->session->save();
     }
 
