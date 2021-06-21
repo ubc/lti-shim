@@ -6,7 +6,6 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-use App\Models\LtiFakeUser;
 use App\Models\LtiSession;
 use App\Models\User;
 
@@ -42,9 +41,10 @@ class MidwayHandler
             return $this->getAutoSubmitResponse();
         }
 
-        $roleVo = new RoleVocabulary();
-        if ($roleVo->canLookupRealUsers(
-                $this->ltiSession->token[Param::ROLES_URI])
+        $role = new RoleVocabulary();
+        if (
+            $this->ltiSession->tool->enable_midway_lookup &&
+            $role->canLookupRealUsers($this->ltiSession->token[Param::ROLES_URI])
         ) {
             return $this->getLookupResponse();
         }

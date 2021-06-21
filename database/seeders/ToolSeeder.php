@@ -54,7 +54,8 @@ class ToolSeeder extends Seeder
             'oidc_login_url' => 'http://localhost:4000/login',
             'auth_resp_url' => 'http://localhost:4000/',
             'target_link_uri' => 'http://localhost:4000/',
-            'jwks_url' => 'http://ltijs-demo-server:4000/keys'
+            'jwks_url' => 'http://ltijs-demo-server:4000/keys',
+            'enable_midway_lookup' => true
         ]);
 
         // insert the lti reference implementation tool
