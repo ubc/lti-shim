@@ -10,6 +10,7 @@ use Jose\Easy\Load;
 
 use App\Models\EncryptionKey;
 
+use UBC\LTI\Specs\Security\Nonce;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\Param;
 
@@ -26,6 +27,7 @@ class EncryptedState
             ->enc(Param::A256GCM) // content encryption alg
             // compression not necessary for our current use case, small data
             //->zip(Param::ZIP_ALG) // compress the data, DEFLATE alg
+            ->jti(Nonce::create())
             ->crit(['alg', 'enc']); // We mark some header parameters as critical
         foreach ($claims as $key => $val) {
             $jwe = $jwe->claim($key, $val);
@@ -46,6 +48,13 @@ class EncryptedState
                 ->nbf()
                 ->key(EncryptionKey::getNewestKey()->key) // private key decrypt
                 ->run();
+
+            $nonce = $jwt->claims->jti();
+            if (!empty($nonce) && Nonce::isValid($nonce))
+                Nonce::used($nonce);
+            else
+                throw new LtiException('Invalid nonce "' . $nonce . '"');
+
             return $jwt;
         }
         catch(\Exception $e) {

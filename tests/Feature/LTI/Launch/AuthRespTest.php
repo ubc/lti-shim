@@ -755,4 +755,17 @@ class AuthRespTest extends LtiBasicTestCase
         $resp = $this->post($this->authUrl, $params);
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
+
+    /**
+     * Test that replay attack protection works.
+     */
+    public function testReplayedAuthRespFails()
+    {
+        // first call goes through fine
+        $resp = $this->post($this->authUrl, $this->basicAuthParams);
+        $resp->assertStatus(Response::HTTP_OK);
+        // second call should fail
+        $resp = $this->post($this->authUrl, $this->basicAuthParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
 }

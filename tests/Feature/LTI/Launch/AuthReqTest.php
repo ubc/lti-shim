@@ -152,6 +152,11 @@ class AuthReqTest extends LtiBasicTestCase
         foreach ($paramKeys as $paramKey) {
             $params = $this->basicAuthParams;
             unset($params[$paramKey]);
+            // to make sure we don't fall afoul of our own replay attack
+            // protection
+            if ($paramKey != 'login_hint') {
+                $params['login_hint'] = $this->ltiSession->createEncryptedId();
+            }
 
             $resp = $this->post($this->authUrl, $params);
             $resp->assertStatus(Response::HTTP_BAD_REQUEST);
@@ -170,8 +175,28 @@ class AuthReqTest extends LtiBasicTestCase
             $params = $this->basicAuthParams;
             $params[$paramKey] = 'BADVALUE';
 
+            // to make sure we don't fall afoul of our own replay attack
+            // protection
+            if ($paramKey != 'login_hint') {
+                $params['login_hint'] = $this->ltiSession->createEncryptedId();
+            }
+
             $resp = $this->post($this->authUrl, $params);
             $resp->assertStatus(Response::HTTP_BAD_REQUEST);
         }
+    }
+
+    /**
+     * Test that replay attack protection is working.
+     */
+    public function testReplayedAuthReqFails()
+    {
+        // first request should go through fine
+        $resp = $this->post($this->authUrl, $this->basicAuthParams);
+        $resp->assertStatus(Response::HTTP_OK);
+        // the second request should be rejected due to LtiSession's
+        // (login_hint) JWT nonce checking
+        $resp = $this->post($this->authUrl, $this->basicAuthParams);
+        $resp->assertStatus(Response::HTTP_BAD_REQUEST);
     }
 }
