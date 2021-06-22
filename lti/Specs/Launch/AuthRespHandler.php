@@ -49,15 +49,12 @@ class AuthRespHandler
     private array $filters;
     private bool $isDeepLink;
 
-    public function __construct(
-        Request $request,
-        string $streamId,
-        LtiSession $session
-    ) {
+    public function __construct(Request $request, LtiSession $session)
+    {
         $this->request = $request;
-        $this->ltiLog = new LtiLog('Launch (Auth Resp)', $streamId);
-        $this->checker = new ParamChecker($request->input(), $this->ltiLog);
         $this->session = $session;
+        $this->ltiLog = new LtiLog('Launch (Auth Resp)', $session->log_stream);
+        $this->checker = new ParamChecker($request->input(), $this->ltiLog);
         $this->filters = [
             new DeploymentFilter($this->ltiLog),
             new WhitelistFilter($this->ltiLog),

@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use App\Models\LtiSession;
 use App\Models\User;
 
+use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\RoleVocabulary;
@@ -17,14 +18,13 @@ class MidwayHandler
 {
     private LtiLog $ltiLog;
     private Request $request;
-    private LtiSession $ltiSession;
+    private LtiSession $session;
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, LtiSession $session)
     {
         $this->request = $request;
-        $this->ltiSession = $this->getSession();
-        $this->ltiLog = new LtiLog('Launch (Midway)',
-                                   $this->ltiSession->log_stream);
+        $this->session = $session;
+        $this->ltiLog = new LtiLog('Launch (Midway)', $session->log_stream);
     }
 
     public function getArrivalResponse(): Response
@@ -36,14 +36,14 @@ class MidwayHandler
         }
 
         // don't bother with user lookup if this is a deep link request
-        if ($this->ltiSession->token[Param::MESSAGE_TYPE_URI] ==
+        if ($this->session->token[Param::MESSAGE_TYPE_URI] ==
             Param::MESSAGE_TYPE_DEEP_LINK_REQUEST) {
             return $this->getAutoSubmitResponse();
         }
 
         $role = new RoleVocabulary();
         if (
-            $this->ltiSession->tool->enable_midway_lookup &&
+            $this->session->tool->enable_midway_lookup &&
             $role->canLookupRealUsers($this->ltiSession->token[Param::ROLES_URI])
         ) {
             return $this->getLookupResponse();
@@ -59,8 +59,8 @@ class MidwayHandler
     {
         $this->ltiLog->debug('Access lookup tool', $this->request);
 
-        $courseContextId = $this->ltiSession->course_context_id;
-        $toolId = $this->ltiSession->tool_id;
+        $courseContextId = $this->session->course_context_id;
+        $toolId = $this->session->tool_id;
         // generate a midway api access token, storing the course context and
         // tool of the launch in as a token ability. This let us use token
         // ability later on to make sure that tokens can only access the course
@@ -74,9 +74,9 @@ class MidwayHandler
             Param::MIDWAY_REDIRECT_URI =>
                             $this->request->input(Param::MIDWAY_REDIRECT_URI),
             'courseContextId' => $courseContextId,
-            'platformName' => $this->ltiSession->deployment->platform->name,
+            'platformName' => $this->session->deployment->platform->name,
             'toolId' => $toolId,
-            'toolName' => $this->ltiSession->tool->name,
+            'toolName' => $this->session->tool->name,
             'token' => $token->plainTextToken
         ];
         if ($this->request->has(Param::STATE)) {
@@ -106,16 +106,5 @@ class MidwayHandler
                 'params' => $autoParams
             ]
         );
-    }
-
-    /**
-     * Get the LtiSession from the session param.
-     */
-    private function getSession(): LtiSession
-    {
-        if (!$this->request->has(Param::MIDWAY_SESSION))
-            throw new LtiException('No LTI session was passed to Midway.');
-        return LtiSession::decodeEncryptedId(
-                                    $this->request->get(Param::MIDWAY_SESSION));
     }
 }

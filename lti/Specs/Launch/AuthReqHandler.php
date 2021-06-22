@@ -31,14 +31,11 @@ class AuthReqHandler
     private ParamChecker $checker;
     private Request $request;
 
-    public function __construct(
-        Request $request,
-        string $streamId,
-        LtiSession $session
-    ) {
+    public function __construct(Request $request, LtiSession $session)
+    {
         $this->request = $request;
-        $this->ltiLog = new LtiLog('Launch (Auth Req)', $streamId);
         $this->session = $session;
+        $this->ltiLog = new LtiLog('Launch (Auth Req)', $session->log_stream);
         $this->checker = new ParamChecker($request->input(), $this->ltiLog);
     }
 

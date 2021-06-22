@@ -50,6 +50,17 @@ class LaunchController extends Controller
     }
 
     /**
+     * Send the user to midway where they can interact with the shim.
+     *
+     * @param Request $request
+     */
+    public function midway(Request $request)
+    {
+        $director = new LaunchDirector($request);
+        return $director->midway();
+    }
+
+    /**
      * Receive LTI deep linking's last stage (adds a 4th stage to lti launch)
      * from a tool. Returns the deep link return to the originating platform
      *

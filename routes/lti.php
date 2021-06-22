@@ -24,8 +24,8 @@ Route::namespace('LTI')->name('lti.')->group(function() {
     // LTI Launch (many specs, such as Core)
     Route::namespace('Launch')->name('launch.')->group(function() {
         // MIDWAY - perform operations on the shim
-        Route::post('/launch/midway', 'MidwayController@arrival')
-               ->name('midway');
+        Route::post('/launch/midway', 'LaunchController@midway')
+             ->name('midway');
         // LAUNCH
         Route::match(
             ['get', 'post'],

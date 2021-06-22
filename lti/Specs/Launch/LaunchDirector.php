@@ -7,6 +7,8 @@ use Illuminate\Http\Response;
 
 use UBC\LTI\Specs\Launch\LoginHandler;
 use UBC\LTI\Specs\Launch\AuthReqHandler;
+use UBC\LTI\Specs\Launch\AuthRespHandler;
+use UBC\LTI\Specs\Launch\MidwayHandler;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
@@ -54,9 +56,7 @@ class LaunchDirector
     public function authReq(): Response
     {
         $session = $this->getSession(Param::LOGIN_HINT);
-        $handler = new AuthReqHandler($this->request,
-                                      $this->ltiLog->getStreamId(),
-                                      $session);
+        $handler = new AuthReqHandler($this->request, $session);
         $handler->recvAuth();
         return $handler->sendAuth();
     }
@@ -67,11 +67,20 @@ class LaunchDirector
     public function authResp(): Response
     {
         $session = $this->getSession(Param::STATE);
-        $handler = new AuthRespHandler($this->request,
-                                       $this->ltiLog->getStreamId(),
-                                       $session);
+        $handler = new AuthRespHandler($this->request, $session);
         $handler->recvAuth();
         return $handler->sendAuth();
+    }
+
+    /**
+     * Midway for interacting with the shim.
+     */
+    public function midway(): Response
+    {
+        $session = $this->getSession(Param::MIDWAY_SESSION);
+        $handler = new MidwayHandler($this->request, $session);
+        $handler->recv();
+        return $handler->send();
     }
 
     /**
