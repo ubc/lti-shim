@@ -212,4 +212,10 @@ class Param
     public const MIDWAY_REDIRECT_URI = 'midwayRedirectUri'; // where to go after
                                                     // user is done with Midway
     public const MIDWAY_SESSION = 'midwaySession'; // stores LtiSession
+    public const MIDWAY_LOOKUP_PATH = 'lookup';
+
+    // Launch Flow (non-LTI), tells us what kind of launch to do
+    public const SESSION_TYPE = 'sessionType';
+    public const SESSION_TYPE_REG = 'regular'; // standard launch in relay mode
+    public const SESSION_TYPE_LOOKUP = 'midwayLookupOnly'; // go to the lookup
 }

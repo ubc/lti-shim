@@ -88,6 +88,7 @@ class LoginTest extends LtiBasicTestCase
         $this->assertEquals($this->tool->id, $session->tool_id);
         $this->assertEquals($this->platformClient->id,
                             $session->platform_client_id);
+        $this->assertEquals($session->state['sessionType'], 'regular');
         // default val for log_stream is 'Unavailable', we don't want that
         $this->assertNotEquals('Unavailable', $session->log_stream);
         // check that session has required params
@@ -103,6 +104,7 @@ class LoginTest extends LtiBasicTestCase
                                 $session->state['lti_deployment_id']);
         }
         // check that returned view has params to send login to target tool
+        $resp->assertViewIs('lti.launch.auto_submit_form');
         $resp->assertViewHas('params.iss', config('lti.iss'));
         $resp->assertViewHas('params.target_link_uri',
                              $this->tool->target_link_uri);
@@ -168,5 +170,23 @@ class LoginTest extends LtiBasicTestCase
     {
         $resp = $this->post($this->loginUrlBase, $this->basicLoginParams);
         $resp->assertStatus(Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Test that midway lookup only launches skips talking to the target tool,
+     * it should send an auth req back to the platform.
+     */
+    public function testMidwayLookupOnlyLogin()
+    {
+        $params = $this->basicLoginParams;
+        // a midway lookup only login appends a /lookup to the target_link_uri
+        $params['target_link_uri'] .= '/lookup';
+        $resp = $this->post($this->loginUrl, $params);
+        $session = LtiSession::first();
+        $this->assertEquals($session->state['sessionType'], 'midwayLookupOnly');
+        // check that the view returned is an auth req and not a login
+        $resp->assertViewIs('lti.launch.auto_submit_form');
+        $resp->assertViewHas('title', 'Auth Request');
+        $resp->assertViewHas('formUrl', $this->platform->auth_req_url);
     }
 }

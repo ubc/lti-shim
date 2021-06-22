@@ -27,25 +27,33 @@ class MidwayHandler
         $this->ltiLog = new LtiLog('Launch (Midway)', $session->log_stream);
     }
 
-    public function getArrivalResponse(): Response
+    public function recv()
     {
-        $this->ltiLog->debug('Arrived from Tool Side', $this->request);
+        $this->ltiLog->debug('Recevied', $this->request);
+        // midway only, so need for any of the continuation params
+        if ($this->session->is_midway_lookup_only) return;
+
         if (!$this->request->has(Param::MIDWAY_REDIRECT_URI)) {
             throw new LtiException($this->ltiLog->msg(
                 'Invalid Midway request, missing redirect uri.'));
         }
+    }
 
+    public function send(): Response
+    {
         // don't bother with user lookup if this is a deep link request
         if ($this->session->token[Param::MESSAGE_TYPE_URI] ==
             Param::MESSAGE_TYPE_DEEP_LINK_REQUEST) {
             return $this->getAutoSubmitResponse();
         }
-
         $role = new RoleVocabulary();
-        if (
-            $this->session->tool->enable_midway_lookup &&
-            $role->canLookupRealUsers($this->ltiSession->token[Param::ROLES_URI])
-        ) {
+        $canLookupUsers =
+            $role->canLookupRealUsers($this->session->token[Param::ROLES_URI]);
+        if ($this->session->is_midway_lookup_only) {
+            if ($canLookupUsers) return $this->getLookupResponse();
+            abort(Response::HTTP_FORBIDDEN, 'Please use a regular launch');
+        }
+        if ($this->session->tool->enable_midway_lookup && $canLookupUsers) {
             return $this->getLookupResponse();
         }
         return $this->getAutoSubmitResponse();
@@ -74,6 +82,7 @@ class MidwayHandler
             Param::MIDWAY_REDIRECT_URI =>
                             $this->request->input(Param::MIDWAY_REDIRECT_URI),
             'courseContextId' => $courseContextId,
+            'isMidwayOnly' => $this->session->is_midway_lookup_only,
             'platformName' => $this->session->deployment->platform->name,
             'toolId' => $toolId,
             'toolName' => $this->session->tool->name,

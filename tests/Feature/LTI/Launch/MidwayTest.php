@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Tests\Feature\LTI\LtiBasicTestCase;
 
 // tests that midway sends us to the right views with the right params
-class Midwaytest extends LtiBasicTestCase
+class MidwayTest extends LtiBasicTestCase
 {
     private const CLAIM_MESSAGE_TYPE_URI = 'https://purl.imsglobal.org/spec/lti/claim/message_type';
     private const CLAIM_ROLE_URI = 'https://purl.imsglobal.org/spec/lti/claim/roles';
@@ -125,4 +125,33 @@ class Midwaytest extends LtiBasicTestCase
             }
         }
     }
+
+    /**
+     * Test that a midway lookup only launch works, even if midway lookup is
+     * not enabled.
+     */
+    public function testMidwayLookupOnly()
+    {
+        $this->ltiSession->state = ['sessionType' => 'midwayLookupOnly'];
+        $this->ltiSession->save();
+        $resp = $this->post($this->midwayUrl, $this->baseParams);
+        $resp->assertStatus(Response::HTTP_OK);
+        $resp->assertViewIs('lti.launch.midway.lookup');
+    }
+
+    /**
+     * Test that students are forbidden when doing a midway lookup only launch.
+     */
+    public function testStudentsNotAllowedMidwayLookupOnly()
+    {
+        $token = $this->ltiSession->token;
+        $token[self::CLAIM_ROLE_URI] = [self::ROLE_STUDENT_URI];
+        $this->ltiSession->state = ['sessionType' => 'midwayLookupOnly'];
+        $this->ltiSession->token = $token;
+        $this->ltiSession->save();
+
+        $resp = $this->post($this->midwayUrl, $this->baseParams);
+        $resp->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
 }

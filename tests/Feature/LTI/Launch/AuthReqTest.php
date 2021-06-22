@@ -32,6 +32,7 @@ class AuthReqTest extends LtiBasicTestCase
         $this->ltiSession->lti_real_user_id = null;
         // the OIDC login should've at least left us with a login_hint
         $this->ltiSession->state = [
+            'sessionType' => 'regular',
             'login_hint' => 'OriginalLoginHintFromThePlatform'
         ];
         $this->ltiSession->save();
@@ -115,8 +116,10 @@ class AuthReqTest extends LtiBasicTestCase
                              $this->ltiSession->state['login_hint']);
         $resp->assertViewHas('params.client_id',
                              $this->platformClient->client_id);
-        $resp->assertViewhas('params.redirect_uri',
+        $resp->assertViewHas('params.redirect_uri',
                              'http://localhost/lti/launch/redirect');
+        $resp->assertViewHas('formUrl',
+                             $this->platform->auth_req_url);
         // make sure state can be decoded
         $decodedSession = LtiSession::decodeEncryptedId(
                                                       $resp['params']['state']);

@@ -2,7 +2,8 @@
   <div>
 
     <div class='d-lg-flex justify-content-lg-between align-items-lg-center'>
-      <form :action='action' :method='method' ref='form' class='order-lg-1'>
+      <form :action='action' :method='method' ref='form' class='order-lg-1'
+            v-if='!isMidwayOnly'>
         <slot name='redirect-params'></slot>
         <button type='submit' class='btn btn-primary' ref='continueButton'>
           <ContinueIcon />
@@ -13,7 +14,6 @@
         {{ toolName }} Student Identities
       </h1>
     </div>
-
     <p>
     Students in the tool you are accessing receive anonymous identities to
     protect their privacy. Find and click any identity used in {{ toolName }}
@@ -52,6 +52,10 @@ export default {
     },
     courseContextId: {
       type: String,
+      required: true
+    },
+    isMidwayOnly: {
+      type: Boolean,
       required: true
     },
     platformName: {

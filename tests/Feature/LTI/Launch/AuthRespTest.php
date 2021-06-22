@@ -53,6 +53,7 @@ class AuthRespTest extends LtiBasicTestCase
         $this->ltiSession->course_context_id = null;
         $this->ltiSession->lti_real_user_id = null;
         $this->ltiSession->state = [
+            'sessionType' => 'regular',
             'redirect_uri' => route('lti.launch.redirect'),
             'nonce' => self::TOOL_NONCE
         ];
@@ -767,5 +768,20 @@ class AuthRespTest extends LtiBasicTestCase
         // second call should fail
         $resp = $this->post($this->authUrl, $this->basicAuthParams);
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Test that midway lookup only session skips sending info required for a
+     * real resp to the target tool
+     */
+    public function testMidwayLookupOnly()
+    {
+        $this->ltiSession->state = ['sessionType' => 'midwayLookupOnly'];
+        $this->ltiSession->save();
+        $resp = $this->post($this->authUrl, $this->basicAuthParams);
+        $resp->assertStatus(Response::HTTP_OK);
+        $resp->assertViewHas('formUrl', route('lti.launch.midway'));
+        // an actual value for the id_token shouldn't have been generated
+        $resp->assertViewMissing('params.id_token');
     }
 }

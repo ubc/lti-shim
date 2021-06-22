@@ -76,6 +76,16 @@ class AuthRespHandler
     {
         $this->ltiLog->info('Platform Side, send auth resp.', $this->request);
 
+        $authRespParams = [
+            Param::MIDWAY_SESSION => $this->session->createEncryptedId()
+        ];
+
+        if ($this->session->is_midway_lookup_only) {
+            // since midway only, then we can skip formulating an actual
+            // response to the target tool and just go to midway
+            return $this->getViewResponse($authRespParams);
+        }
+
         // check to make sure that we have a valid session
         if (!isset($this->session->state[Param::REDIRECT_URI]) ||
             !isset($this->session->state[Param::NONCE]))
@@ -85,7 +95,6 @@ class AuthRespHandler
         $authRespUri = $this->session->state[Param::REDIRECT_URI];
         $nonce = $this->session->state[Param::NONCE];
 
-        $authRespParams = [];
         // set state if target tool sent us one
         if (isset($this->session->state[Param::STATE]))
             $authRespParams[Param::STATE] = $this->session->state[Param::STATE];
@@ -136,10 +145,8 @@ class AuthRespHandler
             ->payload($payload)
             ->sign($key->key);
 
-        // params for midway where users interact with the shim (if any)
+        // tell midway the target tool endpoint to complete the launch
         $authRespParams[Param::MIDWAY_REDIRECT_URI] = $authRespUri;
-        $authRespParams[Param::MIDWAY_SESSION] =
-                                            $this->session->createEncryptedId();
 
         $fakeUser = LtiFakeUser::getByRealUser(
             $this->session->course_context_id,
@@ -151,14 +158,7 @@ class AuthRespHandler
             $this->session->lti_real_user, $fakeUser
         );
 
-        return response()->view(
-            'lti/launch/auto_submit_form',
-            [
-                'title' => 'Auth Response to Midway',
-                'formUrl' => route('lti.launch.midway'),
-                'params' => $authRespParams
-            ]
-        );
+        return $this->getViewResponse($authRespParams);
     }
 
     /**
@@ -251,6 +251,21 @@ class AuthRespHandler
         if (!UriUtil::isSameSite(config('lti.iss'), $target))
             throw new LtiException($this->ltiLog->msg(
                 "target_link_uri is some other site: $target", $this->request));
+    }
+
+    /**
+     * Create the midway view response.
+     */
+    private function getViewResponse(array $params): Response
+    {
+        return response()->view(
+            'lti/launch/auto_submit_form',
+            [
+                'title' => 'Auth Response to Midway',
+                'formUrl' => route('lti.launch.midway'),
+                'params' => $params
+            ]
+        );
     }
 
     /**

@@ -56,6 +56,12 @@ class LtiSession extends Model
         return $this->belongsTo('App\Models\Tool');
     }
 
+    public function getIsMidwayLookupOnlyAttribute(): bool
+    {
+        if (!isset($this->state[Param::SESSION_TYPE])) return false;
+        return $this->state[Param::SESSION_TYPE] == Param::SESSION_TYPE_LOOKUP;
+    }
+
     /**
      * Store the LtiSession's id inside an encrypted JWT.
      */

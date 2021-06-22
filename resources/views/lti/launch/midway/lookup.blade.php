@@ -5,6 +5,7 @@
 @section('content')
   <instructor-main-view action='{{ $midwayRedirectUri }}'
                         course-context-id='{{ $courseContextId }}'
+                        :is-midway-only='@json($isMidwayOnly)'
                         platform-name='{{ $platformName }}'
                         tool-name='{{ $toolName }}'
                         tool-id='{{ $toolId }}'

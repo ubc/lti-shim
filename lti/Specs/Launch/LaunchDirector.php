@@ -44,10 +44,18 @@ class LaunchDirector
      */
     public function login(): Response
     {
-        $handler = new LoginHandler($this->request,
-                                    $this->ltiLog->getStreamId());
-        $handler->recvLogin();
-        return $handler->sendLogin();
+        $loginHandler = new LoginHandler($this->request,
+                                         $this->ltiLog->getStreamId());
+        $loginHandler->recvLogin();
+        $session = $loginHandler->getSession();
+
+        if ($session->is_midway_lookup_only) {
+            // midway only, just can skip sending login to the target tool
+            // and just send back an auth req to the originating platform
+            $authReqHandler = new AuthReqHandler($this->request, $session);
+            return $authReqHandler->sendAuth();
+        }
+        return $loginHandler->sendLogin();
     }
 
     /**

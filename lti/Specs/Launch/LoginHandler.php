@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
+use League\Uri\Uri;
+use League\Uri\UriInfo;
+use League\Uri\UriModifier;
+
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
@@ -94,6 +98,13 @@ class LoginHandler
         $this->session = $this->createSession();
     }
 
+    public function getSession(): LtiSession
+    {
+        if ($this->session)
+            return $this->session;
+        throw new LtiException('LtiSession not created, please recvLogin()');
+    }
+
     /**
      * Create an LtiSession entry for this launch.
      */
@@ -122,9 +133,14 @@ class LoginHandler
                 $this->request, $platformClient));
         }
 
+        $sessionType = Param::SESSION_TYPE_REG;
+        if ($this->isMidwayLookupOnly())
+            $sessionType = Param::SESSION_TYPE_LOOKUP;
+
         // keep track of params that needs to be used at some later step in the
         // launch
         $state = [
+            Param::SESSION_TYPE => $sessionType,
             // needs to be passed back in the auth req stage
             Param::LOGIN_HINT => $this->request->input(Param::LOGIN_HINT)
         ];
@@ -151,6 +167,19 @@ class LoginHandler
         $session->save();
 
         return $session;
+    }
+
+    private function isMidwayLookupOnly(): bool
+    {
+        $targetLinkUri = $this->request->input(Param::TARGET_LINK_URI);
+        $targetLinkUri = Uri::createFromString($targetLinkUri);
+        $midwayLookupUri = route('lti.launch.midway');
+        $midwayLookupUri = Uri::createFromString($midwayLookupUri);
+        $midwayLookupUri = UriModifier::appendSegment($midwayLookupUri,
+                                                     Param::MIDWAY_LOOKUP_PATH);
+        if ($targetLinkUri->getPath() == $midwayLookupUri->getPath())
+            return true;
+        return false;
     }
 
 }
