@@ -30,7 +30,7 @@ class MidwayHandler
     public function recv()
     {
         $this->ltiLog->debug('Recevied', $this->request);
-        // midway only, so need for any of the continuation params
+        // midway only, so no need for any of the continuation params
         if ($this->session->is_midway_lookup_only) return;
 
         if (!$this->request->has(Param::MIDWAY_REDIRECT_URI)) {
