@@ -76,6 +76,7 @@ class WhitelistFilter extends AbstractWhitelistFilter implements FilterInterface
         // resource link is not required for deep link messages, but is required
         // by other message types. So kinda optional?
         Param::RESOURCE_LINK_URI => 9,
+        Param::CUSTOM_URI => 10,
     ];
 
     protected array $whitelists = [

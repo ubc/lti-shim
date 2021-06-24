@@ -24,6 +24,7 @@ use UBC\LTI\Specs\Launch\Filters\DeploymentFilter;
 use UBC\LTI\Specs\Launch\Filters\GradebookMessageFilter;
 use UBC\LTI\Specs\Launch\Filters\LaunchPresentationFilter;
 use UBC\LTI\Specs\Launch\Filters\NrpsFilter;
+use UBC\LTI\Specs\Launch\Filters\PiazzaFilter;
 use UBC\LTI\Specs\Launch\Filters\UserFilter;
 use UBC\LTI\Specs\Launch\Filters\WhitelistFilter;
 use UBC\LTI\Specs\ParamChecker;
@@ -64,7 +65,8 @@ class AuthRespHandler
             new NrpsFilter($this->ltiLog),
             new AgsFilter($this->ltiLog),
             new GradebookMessageFilter($this->ltiLog),
-            new DeepLinkFilter($this->ltiLog)
+            new DeepLinkFilter($this->ltiLog),
+            new PiazzaFilter($this->ltiLog)
         ];
     }
 

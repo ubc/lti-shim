@@ -13,7 +13,7 @@ use UBC\LTI\Specs\Launch\Filters\FilterInterface;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Utils\Param;
 
-// Assignment and Grades Service (AGS)
+// Deep Linking (DL)
 class DeepLinkFilter extends AbstractWhitelistFilter implements FilterInterface
 {
     protected const LOG_HEADER = 'Dl Filter';
