@@ -13,8 +13,7 @@ let path = require('path');
 
 mix
   .js('resources/js/admin/admin.js', 'public/js').vue()
-  .js('resources/js/midway/midway.js', 'public/js').vue()
-  .sass('resources/sass/app.scss', 'public/css');
+  .js('resources/js/midway/midway.js', 'public/js').vue();
 
 if (mix.inProduction()) {
   // generate a unique hash for filenames, prevent browsers are using old

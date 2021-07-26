@@ -15,15 +15,10 @@
         "lodash": "^4.17.19",
         "postcss": "^8.1.14",
         "resolve-url-loader": "^3.1.0",
-        "sass": "^1.32.2",
-        "sass-loader": "^8.0.2",
         "vue-loader": "^15.9.6",
         "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
-        "bootstrap": "^4.5.3",
-        "jquery": "^3.5.1",
-        "popper.js": "^1.16.1",
         "vue": "^2.6.12",
         "vue-good-table": "^2.21.2",
         "vue-material-design-icons": "^4.11.0",
