@@ -1,20 +1,19 @@
 <template>
-  <div>
+  <div class='mx-auto p-2'>
 
-    <div class='d-lg-flex justify-content-lg-between align-items-lg-center'>
-      <form :action='action' :method='method' ref='form' class='order-lg-1'
-            v-if='!isMidwayOnly'>
+    <div class='flex flex-col'>
+      <form :action='action' :method='method' ref='form' v-if='!isMidwayOnly'>
         <slot name='redirect-params'></slot>
-        <button type='submit' class='btn btn-primary' ref='continueButton'>
+        <button type='submit' ref='continueButton'>
           <ContinueIcon />
           Continue to {{ toolName }}
         </button>
       </form>
-      <h1 class='order-lg-0 mt-3 mt-lg-0'>
+      <h1 class='my-2'>
         {{ toolName }} Student Identities
       </h1>
     </div>
-    <p>
+    <p class='mb-4'>
     Students in the tool you are accessing receive anonymous identities to
     protect their privacy. Find and click any identity used in {{ toolName }}
     or in {{ platformName }} to reveal who that student is on the other side.

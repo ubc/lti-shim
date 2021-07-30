@@ -1,0 +1,9 @@
+/* Tailwind's form plugin adds a down arrow to selects using a background image.
+ * Vue-good-table css also adds its own down arrow, leading to duplicate arrows.
+ * This disables tailwind's down arrow to fix it.
+ * I would've liked to keep this local to the vue component, but it wasn't being
+ * applied, so had to put it globally.
+ */
+.footer__row-count__select {
+    @apply bg-none;
+}

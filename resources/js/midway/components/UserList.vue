@@ -1,86 +1,80 @@
 <template>
   <div>
     <!-- Fake user table -->
-    <div class='card' v-show='!showUserInfo'>
-      <div class='card-body'>
-        <h5>
-        Search for Identities:
-        </h5>
-        <!-- Toggle between Tool (fake users) and Platform (real users) -->
-        <div class="custom-control custom-radio custom-control-inline">
-          <input type="radio" id="searchTargetTool" name="searchTarget"
-            v-model='serverParams.showToolUsers' :value='true'
-            class="custom-control-input" @change='onToolPlatformToggle'>
-          <label for="searchTargetTool" class="custom-control-label">
-            in {{ tool }}</label>
-        </div>
-        <div class="custom-control custom-radio custom-control-inline">
-          <input type="radio" id="searchTargetPlatform" name="searchTarget"
-            v-model='serverParams.showToolUsers' :value='false'
-            class="custom-control-input" @change='onToolPlatformToggle'>
-          <label for="searchTargetPlatform" class="custom-control-label">
-            in {{ platform }}</label>
-        </div>
-        <!-- Search box  -->
-        <form class='form mt-4' v-on:submit.prevent="onSearch">
-          <div class='d-flex'>
-            <label for="search" class='flex-shrink-1 mr-1'>
-              <SearchIcon title='Search' class='h2 text-secondary' />
-            </label>
-            <input type="text" name="search" id="search" v-model='search'
-              class='form-control flex-grow-1 mr-2'
-              :placeholder='searchPlaceholder' />
-            <div class='flex-shrink-1'>
-              <button type='submit' class='btn btn-secondary'>Search</button>
-            </div>
-          </div>
-        </form>
-        <!-- Search indicator -->
-        <div v-if='serverParams.search' class='text-muted'>
-          <small>
-          Searching for "{{ serverParams.search }}"
-          </small>
-        </div>
-        <!-- Users table -->
-        <vue-good-table mode='remote'
-                        @on-page-change='onPageChange'
-                        @on-sort-change='onSortChange'
-                        @on-per-page-change='onPerPageChange'
-                        @on-row-click='showRealUser'
-                        :isLoading.sync='isLoading'
-                        :pagination-options='paginationOptions'
-                        :search-options='{enabled: true, externalQuery: search}'
-                        :totalRows="totalUsers"
-                        :columns='columns'
-                        :rows='usersComputed' />
-        </vue-good-table>
+    <div v-show='!showUserInfo'>
+      <h5>
+      Search for Identities:
+      </h5>
+      <!-- Toggle between Tool (fake users) and Platform (real users) -->
+      <div>
+        <input type="radio" id="searchTargetTool" name="searchTarget"
+          v-model='serverParams.showToolUsers' :value='true'
+          @change='onToolPlatformToggle'>
+        <label for="searchTargetTool">
+          in {{ tool }}</label>
       </div>
+      <div>
+        <input type="radio" id="searchTargetPlatform" name="searchTarget"
+          v-model='serverParams.showToolUsers' :value='false'
+          @change='onToolPlatformToggle'>
+        <label for="searchTargetPlatform">
+          in {{ platform }}</label>
+      </div>
+      <!-- Search box  -->
+      <form class='my-2' v-on:submit.prevent="onSearch">
+        <div class='flex gap-2'>
+          <label for="search" class='flex-initial'>
+            <SearchIcon title='Search' class='text-3xl' />
+          </label>
+          <input type="text" name="search" id="search" v-model='search'
+            class='flex-grow'
+            :placeholder='searchPlaceholder' />
+          <div class='flex-initial'>
+            <button type='submit' class='btnSecondary'>Search</button>
+          </div>
+        </div>
+      </form>
+      <!-- Search indicator -->
+      <small v-if='serverParams.search' class='block mb-1'>
+      Searching for "{{ serverParams.search }}"
+      </small>
+      <!-- Users table -->
+      <vue-good-table mode='remote'
+                      @on-page-change='onPageChange'
+                      @on-sort-change='onSortChange'
+                      @on-per-page-change='onPerPageChange'
+                      @on-row-click='showRealUser'
+                      :isLoading.sync='isLoading'
+                      :pagination-options='paginationOptions'
+                      :search-options='{enabled: true, externalQuery: search}'
+                      :totalRows="totalUsers"
+                      :columns='columns'
+                      :rows='usersComputed' />
+      </vue-good-table>
     </div>
 
     <!-- Real user info box -->
-    <div class='card mt-3' v-show='showUserInfo'>
-      <div class='card-body'>
-        <h5>
-          {{ userInfo.selectedName }} ({{ userInfo.selectedStudentNumber }}) is:
-        </h5>
-        <table class='table table-bordered mt-3'>
-          <thead class='theadVueGoodTable'>
-            <tr>
-              <th scope='col'>Name in {{ userInfo.appName }}</th>
-              <th scope='col'>Student Number in {{ userInfo.appName }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ userInfo.revealedName }}</td>
-              <td>{{ userInfo.revealedStudentNumber }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button type='button' class='btn btn-secondary' @click='hideRealUser'>
-          <BackIcon /> Back
-        </button>
-      </div>
+    <div v-show='showUserInfo'>
+      <h5 class='mb-2'>
+        {{ userInfo.selectedName }} ({{ userInfo.selectedStudentNumber }}) is:
+      </h5>
+      <table class='userInfoTable'>
+        <thead>
+          <tr>
+            <th scope='col'>Name in {{ userInfo.appName }}</th>
+            <th scope='col'>Student Number in {{ userInfo.appName }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ userInfo.revealedName }}</td>
+            <td>{{ userInfo.revealedStudentNumber }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <button type='button' class='btnSecondary mt-4' @click='hideRealUser'>
+        <BackIcon /> Back
+      </button>
     </div>
   </div>
 </template>
@@ -245,8 +239,9 @@ export default {
 </script>
 
 <style scoped>
-.theadVueGoodTable {
- color: #606266;
- background: linear-gradient(#f4f5f8,#f1f3f6);
+.userInfoTable {
+  @apply border border-gray-500 divide-y divide-gray-500;
+  tr { @apply divide-x divide-gray-500; }
+  th, td { @apply p-4; }
 }
 </style>

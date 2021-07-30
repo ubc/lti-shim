@@ -14,7 +14,7 @@
                         class='mt-3'
                         >
       <template #redirect-params>
-          <div class='d-none'>
+          <div class='hidden'>
               <div>{{ $midwayRedirectUri }}</div>
               @isset($state)
                   <label for='state'>State</label>
