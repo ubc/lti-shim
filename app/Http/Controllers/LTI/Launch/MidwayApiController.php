@@ -71,8 +71,8 @@ class MidwayApiController extends Controller
                 )
                 ->select(
                     'lti_fake_users.*',
-                    'lti_real_user.name',
-                    'lti_real_user.student_number'
+                    'lti_real_user.name AS lti_real_user.name',
+                    'lti_real_user.student_number AS lti_real_user.student_number'
                 );
         }
         if ($queryParams['search']) {
