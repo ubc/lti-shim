@@ -1,41 +1,32 @@
 <template>
-  <div class='row justify-content-center'>
-    <div class='col col-lg-5 col-md-8'>
-      <div class='card'>
-        <div class='card-header'>Login</div>
+  <div class='mt-4'>
+    <h1 class='text-center text-xl'>Login</h1>
 
-        <div class='card-body'>
-          <form @submit.prevent='login'>
-            <div class='form-group'>
+    <form @submit.prevent='login' class='plainForm'>
+      <label for='email'>Email</label>
+      <input type='email' id='email' ref='email'
+             aria-describedby='emailHelp' required v-model='email' />
 
-              <label for='email'>Email</label>
-              <input type='email' class='form-control' id='email' ref='email'
-                     aria-describedby='emailHelp' required v-model='email' />
-            </div>
+      <label for='password'>Password</label>
+      <input type='password' id='password' required
+             v-model='password' />
 
-            <div class='form-group'>
-              <label for='password'>Password</label>
-              <input type='password' class='form-control' id='password' required
-                     v-model='password' />
-            </div>
-
-            <button type='submit' class='btn btn-primary' v-if='!isLoading'>
-              Login</button>
-            <div class="spinner-border" role="status" v-if='isLoading'>
-              <span class="sr-only">Loading...</span>
-            </div>
-
-          </form>
-        </div>
-
-      </div>
-    </div>
+      <button type='submit' :disabled='isLoading'>
+        <Spinner v-if='isLoading' />
+        Login
+      </button>
+    </form>
   </div>
 </template>
 
 <script>
+import Spinner from '../components/util/Spinner'
+
 export default {
   name: "LoginView",
+  components: {
+    Spinner
+  },
   data() { return {
     email: '',
     password: '',

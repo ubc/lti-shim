@@ -1,7 +1,7 @@
 <template>
   <div>
     <navbar :app-name='appName' />
-    <div class='container py-4'>
+    <div class='flex justify-center container mx-auto'>
       <Notification />
       <router-view></router-view>
     </div>

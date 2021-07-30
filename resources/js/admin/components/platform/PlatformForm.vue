@@ -2,67 +2,58 @@
   <div>
     <h3 v-if='isEdit'>Edit Platform</h3>
     <h3 v-else>Add Platform</h3>
-    <form @submit.prevent='save'>
-      <div class='form-group'>
-        <label for='name'>Name</label>
-        <input id='name' type='text' class='form-control' required
-          v-model='platform.name' />
-      </div>
+    <form @submit.prevent='save' class='plainForm'>
+      <label for='name'>Name</label>
+      <input id='name' type='text' required v-model='platform.name' />
 
-      <div class='form-group'>
-        <label for='iss'>ISS</label>
-        <input id='iss' type='iss' class='form-control' required
-               aria-describedby='issHelp'
-               v-model='platform.iss'
-               placeholder='https://ubc.test.instructure.com/'
-          />
-        <small id="issHelp" class="form-text text-muted">
-          OAuth issuer, this is usually just the url of the platform.
-        </small>
-      </div>
+      <label for='iss'>ISS</label>
+      <input id='iss' type='text' required
+             aria-describedby='issHelp'
+             v-model='platform.iss'
+             placeholder='https://ubc.test.instructure.com/'
+             />
+      <small id="issHelp">
+        OAuth issuer, this is usually just the url of the platform.
+      </small>
 
-      <div class='form-group'>
-        <label for='auth_req_url'>Authentication Request URL</label>
-        <input id='auth_req_url' type='auth_req_url' class='form-control'
-               required
-               aria-describedby='authReqUrlHelp'
-               v-model='platform.auth_req_url'
-               placeholder='https://ubc.test.instructure.com/api/lti/authorize'
-               />
-        <small id="authReqUrlHelp" class="form-text text-muted">
-          Platform endpoint for step 2 of the LTI Launch.
-        </small>
-      </div>
+      <label for='auth_req_url'>Authentication Request URL</label>
+      <input id='auth_req_url' type='text' required
+             aria-describedby='authReqUrlHelp'
+             v-model='platform.auth_req_url'
+             placeholder='https://ubc.test.instructure.com/api/lti/authorize'
+             />
+      <small id="authReqUrlHelp">
+        Platform endpoint for step 2 of the LTI Launch.
+      </small>
 
-      <div class='form-group'>
-        <label for='access_token_url'>Access Token URL</label>
-        <input id='access_token_url' type='access_token_url'
-               class='form-control' aria-describedby='accessTokenUrlHelp'
-               v-model='platform.access_token_url'
-               placeholder='https://ubc.test.instructure.com/login/oauth2/token'
-               />
-        <small id="accessTokenUrlHelp" class="form-text text-muted">
-          Platform endpoint for OAuth2 access token requests, only required to
-          enable LTI services (get class roster, grades sync, etc).
-        </small>
-      </div>
+      <label for='access_token_url'>Access Token URL</label>
+      <input id='access_token_url' type='text'
+             aria-describedby='accessTokenUrlHelp'
+             v-model='platform.access_token_url'
+             placeholder='https://ubc.test.instructure.com/login/oauth2/token'
+             />
+      <small id="accessTokenUrlHelp">
+        Platform endpoint for OAuth2 access token requests, only required to
+        enable LTI services (get class roster, grades sync, etc).
+      </small>
 
       <JwkForm @deleteJwk='deleteJwk'
         :url='platform.jwks_url' @url='platform.jwks_url = $event'
         :keys='platform.keys'  @keys='platform.keys = $event' />
 
-      <button type='submit' class='btn btn-outline-primary'
-        :disabled='isWaiting'>
-        <span class="spinner-border spinner-border-sm" role="status"
-          aria-hidden="true" v-if='isWaiting'></span>
-        <SaveIcon v-else />
-        Save
-      </button>
-      <button type='button' class='btn btn-outline-secondary'
-        @click="$emit('done')" :disabled='isWaiting'>
-        <CancelIcon />
-        Cancel
-      </button>
+      <div>
+        <button type='submit' class='mr-2'
+          :disabled='isWaiting'>
+          <Spinner v-if='isWaiting' />
+          <SaveIcon v-else />
+          Save
+        </button>
+        <button type='button' class='btnSecondary'
+          @click="$emit('done')" :disabled='isWaiting'>
+          <CancelIcon />
+          Cancel
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -72,6 +63,7 @@ import CancelIcon from 'icons/Cancel'
 import SaveIcon from 'icons/ContentSave'
 
 import JwkForm from '../jwk/JwkForm'
+import Spinner from '../util/Spinner'
 
 export default {
   name: 'PlatformForm',
@@ -79,6 +71,7 @@ export default {
     CancelIcon,
     JwkForm,
     SaveIcon,
+    Spinner
   },
   props: {
     platformId: {

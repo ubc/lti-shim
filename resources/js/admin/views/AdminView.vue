@@ -1,11 +1,11 @@
 <template>
   <div>
-    <h1>Admin</h1>
-    <PlatformAdmin class='mb-4'></PlatformAdmin>
-    <ToolAdmin class='mb-4'></ToolAdmin>
-    <PlatformClientAdmin class='mb-4'></PlatformClientAdmin>
-    <UserAdmin class='mb-4'></UserAdmin>
-    <ShimConfigInfo></ShimConfigInfo>
+    <h1 class='py-4'>Admin</h1>
+    <PlatformAdmin class='section'></PlatformAdmin>
+    <ToolAdmin class='section'></ToolAdmin>
+    <PlatformClientAdmin class='section'></PlatformClientAdmin>
+    <UserAdmin class='section'></UserAdmin>
+    <ShimConfigInfo class='section'></ShimConfigInfo>
   </div>
 </template>
 
@@ -35,4 +35,7 @@ export default {
 </script>
 
 <style scoped>
+.section {
+  @apply border border-gray-300 p-4 mb-4;
+}
 </style>

@@ -1,44 +1,45 @@
 <template>
-  <div class='form-group'>
-    <label>JWK</label>
-    <p class='text-muted'>
+  <div class='plainForm'>
+    <h5>JWK List</h5>
+    <p class='textMuted mb-0'>
     If a JWKS URL is not available, you can manually enter keys here.
     Automatically retrieved keys from the JWKS URL are also listed here.
     </p>
 
-    <div class='form-inline mb-2 d-flex'>
-      <label for='newJwk' class='mr-2 sr-only'>JWK</label>
-      <textarea id='newJwk' type='text' class='form-control mr-2 flex-grow-1'
+    <label for='newJwk'>JWK</label>
+    <div class='flex justify-between gap-2 mb-4'>
+      <textarea id='newJwk' type='text' class='flex-grow'
                 v-model='newJwk' />
-        <div class='input-group-append'>
-          <button class='btn btn-outline-primary' type='button' id='jwkAdd'
-                  @click='add'>
-            <AddIcon /> Add JWK
-          </button>
-        </div>
+      <div class='flex-initial'>
+        <button class='btnPrimary' type='button' id='jwkAdd'
+                @click='add'>
+          <AddIcon /> Add JWK
+        </button>
+      </div>
     </div>
 
-    <p v-if='value.length == 0' class='text-warning'>
+    <p v-if='value.length == 0' class='textWarning'>
     No keys right now.
     </p>
 
-    <ul v-else class='list-group'>
-      <li v-for='jwk in value' :key='jwk.kid' class='list-group-item d-flex'>
-        <div class='flex-grow-1 align-self-center'>
-          <button type='button' class='btn btn-sm btn-outline-secondary'
+    <ul v-else class='rounded border border-gray-300 divide-y divide-gray-300'>
+      <li v-for='jwk in value' :key='jwk.kid'
+        class='flex justify-between gap-2 p-4'>
+        <div>
+          <button type='button' class='btnSecondary btnSm mt-0 mr-2'
                   @click="toggleShowJwk(jwk)">
             <UpIcon v-if='jwk.show' />
             <DownIcon v-else />
           </button>
           {{ jwk.kid }}
           <pre v-show='jwk.show'>
-          <code>
-            {{ jwk.key }}
-          </code>
+            <code>
+              {{ jwk.key }}
+            </code>
           </pre>
         </div>
-        <div>
-          <AreYouSureButton :css="'btn btn-sm btn-outline-danger'"
+        <div class='flex-initial'>
+          <AreYouSureButton :css="'btnDanger btnSm mt-0'"
                :warning="'Delete key ' + jwk.kid + '?'"
                @yes='deleteKey(jwk.kid)'>
             <DeleteIcon /> Delete
@@ -124,7 +125,7 @@ export default {
         this.$set(jwk, 'show', true)
       }
     }
-  }
+  },
 }
 </script>
 

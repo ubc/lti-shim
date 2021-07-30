@@ -1,17 +1,30 @@
 <template>
-  <div class='card'>
-    <h2 class='card-header'>Shim Configuration Info</h2>
-    <div class='card-body' v-if='isLoading'>
+  <div>
+    <h2>Shim Configuration Info</h2>
+    <div v-if='isLoading'>
       Loading...
     </div>
-    <div class='card-body' v-else>
+    <div v-else>
       <p>
       Information to help configure LTI platforms or tools to use the shim.
       </p>
       <h3>Add shim to a platform</h3>
       <p>When adding the shim to an LTI Platform (e.g. Canvas). Choose the target tool the user should end up in.</p>
 
-      <table class='table'>
+      <p class='notifyWarning' v-if="!targetTool.hasOwnProperty('id')">
+      Please select a target tool to view target specific parameters.
+      </p>
+
+      <form class='mb-4'>
+        <label for='targetToolSelect' class='mr-2'>Target Tool</label>
+        <select v-model='targetTool' id='targetToolSelect'>
+          <option v-for='tool in tools' :value='tool'>
+          {{ tool.name }}
+          </option>
+        </select>
+      </form>
+
+      <table class='definitionTable'>
         <tbody>
           <tr>
             <th scope="row">OIDC Login URL</th>
@@ -25,43 +38,35 @@
             <th scope="row">JWKS URL</th>
             <td>{{config.tool.jwks_url}}</td>
           </tr>
+          <tr>
+            <th scope="row">Target Link URI</th>
+            <td>
+              <span class='textWarning' v-if="!targetTool.hasOwnProperty('id')">
+              No target tool selected!
+              </span>
+              {{targetTool.shim_target_link_uri}}
+            </td>
+          </tr>
         </tbody>
       </table>
 
-      <p class='alert alert-warning'>
-      A target link URI is also needed, but it is tool specific, please select
-      a target tool to view the correct target link URI.
+      <h3 class='mt-4'>Add shim to a tool</h3>
+      <p>When adding the shim to an LTI Tool (e.g. Webwork).</p>
+
+      <p class='notifyWarning' v-if="!selectedTool.hasOwnProperty('id')">
+      Please select a tool to view tool specific parameters.
       </p>
 
-      <form class='form-inline mb-3'>
-        <label for='targetToolSelect' class='mr-2'>Target Tool</label>
-        <select v-model='targetTool' id='targetToolSelect'
-          class='custom-select'>
+      <form class='mb-4'>
+        <label for='selectedToolSelect' class='mr-2'>Tool</label>
+        <select v-model='selectedTool' id='selectedToolSelect'>
           <option v-for='tool in tools' :value='tool'>
           {{ tool.name }}
           </option>
         </select>
       </form>
 
-      <p class='text-muted'
-        v-if="!targetTool.hasOwnProperty('id')">
-        No target tool selected!
-      </p>
-
-      <table class='table' v-else="targetTool.hasOwnProperty('id')">
-        <tbody>
-          <tr>
-            <th scope="row">Target Link URI</th>
-            <td>{{targetTool.shim_target_link_uri}}</td>
-          </tr>
-        </tbody>
-      </table>
-
-
-      <h3>Add shim to a tool</h3>
-      <p>When adding the shim to an LTI Tool (e.g. Webwork).</p>
-
-      <table class='table'>
+      <table class='definitionTable'>
         <tbody>
           <tr>
             <th scope="row">ISS</th>
@@ -79,37 +84,19 @@
             <th scope="row">Access Token URL</th>
             <td>{{config.platform.access_token_url}}</td>
           </tr>
-        </tbody>
-      </table>
-
-      <p class='alert alert-warning'>
-      A client ID is also needed. This is assigned when the tool was added to
-      the shim. If the tool hasn't been added to the shim, please add it now.
-      Select an existing tool here to view the client ID.
-      </p>
-
-      <form class='form-inline mb-3'>
-        <label for='selectedToolSelect' class='mr-2'>Tool</label>
-        <select v-model='selectedTool' id='selectedToolSelect'
-          class='custom-select'>
-          <option v-for='tool in tools' :value='tool'>
-          {{ tool.name }}
-          </option>
-        </select>
-      </form>
-
-      <p class='text-muted'
-        v-if="!selectedTool.hasOwnProperty('id')">
-        No tool selected!
-      </p>
-      <table class='table' v-if="selectedTool.hasOwnProperty('id')">
-        <tbody>
           <tr>
             <th scope="row">Client ID</th>
-            <td>{{selectedTool.client_id}}</td>
+            <td>
+              <span class='textWarning'
+                v-if="!selectedTool.hasOwnProperty('id')">
+                No tool selected!
+              </span>
+              {{selectedTool.client_id}}
+            </td>
           </tr>
         </tbody>
       </table>
+
     </div>
   </div>
 </template>
@@ -144,4 +131,9 @@ export default {
 </script>
 
 <style scoped>
+.definitionTable {
+  @apply py-2 mb-2;
+  th { @apply text-right; }
+  th, td { @apply px-2 py-1; }
+}
 </style>

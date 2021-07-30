@@ -1,21 +1,18 @@
 <template>
-  <div class='card'>
+  <div>
+    <h2>Users</h2>
 
-    <h2 class='card-header'>Users</h2>
-
-    <div class='card-body'>
-      <UserForm v-if='showUserForm' :userId='editUser'
-        @done='showUserForm = false'></UserForm>
-      <div v-else>
-        <p class='text-muted'>
-        Admin users only. LTI users are not managed here.
-        </p>
-        <button type='button' class='btn btn-outline-primary mb-3'
-          @click='add'>
-          <AddIcon /> Add User
-        </button>
-        <UserList @edit='edit'></UserList>
-      </div>
+    <UserForm v-if='showUserForm' :userId='editUser'
+      @done='showUserForm = false'></UserForm>
+    <div v-else>
+      <p>
+      Admin users only. LTI users are not managed here.
+      </p>
+      <button type='button' class='btnPrimary mb-4'
+        @click='add'>
+        <AddIcon /> Add User
+      </button>
+      <UserList @edit='edit'></UserList>
     </div>
 
   </div>

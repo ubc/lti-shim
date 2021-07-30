@@ -2,34 +2,33 @@
 	<div>
 		<h3 v-if='isEdit'>Edit User</h3>
 		<h3 v-else>Add User</h3>
-    <form @submit.prevent='save'>
-      <div class='form-group'>
-        <label for='name'>Name</label>
-        <input id='name' type='text' class='form-control' required
-          :disabled='!user.name && isEdit'
-          v-model='user.name' />
-      </div>
-      <div class='form-group'>
-        <label for='email'>Email</label>
-        <input id='email' type='email' class='form-control' required
-          :disabled='!user.email && isEdit'
-          v-model='user.email'/>
-      </div>
+    <form @submit.prevent='save' class='plainForm'>
+      <label for='name'>Name</label>
+      <input id='name' type='text' required
+        :disabled='!user.name && isEdit'
+        v-model='user.name' />
+
+      <label for='email'>Email</label>
+      <input id='email' type='email' required
+        :disabled='!user.email && isEdit'
+        v-model='user.email'/>
+
       <PasswordField :isNewPassword='true' :isRequired='!isEdit && !isEditSelf' 
         v-if='!isEdit || isEditSelf'
         v-model='user.password'></PasswordField>
-      <button type='submit' class='btn btn-outline-primary'
-        :disabled='isWaiting'>
-        <span class="spinner-border spinner-border-sm" role="status"
-          aria-hidden="true" v-if='isWaiting'></span>
-        <SaveIcon v-else />
-        Save
-      </button>
-      <button type='button' class='btn btn-outline-secondary'
-        @click="$emit('done')" :disabled='isWaiting'>
-        <CancelIcon />
-        Cancel
-      </button>
+
+      <div>
+        <button type='submit' class='btnPrimary' :disabled='isWaiting'>
+          <Spinner v-if='isWaiting' />
+          <SaveIcon v-else />
+          Save
+        </button>
+        <button type='button' class='btnSecondary' @click="$emit('done')"
+                :disabled='isWaiting'>
+          <CancelIcon />
+          Cancel
+        </button>
+      </div>
     </form>
 	</div>
 </template>
@@ -39,6 +38,7 @@ import CancelIcon from 'icons/Cancel'
 import SaveIcon from 'icons/ContentSave'
 
 import PasswordField from './PasswordField'
+import Spinner from '../util/Spinner'
 
 export default {
 	name: 'UserForm',
@@ -46,6 +46,7 @@ export default {
     CancelIcon,
     PasswordField,
     SaveIcon,
+    Spinner,
   },
   props: {
     userId: {

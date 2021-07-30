@@ -4,16 +4,18 @@
             v-if='!showConfirm'>
       <slot></slot>
     </button>
-    <div class='text-danger' v-if='showConfirm'>
-      {{ warning }}
-      <button type='button' class='btn btn-outline-danger btn-sm ml-1'
-        @click="$emit('yes'); showConfirm=false">
-        Yes
-      </button>
-      <button type='button' class='btn btn-outline-secondary btn-sm ml-1'
-        @click='showConfirm=false'>
-        No
-      </button>
+    <div class='text-red-600 flex flex-col' v-if='showConfirm'>
+      <div>{{ warning }}</div>
+      <div class='flex-none m-auto'>
+        <button type='button' class='btnDanger btnSm'
+          @click="$emit('yes'); showConfirm=false">
+          Yes
+        </button>
+        <button type='button' class='btnSecondary btnSm ml-2'
+          @click='showConfirm=false'>
+          No
+        </button>
+      </div>
     </div>
   </div>
 </template>

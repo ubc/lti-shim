@@ -1,61 +1,55 @@
 <template>
-  <div class='card'>
-    <h2 class='card-header'>Platform Clients</h2>
-    <div class='card-body'>
+  <div>
+    <h2>Platform Clients</h2>
 
-      <form @submit.prevent='save' v-show='!showList'>
-        <div class='form-group'>
-          <label for='platformSelect'>Platform</label>
-          <select class='form-control' id='platformSelect'
-            v-model='clientForm.platform_id'>
-            <option v-for='platform in platforms' :value='platform.id'>
-              {{ platform.name }}
-            </option>
-          </select>
-        </div>
+    <form @submit.prevent='save' v-show='!showList' class='plainForm mb-8'>
+      <label for='platformSelect'>Platform</label>
+      <select id='platformSelect'
+        v-model='clientForm.platform_id'>
+        <option v-for='platform in platforms' :value='platform.id'>
+          {{ platform.name }}
+        </option>
+      </select>
 
-        <div class='form-group'>
-          <label for='toolSelect'>Target Tool</label>
-          <select class='form-control' id='toolSelect'
-            v-model='clientForm.tool_id'>
-            <option v-for='tool in tools' :value='tool.id'>
-              {{ tool.name }}
-            </option>
-          </select>
-        </div>
+      <label for='toolSelect'>Target Tool</label>
+      <select id='toolSelect'
+        v-model='clientForm.tool_id'>
+        <option v-for='tool in tools' :value='tool.id'>
+          {{ tool.name }}
+        </option>
+      </select>
 
-        <div class='form-group'>
-          <label for='clientId'>Client ID</label>
-          <input type='text' id='clientId' class='form-control'
-            v-model='clientForm.client_id'></input>
-        </div>
+      <label for='clientId'>Client ID</label>
+      <input type='text' id='clientId'
+        v-model='clientForm.client_id'></input>
 
-        <button type='submit' class='btn btn-outline-primary'
+      <div>
+        <button type='submit' class='btnPrimary'
           :disabled='isWaiting'>
-          <span class="spinner-border spinner-border-sm" role="status"
-          aria-hidden="true" v-if='isWaiting'></span>
+          <Spinner v-if='isWaiting' />
           <SaveIcon v-else />
           Save
         </button>
-        <button type='button' class='btn btn-outline-secondary'
+        <button type='button' class='btnSecondary'
           :disabled='isWaiting' @click='cancel()'>
           <CancelIcon /> Cancel
         </button>
-      </form>
+      </div>
+    </form>
 
-      <p class='text-muted' v-show='showList'>
-      When a tool is added to a platform, the platform will assign a client ID
-      to the tool. Enter that client ID here. See the "Shim Configuration
-      Section" below for configuration values you should enter in the platform.
-      </p>
+    <p v-show='showList'>
+    When a tool is added to a platform, the platform will assign a client ID
+    to the tool. Enter that client ID here. See the "Shim Configuration
+    Section" below for configuration values you should enter in the platform.
+    </p>
 
-      <button type='button' class='btn btn-outline-primary mb-3' @click='add'
-        v-show='showList'>
-        <AddIcon /> Add Platform Client
-      </button>
+    <button type='button' class='btnPrimary mb-4' @click='add'
+            v-show='showList'>
+      <AddIcon /> Add Platform Client
+    </button>
 
-      <table class="table table-hover" v-show='showList'>
-        <thead class="thead-light">
+      <table class="plainTable" v-show='showList'>
+        <thead>
           <tr>
             <th scope="col">ID</th>
             <th scope="col">Platform</th>
@@ -70,13 +64,13 @@
             <td>{{ platforms[platformClient.platform_id].name }}</td>
             <td>{{ tools[platformClient.tool_id].name }}</td>
             <td>{{ platformClient.client_id }}</td>
-            <td class='d-flex justify-content-between'>
-              <button type='button' class='btn btn-outline-secondary'
+            <td class='flex justify-between gap-2'>
+              <button type='button' class='btnSecondary'
                 @click="edit(platformClient.id)">
                 <EditIcon /> Edit
               </button>
               <AreYouSureButton
-                :css="'btn btn-outline-danger'"
+                :css="'btnDanger'"
                 :warning="'Delete platformClient ' + platformClient.name + '?'"
                 @yes='deletePlatformClient(platformClient.id)'>
                   <DeleteIcon /> Delete
@@ -86,7 +80,6 @@
         </tbody>
       </table>
 
-    </div>
   </div>
 </template>
 
@@ -97,8 +90,8 @@ import DeleteIcon from 'icons/Delete'
 import EditIcon from 'icons/Pencil'
 import SaveIcon from 'icons/ContentSave'
 
-
 import AreYouSureButton from '../util/AreYouSureButton'
+import Spinner from '../util/Spinner'
 
 export default {
   name: "PlatformClientAdmin",
@@ -108,7 +101,8 @@ export default {
     CancelIcon,
     EditIcon,
     DeleteIcon,
-    SaveIcon
+    SaveIcon,
+    Spinner
   },
   computed: {
     platforms() { return this.$store.state.platform.items },

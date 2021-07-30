@@ -1,19 +1,21 @@
 <template>
-  <div class='card'>
-    <h2 class='card-header'>Tools</h2>
-    <div class='card-body'>
+  <div>
+    <h2>Tools</h2>
+
+    <div>
       <ToolForm v-if='showForm' @done='showForm=false' :toolId='toolId' />
       <div v-else>
-        <p class='text-muted'>
+        <p>
         LTI tools are usually more specialized learning apps (e.g.: Blogs,
         Webwork, iPeer) that receive LTI launches and information.
         </p>
-        <button type='button' class='btn btn-outline-primary mb-3' @click='add'>
+        <button type='button' class='btnPrimary mb-2' @click='add'>
           <AddIcon /> Add Tool
         </button>
         <ToolList @edit='edit' />
       </div>
     </div>
+
   </div>
 </template>
 

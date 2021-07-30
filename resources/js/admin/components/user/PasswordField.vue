@@ -1,22 +1,27 @@
 <template>
-	<div class='form-group'>
+	<div class='plainForm'>
 		<label for='password'>Password</label>
-		<input id='password' name='password'
-			spellcheck='false' class='form-control'
-			v-bind:type='passwordType' 
-			v-bind:autocomplete='passwordAutocomplete' 
-			v-bind:value='password'
-			v-bind:required='isRequired'
-			v-bind:disabled='isDisabled'
-      v-bind:minlength='minlength'
-			v-on:input='onPasswordInput'
-			/>
-		<button type='button' @click='togglePasswordVisible'
-      class='btn btn-outline-info btn-sm mt-1' >
-			<EyeOffIcon v-if='showPassword' />
-			<EyeIcon v-else />
-			{{ showPassword ? 'hide' : 'show' }} password
-		</button>
+    <div class='flex gap-2'>
+      <input id='password' name='password'
+        class='flex-grow'
+        spellcheck='false'
+        v-bind:type='passwordType' 
+        v-bind:autocomplete='passwordAutocomplete' 
+        v-bind:value='password'
+        v-bind:required='isRequired'
+        v-bind:disabled='isDisabled'
+        v-bind:minlength='minlength'
+        v-on:input='onPasswordInput'
+        />
+      <div class='flex-initial self-center'>
+        <button type='button' @click='togglePasswordVisible'
+          class='btnSecondary btnSm mt-0' >
+          <EyeOffIcon v-if='showPassword' />
+          <EyeIcon v-else />
+          {{ showPassword ? 'hide' : 'show' }} password
+        </button>
+      </div>
+    </div>
 	</div>
 </template>
 
@@ -69,5 +74,5 @@ export default {
 }
 </script>
 
-<style type='scss'>
+<style scoped>
 </style>

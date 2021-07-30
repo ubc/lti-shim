@@ -1,0 +1,15 @@
+@layer base {
+    a:hover {
+        @apply underline;
+    }
+    p {
+        @apply mb-2;
+    }
+    h1 { @apply text-3xl font-bold; }
+    h2 { @apply text-2xl font-bold; }
+    h3 { @apply text-xl font-bold; }
+    h4 { @apply text-lg font-bold; }
+    h5 { @apply font-bold; }
+    .textMuted { @apply text-gray-600; }
+    .textWarning { @apply text-yellow-600; }
+}

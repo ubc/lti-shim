@@ -1,0 +1,25 @@
+.notifyInfo {
+    @apply bg-blue-200 border border-blue-500;
+    .notifyIcon { @apply text-blue-700; }
+}
+.notifySuccess {
+    @apply bg-green-200 border border-green-500;
+    .notifyIcon { @apply text-green-700; }
+}
+.notifyError {
+    @apply bg-red-200 border border-red-500;
+    .notifyIcon { @apply text-red-700; }
+}
+.notifyWarning {
+    @apply bg-yellow-200 border border-yellow-500;
+    .notifyIcon { @apply text-yellow-700; }
+}
+
+.notify-close {
+    @apply text-xl;
+    &:hover { @apply text-ubcblue-400; }
+}
+
+.notifyInfo, .notifySuccess, .notifyError, .notifyWarning {
+    @apply p-2 mb-2;
+}

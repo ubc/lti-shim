@@ -1,28 +1,34 @@
 <template>
   <notifications position="top center" :duration='5000'>
     <template slot="body" slot-scope="props">
-      <div class='alert mt-1'
+      <div class='mt-2 flex justify-between'
            :class="{
-             'alert-primary': !props.item.type,
-             'alert-success': props.item.type == 'success',
-             'alert-danger': props.item.type == 'error',
-             'alert-warning': props.item.type == 'warn',
+             'notifyInfo': !props.item.type,
+             'notifySuccess': props.item.type == 'success',
+             'notifyError': props.item.type == 'error',
+             'notifyWarning': props.item.type == 'warn',
            }">
-        <button type="button" class="close" data-dismiss="alert" 
+
+        <div>
+          <h5 class='mb-0'>
+            <InfoIcon v-if="!props.item.type" class='notifyIcon' />
+            <SuccessIcon v-if="props.item.type == 'success'"
+                         class='notifyIcon' />
+            <ErrorIcon v-if="props.item.type == 'error'" class='notifyIcon' />
+            <WarnIcon v-if="props.item.type == 'warn'" class='notifyIcon' />
+            <strong class='ml-1'>
+              {{ props.item.title }}
+            </strong>
+          </h5>
+          <div v-if='props.item.text' v-html='props.item.text'>
+          </div>
+        </div>
+
+        <button type="button" class="notifyClose" data-dismiss="alert" 
           aria-label="Close" @click="props.close">
           <CloseIcon />
         </button>
-        <h5 class='mb-0'>
-          <InfoIcon v-if="!props.item.type" />
-          <SuccessIcon v-if="props.item.type == 'success'" />
-          <ErrorIcon v-if="props.item.type == 'error'" />
-          <WarnIcon v-if="props.item.type == 'warn'" />
-          <strong class='ml-1'>
-            {{ props.item.title }}
-          </strong>
-        </h5>
-        <div v-if='props.item.text' v-html='props.item.text'>
-        </div>
+
       </div>
     </template>
   </notifications>

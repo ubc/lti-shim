@@ -1,7 +1,7 @@
 <template>
 	<div>
-    <table class="table table-hover">
-      <thead class="thead-light">
+    <table class="plainTable">
+      <thead>
         <tr>
           <th scope="col">ID</th>
           <th scope="col">Name</th>
@@ -14,14 +14,14 @@
           <th scope="row">{{ platform.id }}</th>
           <td>{{ platform.name }}</td>
           <td>{{ platform.iss }}</td>
-          <td class='d-flex justify-content-between'>
-            <button type='button' class='btn btn-outline-secondary'
+          <td class='flex justify-between gap-2'>
+            <button type='button' class='btnSecondary'
               @click="$emit('edit', platform.id)">
               <EditIcon /> Edit
             </button>
             <AreYouSureButton 
-              :css="'btn btn-outline-danger'"
-              :warning="'Delete platform ' + platform.name + '?'"
+              :css="'btnDanger'"
+              :warning="'Delete platform: ' + platform.name + '?'"
               @yes='deletePlatform(platform.id)'>
                 <DeleteIcon /> Delete
             </AreYouSureButton>

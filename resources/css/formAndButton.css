@@ -1,0 +1,40 @@
+.plainForm {
+    @apply flex flex-col gap-y-1;
+
+    label, button {
+        @apply mt-4;
+    }
+
+    small {
+        @apply textMuted;
+    }
+}
+
+button {
+    @apply rounded p-2;
+
+    &[type='submit'], &.btnPrimary {
+        @apply border border-ubcblue-500 text-ubcblue-500;
+        &:hover:enabled { @apply bg-ubcblue-500 text-white; }
+    }
+
+    &.btnSecondary {
+        @apply border border-gray-600 text-gray-600;
+        &:hover:enabled { @apply bg-gray-600 text-white; }
+    }
+
+    &.btnDanger {
+        @apply border border-red-600 text-red-600;
+        &:hover:enabled { @apply bg-red-600 text-white; }
+    }
+
+    &.btnSm {
+        @apply text-sm py-1 px-2;
+    }
+
+    &:disabled {
+        @apply bg-gray-100 text-gray-400 border-gray-400 cursor-not-allowed;
+    }
+}
+
+

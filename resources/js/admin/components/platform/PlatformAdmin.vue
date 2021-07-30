@@ -1,17 +1,17 @@
 <template>
-  <div class='card'>
+  <div>
 
-    <h2 class='card-header'>Platforms</h2>
+    <h2>Platforms</h2>
 
-    <div class='card-body'>
+    <div>
       <PlatformForm v-if='showForm' :platformId='editPlatformId'
         @done='showForm = false'/>
       <div v-else>
-        <p class='text-muted'>
+        <p>
         LTI platforms are usually Learning Management Systems (e.g.: Canvas),
         platforms send out LTI launches and information to tools.
         </p>
-        <button type='button' class='btn btn-outline-primary mb-3' @click='add'>
+        <button type='button' class='btnPrimary mb-2' @click='add'>
           <AddIcon /> Add Platform
         </button>
         <PlatformList @edit='edit' />
