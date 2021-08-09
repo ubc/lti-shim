@@ -39,14 +39,18 @@ export default {
         password: this.password
       }
       this.isLoading = true
-      this.$store.dispatch('auth/login', credential).then(() => {
-        // when we initiate an api call right after login, the calls all fail
-        // with unauthenticated error. This is stupid but I don't want to have
-        // to dig through Sanctum's innards, so adding a short delay here
-        // as a workaround
-        setTimeout(
-          ()=>{ this.isLoading = false; this.$router.push('admin') }, 1500)
-      })
+      this.$store.dispatch('auth/login', credential)
+        .then(() => {
+          // when we initiate an api call right after login, the calls all fail
+          // with unauthenticated error. This is stupid but I don't want to have
+          // to dig through Sanctum's innards, so adding a short delay here
+          // as a workaround
+          setTimeout(
+            ()=>{ this.isLoading = false; this.$router.push('admin') }, 1000)
+        })
+        .catch(() => {
+          this.isLoading = false;
+        })
     }
   },
   mounted() {

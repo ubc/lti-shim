@@ -44,7 +44,7 @@ const auth = {
     login(context, credential) {
       // TODO: check required fields exist in credential
       return context.dispatch('csrf').then(() => {
-        axios.post(LOGIN_URL, credential)
+        return axios.post(LOGIN_URL, credential)
           .then(response => {
             localStorage.setItem(LOGIN_STATUS_KEY, LOGIN_STATUS_TRUE)
             context.commit('setLoggedIn')
@@ -56,11 +56,14 @@ const auth = {
           })
       })
     },
-    logout(context) {
+    logout(context, isInvalidSession = false) {
       if (context.state.isLoggedIn) {
-        axios.post(LOGOUT_URL)
-        localStorage.setItem(LOGIN_STATUS_KEY, LOGIN_STATUS_FALSE)
         context.commit('setLoggedOut')
+        localStorage.setItem(LOGIN_STATUS_KEY, LOGIN_STATUS_FALSE)
+        axios.post(LOGOUT_URL)
+        if (isInvalidSession) {
+          Vue.notify({'title': 'Invalid session, please login', 'type': 'error'})
+        }
       }
     }
   }

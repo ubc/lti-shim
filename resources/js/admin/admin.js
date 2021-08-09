@@ -41,8 +41,7 @@ axios.interceptors.response.use(
   response => { return response },
   error => {
     if (error.response.status === 401) {
-      Vue.notify({'title': 'Invalid session, please login', 'type': 'error'})
-      store.dispatch('auth/logout')
+      store.dispatch('auth/logout', true)
       const path = '/login'
       if (router.path !== path) router.push(path)
     }
