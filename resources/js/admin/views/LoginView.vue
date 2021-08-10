@@ -1,31 +1,36 @@
 <template>
-  <div class='mt-4'>
-    <h1 class='text-center text-xl'>Login</h1>
+  <div>
+    <Banner />
+    <div class='mt-4 p-4 mx-auto w-80'>
+      <h1 class='text-center text-xl'>Login</h1>
 
-    <form @submit.prevent='login' class='plainForm'>
-      <label for='email'>Email</label>
-      <input type='email' id='email' ref='email'
-             aria-describedby='emailHelp' required v-model='email' />
+      <form @submit.prevent='login' class='plainForm'>
+        <label for='email'>Email</label>
+        <input type='email' id='email' ref='email'
+               aria-describedby='emailHelp' required v-model='email' />
 
-      <label for='password'>Password</label>
-      <input type='password' id='password' required
-             v-model='password' />
+        <label for='password'>Password</label>
+        <input type='password' id='password' required
+               v-model='password' />
 
-      <button type='submit' :disabled='isLoading'>
-        <Spinner v-if='isLoading' />
-        Login
-      </button>
-    </form>
+        <button type='submit' :disabled='isLoading'>
+          <Spinner v-if='isLoading' />
+          Login
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
 <script>
+import Banner from '../components/Banner'
 import Spinner from '../components/util/Spinner'
 
 export default {
   name: "LoginView",
   components: {
-    Spinner
+    Spinner,
+    Banner,
   },
   data() { return {
     email: '',

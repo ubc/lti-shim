@@ -24,11 +24,11 @@
 <script>
 import AddIcon from 'icons/Plus'
 
-import PlatformForm from './PlatformForm'
-import PlatformList from './PlatformList'
+import PlatformForm from '@admin/components/platform/PlatformForm'
+import PlatformList from '@admin/components/platform/PlatformList'
 
 export default {
-  name: "PlatformAdmin",
+  name: "PlatformView",
   components: {
     AddIcon,
     PlatformForm,

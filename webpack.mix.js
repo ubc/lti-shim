@@ -36,7 +36,8 @@ mix.options({
 mix.webpackConfig({
   resolve: {
     alias: {
-      'icons': path.resolve(__dirname, 'node_modules/vue-material-design-icons')
+      'icons': path.resolve(__dirname, 'node_modules/vue-material-design-icons'),
+      '@admin': path.resolve(__dirname, 'resources/js/admin')
     },
     extensions: [
       '.vue'

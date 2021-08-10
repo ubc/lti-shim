@@ -22,11 +22,11 @@
 <script>
 import AddIcon from 'icons/Plus'
 
-import ToolForm from './ToolForm'
-import ToolList from './ToolList'
+import ToolForm from '@admin/components/tool/ToolForm'
+import ToolList from '@admin/components/tool/ToolList'
 
 export default {
-  name: "ToolAdmin",
+  name: "ToolView",
   components: {
     AddIcon,
     ToolForm,

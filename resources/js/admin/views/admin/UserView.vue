@@ -21,11 +21,11 @@
 <script>
 import AddIcon from 'icons/Plus'
 
-import UserList from './UserList'
-import UserForm from './UserForm'
+import UserList from '@admin/components/user/UserList'
+import UserForm from '@admin/components/user/UserForm'
 
 export default {
-  name: "UserAdmin",
+  name: "UserView",
   components: {
     AddIcon,
     UserForm,

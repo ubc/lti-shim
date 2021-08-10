@@ -1,6 +1,17 @@
 @layer base {
-    a:hover {
-        @apply underline;
+    html {
+        /* Fix content width jumping when moving between short and long pages.
+         * The jumps happens because the scrollbar gets added or removed,
+         * causing content to jump the width of the scrollbar. This just
+         * permanently enables the scrollbar (on non-mobile sizes).
+         */
+        @apply md:overflow-y-scroll;
+    }
+    a {
+        @apply text-ubcblue-500;
+        &:hover {
+            @apply underline text-ubcblue-400;
+        }
     }
     p {
         @apply mb-2;

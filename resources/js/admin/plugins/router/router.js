@@ -7,6 +7,8 @@ import Splash from '../../views/SplashView'
 import Login from '../../views/LoginView'
 import Admin from '../../views/AdminView'
 
+import adminRoutes from './adminRoutes'
+
 export default new VueRouter({
   routes: [
     {
@@ -21,8 +23,8 @@ export default new VueRouter({
     },
     {
       path: '/admin',
-      name: 'admin',
-      component: Admin
+      component: Admin,
+      children: adminRoutes
     }
   ]
 })

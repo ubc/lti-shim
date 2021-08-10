@@ -1,24 +1,22 @@
 <template>
   <div>
-    <navbar :app-name='appName' />
-    <div class='flex justify-center container mx-auto'>
-      <Notification />
-      <router-view></router-view>
-    </div>
+    <Notification />
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import Navbar from '../components/Navbar'
 import Notification from '../components/util/Notification'
 
 export default {
   name: "Root",
   components: {
-    Navbar,
     Notification
   },
-  props: ['appName']
+  props: ['appName'],
+  mounted() {
+    this.$store.commit('setAppName', this.appName)
+  }
 }
 </script>
 
