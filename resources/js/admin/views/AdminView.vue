@@ -3,7 +3,7 @@
     '>
     <AdminNav class='flex-none' />
     <div class='p-2'>
-      <router-view></router-view>
+      <router-view :key="$route.path"></router-view>
       <!--
         TODO: make PlatformClient accessible again
       <PlatformClientAdmin class='section'></PlatformClientAdmin>

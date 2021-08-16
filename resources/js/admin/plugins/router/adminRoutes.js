@@ -12,7 +12,19 @@ const adminRoutes = [
   {
     path: 'platform',
     name: 'adminPlatform',
-    component: PlatformView
+    component: PlatformView,
+    children: [
+      {
+        path: 'add',
+        name: 'addPlatform',
+        component: PlatformView
+      },
+      {
+        path: ':platformId/edit',
+        name: 'editPlatform',
+        component: PlatformView
+      }
+    ]
   },
   {
     path: 'tool',

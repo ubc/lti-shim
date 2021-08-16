@@ -11,10 +11,13 @@
         LTI platforms are usually Learning Management Systems (e.g.: Canvas),
         platforms send out LTI launches and information to tools.
         </p>
-        <button type='button' class='btnPrimary mb-2' @click='add'>
+
+        <router-link class='btnPrimary mb-2' tag='button'
+                     :to="{name: 'addPlatform'}">
           <AddIcon /> Add Platform
-        </button>
-        <PlatformList @edit='edit' />
+        </router-link>
+
+        <PlatformList />
       </div>
     </div>
 
@@ -39,15 +42,18 @@ export default {
     showForm: false
   }},
   methods: {
-    add() {
+  },
+  mounted() {
+    if (this.$route.name == 'editPlatform') {
+      this.editPlatformId = this.$route.params.platformId
+      this.showForm = true
+    }
+    else if (this.$route.name == 'addPlatform') {
       this.editPlatformId = 0
       this.showForm = true
-    },
-    edit(platformId) {
-      this.editPlatformId = platformId
-      this.showForm = true
-    },
+    }
   }
+  
 }
 </script>
 

@@ -17,10 +17,10 @@
             <td>{{ platform.name }}</td>
             <td class='hidden md:table-cell'>{{ platform.iss }}</td>
             <td class='flex justify-between gap-2'>
-              <button type='button' class='btnSecondary'
-                      @click="$emit('edit', platform.id)">
+              <router-link class='btnSecondary' tag='button'
+                :to="{name: 'editPlatform', params: {platformId: platform.id}}">
                 <EditIcon /> Edit
-              </button>
+              </router-link>
               <AreYouSureButton
                 :css="'btnDanger'"
                 :warning="'Delete platform: ' + platform.name + '?'"
