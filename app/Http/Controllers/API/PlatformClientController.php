@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
+use App\Http\Controllers\Controller;
+use App\Models\Platform;
 use App\Models\PlatformClient;
+use App\Models\Tool;
 
 class PlatformClientController extends Controller
 {
@@ -14,21 +17,21 @@ class PlatformClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Platform $platform)
     {
-        return PlatformClient::all();
+        return $platform->clients()->get();
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Platform $platform)
     {
         $newPlatformClient = $request->validate([
-            'platform_id' => ['required', 'integer', 'exists:platforms,id'],
+            'platform_id' => ['required', 'integer', 'exists:platforms,id',
+                'in:' . $platform->id],
             'tool_id' => ['required', 'integer', 'exists:tools,id'],
             'client_id' => ['required', 'string', 'max:255']
         ]);
@@ -39,30 +42,30 @@ class PlatformClientController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(PlatformClient $platformClient)
+    public function show(Platform $platform, PlatformClient $client)
     {
-        return $platformClient;
+        return $client;
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, PlatformClient $platformClient)
-    {
+    public function update(
+        Request $request,
+        Platform $platform,
+        PlatformClient $client
+    ) {
         $info = $request->validate([
             'platform_id' => ['required', 'integer', 'exists:platforms,id'],
             'tool_id' => ['required', 'integer', 'exists:tools,id'],
             'client_id' => ['required', 'string', 'max:255']
         ]);
-        $platformClient->update($info);
-        return $platformClient;
+        $client->update($info);
+        return $client;
     }
 
     /**
@@ -71,8 +74,8 @@ class PlatformClientController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(PlatformClient $platformClient)
+    public function destroy(Platform $platform, PlatformClient $client)
     {
-        return $platformClient->delete();
+        return $client->delete();
     }
 }

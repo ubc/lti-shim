@@ -18,10 +18,9 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::namespace('API')->group(function() {
         Route::apiResource('user', 'UserController');
 
-        Route::apiResource('platform-client', 'PlatformClientController');
-
         Route::apiResource('platform', 'PlatformController');
         Route::apiResource('platform.keys', 'PlatformKeyController');
+        Route::apiResource('platform.client', 'PlatformClientController');
 
         Route::apiResource('tool', 'ToolController');
         Route::apiResource('tool.keys', 'ToolKeyController');

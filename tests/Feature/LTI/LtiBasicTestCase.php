@@ -56,6 +56,7 @@ abstract class LtiBasicTestCase extends TestCase
     protected LtiRealUser $realUser;
     protected LtiSession $ltiSession;
     protected Platform $platform; // lti launch's originating lti platform
+    protected Platform $platform2; // lti launch's originating lti platform
     protected Platform $shimPlatform; // shim's own platform entry
     protected PlatformClient $platformClient; // lti platform/tool pair
     protected Tool $tool; // lti launch's target/destination lti tool
@@ -75,8 +76,11 @@ abstract class LtiBasicTestCase extends TestCase
         $this->deployment = $this->ltiSession->deployment;
         $this->realUser = $this->ltiSession->lti_real_user;
         $this->platformClient = PlatformClient::first();
+        $this->platformClient2 = PlatformClient::all()[1];
         $this->platform = $this->platformClient->platform;
+        $this->platform2 = $this->platformClient2->platform;
         $this->tool = $this->platformClient->tool;
+        $this->tool2 = $this->platformClient2->tool;
         $this->shimPlatform = Platform::getOwnPlatform();
         $this->shimTool = Tool::getOwnTool();
     }
