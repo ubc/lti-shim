@@ -36,7 +36,7 @@ abstract class AbstractPaginationFilter extends AbstractFilter
     {
         // there could be multiple links in the header, so we want to parse them
         // out into an array of individual links
-        $links = Psr7\parse_header($linkHeader);
+        $links = Psr7\Header::parse($linkHeader);
         $ret = [];
         foreach ($links as $key => $link) {
             // the url is bracketed by <>, remove them

@@ -13,7 +13,7 @@
     "facade/ignition": "^2.3.6",
     "fakerphp/faker": "^1.4",
     "fideloper/proxy": "^4.0",
-    "guzzlehttp/guzzle": "^7.0.1",
+    "guzzlehttp/guzzle": "^7.3.0",
     "laravel/fortify": "^1.7",
     "laravel/framework": "^8.0",
     "laravel/sanctum": "^2.8",
