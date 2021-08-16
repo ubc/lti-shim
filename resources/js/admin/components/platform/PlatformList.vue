@@ -1,35 +1,43 @@
 <template>
-	<div>
-    <table class="plainTable">
+  <div class=''>
+    <table class='plainTable'>
       <thead>
         <tr>
-          <th scope="col">ID</th>
+          <th scope="col" class='hidden md:table-cell'>ID</th>
           <th scope="col">Name</th>
-          <th scope="col">ISS</th>
+          <th scope="col" class='hidden md:table-cell'>ISS</th>
           <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for='platform in platforms'>
-          <th scope="row">{{ platform.id }}</th>
-          <td>{{ platform.name }}</td>
-          <td>{{ platform.iss }}</td>
-          <td class='flex justify-between gap-2'>
-            <button type='button' class='btnSecondary'
-              @click="$emit('edit', platform.id)">
-              <EditIcon /> Edit
-            </button>
-            <AreYouSureButton 
-              :css="'btnDanger'"
-              :warning="'Delete platform: ' + platform.name + '?'"
-              @yes='deletePlatform(platform.id)'>
-                <DeleteIcon /> Delete
-            </AreYouSureButton>
-          </td>
-        </tr>
+        <template v-for='platform in platforms'>
+          <tr class='border-b-0'>
+            <th scope="row" rowspan='2' class='hidden md:table-cell'>
+              {{ platform.id }}</th>
+            <td>{{ platform.name }}</td>
+            <td class='hidden md:table-cell'>{{ platform.iss }}</td>
+            <td class='flex justify-between gap-2'>
+              <button type='button' class='btnSecondary'
+                      @click="$emit('edit', platform.id)">
+                <EditIcon /> Edit
+              </button>
+              <AreYouSureButton
+                :css="'btnDanger'"
+                :warning="'Delete platform: ' + platform.name + '?'"
+                @yes='deletePlatform(platform.id)'>
+              <DeleteIcon /> Delete
+              </AreYouSureButton>
+            </td>
+          </tr>
+          <tr>
+            <td colspan='3' class='pt-0'>
+              <PlatformClientAdmin :platformId='platform.id'/>
+            </td>
+          </tr>
+        </template>
       </tbody>
     </table>
-	</div>
+  </div>
 </template>
 
 <script>
@@ -38,12 +46,16 @@ import EditIcon from 'icons/Pencil'
 
 import AreYouSureButton from '../util/AreYouSureButton'
 
+import PlatformClientAdmin from
+  '@admin/components/platformClient/PlatformClientAdmin'
+
 export default {
-	name: "PlatformList",
+  name: "PlatformList",
   components: {
     AreYouSureButton,
     DeleteIcon,
     EditIcon,
+    PlatformClientAdmin,
   },
   computed: {
     platforms() { return this.$store.state.platform.items }

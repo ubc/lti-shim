@@ -6,7 +6,6 @@ table.plainTable {
     }
     tbody tr {
         @apply border-b border-gray-400;
-        &:hover { @apply bg-gray-200; }
     }
     th, td {
         @apply px-2 py-4;

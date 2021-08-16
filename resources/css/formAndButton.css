@@ -11,7 +11,13 @@
 }
 
 button {
-    @apply rounded p-2;
+    /* defaults to a small button */
+    @apply rounded text-sm p-1;
+
+    /* on larger screens, we can use a bigger button */
+    @media screen(md) {
+        @apply text-base p-2;
+    }
 
     &[type='submit'], &.btnPrimary {
         @apply border border-ubcblue-500 text-ubcblue-500;
@@ -28,8 +34,9 @@ button {
         &:hover:enabled { @apply bg-red-600 text-white; }
     }
 
+    /* for when we want to use a small button on larger screens */
     &.btnSm {
-        @apply text-sm py-1 px-2;
+        @apply text-sm p-1;
     }
 
     &:disabled {

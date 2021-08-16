@@ -28,6 +28,8 @@ export default function(itemType, apiUrl, extensions) {
     mutations: {
       addItems(state, items) {
         for (const item of items) {
+          // since we're adding new properties to an existing object, we need
+          // to explicitly tell Vue to make the property reactive with Vue.set
           Vue.set(state.items, item.id, item)
         }
       },
