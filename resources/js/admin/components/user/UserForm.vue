@@ -23,7 +23,7 @@
           <SaveIcon v-else />
           Save
         </button>
-        <button type='button' class='btnSecondary' @click="$emit('done')"
+        <button type='button' class='btnSecondary' @click="$router.back()"
                 :disabled='isWaiting'>
           <CancelIcon />
           Cancel

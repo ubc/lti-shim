@@ -15,10 +15,10 @@
           <td>{{ user.name }}</td>
           <td>{{ user.email }}</td>
           <td class='flex justify-between gap-2'>
-            <button type='button' class='btnSecondary'
-              @click="$emit('edit', user.id)">
+            <router-link class='btnSecondary' tag='button'
+                         :to="{name: 'editUser', params: {userId: user.id}}">
               <EditIcon /> Edit
-            </button>
+            </router-link>
             <AreYouSureButton v-if='Object.keys(users).length > 1'
               :css="'btnDanger'"
               :warning="'Delete user ' + user.name + '?'"

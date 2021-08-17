@@ -3,16 +3,16 @@
     <h2>Users</h2>
 
     <UserForm v-if='showUserForm' :userId='editUser'
-      @done='showUserForm = false'></UserForm>
+              @done='$router.push({name: "adminUser"})'></UserForm>
     <div v-else>
       <p>
       Admin users only. LTI users are not managed here.
       </p>
-      <button type='button' class='btnPrimary mb-4'
-        @click='add'>
+      <router-link class='btnPrimary mb-2' tag='button'
+                   :to="{name: 'addUser'}">
         <AddIcon /> Add User
-      </button>
-      <UserList @edit='edit'></UserList>
+      </router-link>
+      <UserList></UserList>
     </div>
 
   </div>
@@ -38,16 +38,16 @@ export default {
     editUser: 0
   }},
   methods: {
-    add() {
-      this.editUser = 0
-      this.showUserForm = true
-    },
-    edit(userId) {
-      this.editUser = userId
-      this.showUserForm = true
-    }
   },
   mounted() {
+    if (this.$route.name == 'editUser') {
+      this.editUser = this.$route.params.userId
+      this.showUserForm = true
+    }
+    else if (this.$route.name == 'addUser') {
+      this.editUser = 0
+      this.showUserForm = true
+    }
   }
 };
 </script>

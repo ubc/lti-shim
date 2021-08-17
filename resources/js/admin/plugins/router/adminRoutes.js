@@ -29,12 +29,36 @@ const adminRoutes = [
   {
     path: 'tool',
     name: 'adminTool',
-    component: ToolView
+    component: ToolView,
+    children: [
+      {
+        path: 'add',
+        name: 'addTool',
+        component: ToolView
+      },
+      {
+        path: ':toolId/edit',
+        name: 'editTool',
+        component: ToolView
+      }
+    ]
   },
   {
     path: 'user',
     name: 'adminUser',
-    component: UserView
+    component: UserView,
+    children: [
+      {
+        path: 'add',
+        name: 'addUser',
+        component: UserView
+      },
+      {
+        path: ':userId/edit',
+        name: 'editUser',
+        component: UserView
+      }
+    ]
   },
 ]
 

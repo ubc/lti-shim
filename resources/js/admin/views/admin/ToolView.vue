@@ -3,16 +3,18 @@
     <h2>Tools</h2>
 
     <div>
-      <ToolForm v-if='showForm' @done='showForm=false' :toolId='toolId' />
+      <ToolForm v-if='showForm' @done='$router.push({name: "adminTool"})'
+        :toolId='toolId' />
       <div v-else>
         <p>
         LTI tools are usually more specialized learning apps (e.g.: Blogs,
         Webwork, iPeer) that receive LTI launches and information.
         </p>
-        <button type='button' class='btnPrimary mb-2' @click='add'>
+        <router-link class='btnPrimary mb-2' tag='button'
+                     :to="{name: 'addTool'}">
           <AddIcon /> Add Tool
-        </button>
-        <ToolList @edit='edit' />
+        </router-link>
+        <ToolList />
       </div>
     </div>
 
@@ -37,12 +39,14 @@ export default {
     toolId: 0
   }},
   methods: {
-    add() {
-      this.toolId = 0
+  },
+  mounted() {
+    if (this.$route.name == 'editTool') {
+      this.toolId = this.$route.params.toolId
       this.showForm = true
-    },
-    edit(toolId) {
-      this.toolId = toolId
+    }
+    else if (this.$route.name == 'addTool') {
+      this.toolId = 0
       this.showForm = true
     }
   }

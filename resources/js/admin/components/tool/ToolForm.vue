@@ -49,7 +49,7 @@
           Save
         </button>
         <button type='button' class='btnSecondary'
-          @click="$emit('done')" :disabled='isWaiting'>
+          @click="$router.back()" :disabled='isWaiting'>
           <CancelIcon />
           Cancel
         </button>

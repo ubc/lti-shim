@@ -5,7 +5,7 @@
 
     <div>
       <PlatformForm v-if='showForm' :platformId='editPlatformId'
-        @done='showForm = false'/>
+        @done='$router.push({name: "adminPlatform"})'/>
       <div v-else>
         <p>
         LTI platforms are usually Learning Management Systems (e.g.: Canvas),

@@ -15,10 +15,10 @@
           <td>{{ tool.name }}</td>
           <td>{{ tool.client_id }}</td>
           <td class='flex justify-between gap-2'>
-            <button type='button' class='btnSecondary'
-              @click="$emit('edit', tool.id)">
+            <router-link class='btnSecondary' tag='button'
+                         :to="{name: 'editTool', params: {toolId: tool.id}}">
               <EditIcon /> Edit
-            </button>
+            </router-link>
             <AreYouSureButton
               :css="'btnDanger'"
               :warning="'Delete tool ' + tool.name + '?'"
