@@ -17,15 +17,27 @@
     <router-link class='navItem' :to="{name: 'adminUser'}" v-if='isLoggedIn'>
       Users
     </router-link>
-    <a class='navItem' href='#' @click='logout' v-if='isLoggedIn'>
-      Logout
+    <router-link class='navItem mx-2 md:mx-0 md:mt-2' :to="{name: 'Account'}" v-if='isLoggedIn'>
+      <AccountIcon class='text-xl md:text-lg' title='Edit Account Settings' />
+      <span class='hidden md:inline'>Account</span>
+    </router-link>
+    <a class='navItem' href='#'  @click='logout'>
+      <LogoutIcon class='text-xl md:text-lg'  title='Logout' />
+      <span class='hidden md:inline'>Logout</span>
     </a>
   </div>
 </template>
 
 <script>
+import AccountIcon from 'icons/AccountCircleOutline'
+import LogoutIcon from 'icons/Logout'
+
 export default {
   name: "AdminNav",
+  components: {
+    AccountIcon,
+    LogoutIcon,
+  },
   computed: {
     appName() {
       return this.$store.state.appName
@@ -34,6 +46,8 @@ export default {
       return this.$store.state.auth.isLoggedIn
     },
   },
+  data() { return {
+  }},
   methods: {
     logout() {
       this.$store.dispatch('auth/logout').then(() => {

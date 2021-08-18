@@ -9,7 +9,19 @@ const apiUrl = '/api/user'
 const state = {}
 const getters = {}
 const mutations = {}
-const actions = {}
+const actions = {
+  getSelf(context) {
+    return axios.get(apiUrl + '/self')
+      .then(response => {
+        context.commit('addItem', response.data)
+        return response
+      })
+      .catch(error => {
+        return helper.processError(error,
+              {title: 'Failed to get currently authenticated user'})
+      })
+  }
+}
 
 // gather together the customization to pass to the base module
 const extensions = {

@@ -61,7 +61,7 @@ class UserController extends Controller
         $user = User::find($id);
         $userInfo = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 
+            'email' => ['required', 'string', 'email', 'max:255',
                 Rule::unique('users')->ignore($user)],
             'password' => ['string', 'min:8'],
         ]);
@@ -84,5 +84,13 @@ class UserController extends Controller
     public function destroy($id)
     {
         return User::destroy($id);
+    }
+
+    /**
+     * Returns the currently authenticated user
+     */
+    public function self(Request $request)
+    {
+        return $request->user();
     }
 }

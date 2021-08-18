@@ -1,3 +1,4 @@
+const AccountView = () => import('@admin/views/admin/AccountView')
 const AdminHomeView = () => import('@admin/views/admin/AdminHomeView')
 const PlatformView = () => import('@admin/views/admin/PlatformView')
 const ToolView = () => import('@admin/views/admin/ToolView')
@@ -8,6 +9,11 @@ const adminRoutes = [
     path: '',
     name: 'admin',
     component: AdminHomeView
+  },
+  {
+    path: 'account',
+    name: 'account',
+    component: AccountView
   },
   {
     path: 'platform',

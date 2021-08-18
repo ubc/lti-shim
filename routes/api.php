@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 Route::middleware('auth:sanctum')->group(function() {
     // ADMIN API
     Route::namespace('API')->group(function() {
+        Route::get('/user/self', 'UserController@self');
         Route::apiResource('user', 'UserController');
 
         Route::apiResource('platform', 'PlatformController');
