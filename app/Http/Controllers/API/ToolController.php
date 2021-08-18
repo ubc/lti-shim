@@ -37,6 +37,7 @@ class ToolController extends Controller
             'keys' => ['array'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
+            'enable_midway_lookup' => ['required', 'boolean'],
         ]);
         $tool = Tool::create($newTool);
         $tool->keys()->createMany($newTool['keys']);
@@ -74,6 +75,7 @@ class ToolController extends Controller
             'keys' => ['array'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
+            'enable_midway_lookup' => ['required', 'boolean'],
         ]);
         $tool->updateWithRelations($info);
         return $tool;

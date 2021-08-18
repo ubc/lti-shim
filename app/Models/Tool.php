@@ -23,7 +23,7 @@ class Tool extends AbstractLtiEntity
     public const TARGET_TOOL_PARAM = 'toolId';
 
     protected $fillable = ['name', 'client_id', 'oidc_login_url',
-        'auth_resp_url', 'target_link_uri', 'jwks_url'];
+        'auth_resp_url', 'target_link_uri', 'jwks_url', 'enable_midway_lookup'];
     protected $with = ['keys']; // eager load keys
     // make sure shim_target_link_uri ends up in the JSON representation
     protected $appends = ['shim_login_url', 'shim_target_link_uri'];

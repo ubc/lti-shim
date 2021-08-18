@@ -37,6 +37,18 @@
         Location in the tool where the user should end up after an LTI launch.
       </small>
 
+      <label for="enableMidwayLookup">
+        <input type="checkbox" id="enableMidwayLookup" class='mr-2'
+               aria-describedby='enableMidwayLookupHelp'
+               v-model='tool.enable_midway_lookup'>
+        Enable Midway Lookup
+      </label>
+      <small id="enableMidwayLookupHelp">
+        If enabled, instructors will be presented with a student lookup page
+        before continuing to the tool. If disabled, the lookup page will still
+        be accessible via a specially modified launch.
+      </small>
+
       <JwkForm @deleteJwk='deleteJwk'
         :url='tool.jwks_url' @url='tool.jwks_url = $event'
         :keys='tool.keys'  @keys='tool.keys = $event' />
@@ -92,6 +104,7 @@ export default {
       target_link_uri: '',
       jwks_url: '',
       keys: [],
+      enable_midway_lookup: false
     },
     isWaiting: false
   }},
