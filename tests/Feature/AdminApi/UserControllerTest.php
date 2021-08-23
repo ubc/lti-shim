@@ -18,7 +18,7 @@ class UserControllerTest extends LtiBasicTestCase
 {
     private User $unauthedUser;
     private User $authedUser;
-    
+
     protected function setUp(): void
     {
         parent::setUp();

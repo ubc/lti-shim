@@ -94,14 +94,17 @@ class LtiFakeUser extends Model
             $newUsersInfo = [];
             $faker = self::faker();
             foreach ($newUserIds as $newUserId) {
+                $fakeSub = Uuid::uuid4()->toString();
+                $fakeName = FakeName::name();
+                $fakeEmail = self::generateFakeEmail($fakeSub, $fakeName);
                 $userInfo = [
                     'lti_real_user_id' => $newUserId,
                     'course_context_id' => $courseContextId,
                     'tool_id' => $toolId,
                     'login_hint' => Uuid::uuid4()->toString(),
-                    'sub' => Uuid::uuid4()->toString(),
-                    'name' => FakeName::name(),
-                    'email' => $faker->safeEmail,
+                    'sub' => $fakeSub,
+                    'name' => $fakeName,
+                    'email' => $fakeEmail,
                     'student_number' => $faker->ean13
                 ];
                 $newUsersInfo[] = $userInfo;
@@ -136,6 +139,19 @@ class LtiFakeUser extends Model
                      ->where('course_context_id', $courseContextId)
                      ->where('tool_id', $toolId)
                      ->first();
+    }
+
+    /**
+     * Generate a name based UUID for our email address. This is a determinstic
+     * UUID based on the fake user's sub & name. In case we need to recreate
+     * the fake email for some reason.
+     */
+    public static function generateFakeEmail(
+        string $sub,
+        string $name
+    ): string {
+        return Uuid::uuid5($sub, $name)->toString() . '@' .
+            config('lti.fake_email_domain');
     }
 
     private static function faker()
