@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h5 class='text-sm mb-1'>Allowed Tools</h5>
+    <h5 class='text-sm mb-1'>Allowed Tools  <Spinner v-if='isWaiting' /></h5>
 
     <form @submit.prevent='save' v-show='!showList' class='plainForm mb-8
       border border-ubcblue-100 p-2 md:p-4'>
@@ -42,34 +42,35 @@
       <AddIcon /> Add Tool
     </button>
 
-      <table class="allowedToolsTable" v-show='showList'>
-        <thead>
-          <tr>
-            <th scope="col">Tool</th>
-            <th scope="col">Client ID</th>
-            <th scope="col"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for='platformClient in platformClients'>
-            <td>{{ tools[platformClient.tool_id].name }}</td>
-            <td>{{ platformClient.client_id }}</td>
-            <td class='flex justify-between gap-2'>
-              <button type='button' class='btnSm btnSecondary'
-                @click="edit(platformClient.id)">
-                <EditIcon /> Edit
-              </button>
-              <AreYouSureButton
-                :css="'btnDanger btnSm'"
-                :warning="'Delete allowed tool ' +
-                  tools[platformClient.tool_id].name + '?'"
-                @yes='deletePlatformClient(platformClient.id)'>
-                  <DeleteIcon /> Delete
-              </AreYouSureButton>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <table class="allowedToolsTable" v-show='showList'>
+      <thead>
+        <tr>
+          <th scope="col">Tool</th>
+          <th scope="col">Client ID</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for='platformClient in platformClients'
+          v-if='platformClient.tool_id in tools'>
+          <td>{{ tools[platformClient.tool_id].name }}</td>
+          <td>{{ platformClient.client_id }}</td>
+          <td class='flex justify-between gap-2'>
+            <button type='button' class='btnSm btnSecondary'
+              @click="edit(platformClient.id)">
+              <EditIcon /> Edit
+            </button>
+            <AreYouSureButton
+              :css="'btnDanger btnSm'"
+              :warning="'Delete allowed tool ' +
+                tools[platformClient.tool_id].name + '?'"
+              @yes='deletePlatformClient(platformClient.id)'>
+                <DeleteIcon /> Delete
+            </AreYouSureButton>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
   </div>
 </template>
@@ -156,8 +157,12 @@ export default {
     }
   },
   mounted() {
-    this.$store.dispatch('tool/getAll')
-    this.$store.dispatch('platformClient/getAll', this.storeParam)
+    this.isWaiting = true
+    this.$store.dispatch('platformClient/getAll', this.storeParam).then(() => {
+      this.$store.dispatch('tool/getAll', this.storeParam).then(() => {
+        this.isWaiting = false
+      })
+    })
   }
 }
 </script>

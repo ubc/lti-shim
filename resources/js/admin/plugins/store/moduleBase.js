@@ -7,11 +7,18 @@ import helper from './helper'
 // extensions - an object containing state/getters/mutations/actions to be added
 //              to the module, this is how you can extend the base module
 export default function(itemType, apiUrl, extensions) {
+  const ACTION_GETALL = 'actionGetAll'
+  const ACTION_GET = 'actionGet'
+
   return {
     namespaced: true,
 
     state: {
       items: {},
+      // for debouncing requests, we store ongoing promises in waitingFor
+      // and delete them once the promise completes. If we get a duplicate
+      // action, we can just return the already ongoing promise.
+      waitingFor: {},
       ...extensions.state
     },
 
@@ -39,33 +46,56 @@ export default function(itemType, apiUrl, extensions) {
       deleteItem(state, itemId) {
         Vue.delete(state.items, itemId)
       },
+      addWaitingFor(state, [actionName, actionPromise]) {
+        Vue.set(state.waitingFor, actionName, actionPromise)
+      },
+      deleteWaitingFor(state, actionName) {
+        Vue.delete(state.waitingFor, actionName)
+      },
       ...extensions.mutations
     },
 
     actions: {
       // get a list of items
       getAll(context) {
-        return axios.get(apiUrl)
+        if (ACTION_GETALL in context.state.waitingFor)
+          return context.state.waitingFor[ACTION_GETALL]
+
+        let actionPromise = axios.get(apiUrl)
           .then(response => {
+            context.commit('deleteWaitingFor', ACTION_GETALL)
             context.commit('addItems', response.data)
             return response
           })
           .catch(error => {
+            context.commit('deleteWaitingFor', ACTION_GETALL)
             return helper.processError(error,
               {title: 'Failed to get ' + itemType})
           })
+
+        context.commit('addWaitingFor', [ACTION_GETALL, actionPromise])
+        return actionPromise
       },
       // get a single item
       get(context, itemId) {
-        return axios.get(apiUrl + '/' + itemId)
+        let actionName = ACTION_GET + itemId
+        if (actionName in context.state.waitingFor)
+          return context.state.waitingFor[actionName]
+
+        let actionPromise = axios.get(apiUrl + '/' + itemId)
           .then(response => {
+            context.commit('deleteWaitingFor', actionName)
             context.commit('addItem', response.data)
             return response
           })
           .catch(error => {
+            context.commit('deleteWaitingFor', actionName)
             return helper.processError(error,
               {title: 'Failed to get ' + itemType + ' ' + itemId})
           })
+
+        context.commit('addWaitingFor', [actionName, actionPromise])
+        return actionPromise
       },
       getCopy(context, itemId) {
         if (context.getters['hasItem'](itemId)) {
