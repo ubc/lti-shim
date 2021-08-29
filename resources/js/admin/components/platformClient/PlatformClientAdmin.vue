@@ -172,11 +172,11 @@ export default {
   @apply text-sm;
   thead {
     tr { @apply border-gray-200 bg-gray-100; }
-    th { @apply py-1; }
+    th { @apply p-1; }
   }
   tbody {
     tr { @apply border-gray-200; }
-    td { @apply py-2; }
+    td { @apply p-2; }
 }
 }
 </style>

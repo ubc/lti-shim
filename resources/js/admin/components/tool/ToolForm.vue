@@ -19,14 +19,12 @@
       <input type="text" id="oidcLoginUrl" required
         v-model='tool.oidc_login_url' aria-describedby='oidcLoginUrlHelp'>
       <small id="oidcLoginUrlHelp">
-        Tool endpoint to initiate the first step in an LTI launch.
       </small>
 
-      <label for="authRespUrl">Authentication Response URL</label>
+      <label for="authRespUrl">Redirect URL</label>
       <input type="text" id="authRespUrl" required
         v-model='tool.auth_resp_url' aria-describedby='authRespUrlHelp'>
       <small id="authRespUrlHelp">
-        Tool endpoint for the last step in an LTI launch
       </small>
 
       <label for="targetLinkUrl">Target Link URL</label>
@@ -34,7 +32,8 @@
              aria-describedby='targetLinkUrlHelp'
              v-model='tool.target_link_uri'>
       <small id="targetLinkUrlHelp">
-        Location in the tool where the user should end up after an LTI launch.
+        Where the user should end up after an LTI launch. If not given, it's
+        probably ok to just put the tool's URL.
       </small>
 
       <label for="enableMidwayLookup">
@@ -61,7 +60,7 @@
           Save
         </button>
         <button type='button' class='btnSecondary'
-          @click="$router.back()" :disabled='isWaiting'>
+          @click="$emit('done')" :disabled='isWaiting'>
           <CancelIcon />
           Cancel
         </button>

@@ -66,7 +66,11 @@ export default {
     }
   },
   mounted() {
-    this.$store.dispatch('platform/getAll')
+    // this 'if' is more to remind myself that lodash exists and provide
+    // convenient helpers for dealing with objects as maps/dicts
+    if (_.size(this.platforms) == 0) {
+      this.$store.dispatch('platform/getAll')
+    }
   }
 
 }

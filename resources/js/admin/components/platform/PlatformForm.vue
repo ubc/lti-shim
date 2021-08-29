@@ -23,7 +23,8 @@
              placeholder='https://ubc.test.instructure.com/api/lti/authorize'
              />
       <small id="authReqUrlHelp">
-        Platform endpoint for step 2 of the LTI Launch.
+        Might be referred to as the auth url or the authentication endpoint or
+        similar terms.
       </small>
 
       <label for='access_token_url'>Access Token URL</label>
@@ -49,7 +50,7 @@
           Save
         </button>
         <button type='button' class='btnSecondary'
-          @click="$router.back()" :disabled='isWaiting'>
+          @click="$emit('done')" :disabled='isWaiting'>
           <CancelIcon />
           Cancel
         </button>
