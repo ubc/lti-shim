@@ -14,12 +14,21 @@ const debug = process.env.NODE_ENV !== 'production'
 
 export default new Vuex.Store({
   state: {
-    appName: ''
+    appName: '',
+    // used by ShimConfigInfo, don't really want to add a new module for them
+    selectedPlatformId: 0,
+    selectedToolId: 0,
   },
   mutations: {
     setAppName(state, appName) {
       state.appName = appName
-    }
+    },
+    setSelectedPlatformId(state, platformId) {
+      state.selectedPlatformId = platformId
+    },
+    setSelectedToolId(state, toolId) {
+      state.selectedToolId = toolId
+    },
   },
   modules: {
     auth,

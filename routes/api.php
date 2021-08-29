@@ -26,7 +26,8 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::apiResource('tool', 'ToolController');
         Route::apiResource('tool.keys', 'ToolKeyController');
 
-        Route::get('help/config', 'HelpController@config');
+        Route::get('help/config/platform/{platform}/tool/{tool}',
+                   'HelpController@config');
     });
 
     // MIDWAY API

@@ -50,7 +50,7 @@ Route::namespace('LTI')->name('lti.')->group(function() {
 
     });
     // LTI Security Spec
-    Route::namespace('Security')->group(function() {
+    Route::namespace('Security')->name('security.')->group(function() {
         Route::post(
             '/security/platform/token',
             'AccessTokenController@platformToken'
