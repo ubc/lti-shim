@@ -19,7 +19,6 @@ class LtiFakeUser extends Model
 
     protected $fillable = [
         'email',
-        'login_hint',
         'lti_real_user_id',
         'name',
         'tool_id'
@@ -101,7 +100,6 @@ class LtiFakeUser extends Model
                     'lti_real_user_id' => $newUserId,
                     'course_context_id' => $courseContextId,
                     'tool_id' => $toolId,
-                    'login_hint' => Uuid::uuid4()->toString(),
                     'sub' => $fakeSub,
                     'name' => $fakeName,
                     'email' => $fakeEmail,

@@ -13,7 +13,6 @@ class LtiRealUserFactory extends Factory
     public function definition()
     {
         return [
-            'login_hint' => $this->faker->uuid,
             'name' =>       $this->faker->name,
             'email' =>      $this->faker->email,
             'sub' =>        $this->faker->sha1

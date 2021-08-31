@@ -18,9 +18,6 @@ class UserFilter extends AbstractFilter implements FilterInterface
         $this->ltiLog->debug('Trying', $session);
         $fakeUser = LtiFakeUser::getByRealUser($session->course_context_id,
             $session->tool_id, $session->lti_real_user);
-        if (isset($params[Param::LOGIN_HINT])) {
-            $params[Param::LOGIN_HINT] = $fakeUser->login_hint;
-        }
         if (isset($params[Param::SUB])) {
             $params[Param::SUB] = $fakeUser->sub;
         }
