@@ -30,7 +30,7 @@ class BasicTestDatabaseSeeder extends Seeder
             'iss' => config('lti.iss'),
             'auth_req_url' => route('lti.launch.auth'),
             'jwks_url' => route('lti.jwks.platform'),
-            'access_token_url' => route('lti.token')
+            'access_token_url' => route('lti.security.token')
         ]);
         // shim's tool side config
         $shimTool = Tool::factory()->create([
@@ -52,6 +52,11 @@ class BasicTestDatabaseSeeder extends Seeder
         $platformClient1 = PlatformClient::factory()->create([
             'platform_id' => $platform1->id,
             'tool_id' => $tool1->id
+        ]);
+        // configure platform2 to be connectable to tool2
+        $platformClient2 = PlatformClient::factory()->create([
+            'platform_id' => $platform2->id,
+            'tool_id' => $tool2->id
         ]);
         // create a deployment in platform1
         $deployment1 = Deployment::factory()->create([

@@ -144,7 +144,7 @@ class PlatformClientControllerTest extends LtiBasicTestCase
         $resp = $this->putJson($url, [
             'platform_id' => $this->platformClient->platform_id,
             'tool_id' => $this->platformClient->tool_id,
-            'client_id' => $expectedClientId 
+            'client_id' => $expectedClientId
         ]);
         $resp->assertStatus(Response::HTTP_OK);
         $resp->assertJson(fn (AssertableJson $json) =>

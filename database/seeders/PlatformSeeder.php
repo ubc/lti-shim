@@ -20,7 +20,7 @@ class PlatformSeeder extends Seeder
             'iss' => config('lti.iss'),
             'auth_req_url' => route('lti.launch.auth'),
             'jwks_url' => route('lti.jwks.platform'),
-            'access_token_url' => route('lti.token')
+            'access_token_url' => route('lti.security.token')
         ]);
         DB::table('platform_keys')->insert([
             'kid' => 'ExampleKey',
