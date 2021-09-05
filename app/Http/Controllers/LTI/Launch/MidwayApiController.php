@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\LTI\Launch;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
+use App\Http\Controllers\Controller;
 use App\Models\CourseContext;
 use App\Models\LtiFakeUser;
 use App\Models\Tool;
@@ -15,7 +16,8 @@ use App\Models\Tool;
 class MidwayApiController extends Controller
 {
     /**
-     * Returns configuration information for the shim.
+     * Get a mapping of LtiFakeUser to LtiRealUser. Used by instructors to
+     * lookup anonymized identities.
      *
      * @return \Illuminate\Http\Response
      */
@@ -29,7 +31,8 @@ class MidwayApiController extends Controller
         $user = $request->user();
         if (!$user->tokenCan(
             $user->getLookupAbility($courseContext->id, $tool->id))) {
-            return response()->json(['error' => 'Not authorized.'], 403);
+            return response()->json(['error' => 'Not authorized.'],
+                                    Response::HTTP_FORBIDDEN);
         }
 
         $queryParams = $request->validate([
@@ -75,7 +78,7 @@ class MidwayApiController extends Controller
                     'lti_real_user.student_number AS lti_real_user.student_number'
                 );
         }
-        if ($queryParams['search']) {
+        if (isset($queryParams['search'])) {
             // escape special characters used in sql LIKE patterns
             $searchTerm = Str::of($queryParams['search'])
                             ->replace('%', '\\%')
@@ -119,5 +122,32 @@ class MidwayApiController extends Controller
         }
 
         return $users;
+    }
+
+    /**
+     * Newly created FakeLtiUsers need to go through first time setup, where
+     * they are given the option of opting out of anonymization.
+     */
+    public function storeAnonymizationOption(
+        Request $request,
+        LtiFakeUser $fakeUser
+    ) {
+        // make sure the token we got is allowed to access the given course
+        // context and tool
+        $user = $request->user();
+        if (!$user->tokenCan(
+                $user->getSelectAnonymizationAbility($fakeUser->id))
+        ) {
+            return response()->json(['error' => 'Not authorized.'],
+                                    Response::HTTP_FORBIDDEN);
+        }
+
+        $params = $request->validate([
+            'is_anonymized' => 'required|boolean'
+        ]);
+
+        $fakeUser->enable_first_time_setup = false;
+        $fakeUser->is_anonymized = $params['is_anonymized'];
+        $fakeUser->save();
     }
 }

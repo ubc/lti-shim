@@ -44,10 +44,6 @@ class User extends Authenticatable
 
     private const MIDWAY_API_USER = 'midway_api_user@example.com';
 
-    public function AuthRouteAPI(Request $request){
-        return $request->user();
-    }
-
     /**
      * Automatically hash passwords when you set them.
      */
@@ -63,6 +59,15 @@ class User extends Authenticatable
     public function getLookupAbility(int $courseContextId, int $toolId): string
     {
         return 'lookup:' . $courseContextId . ':' . $toolId;
+    }
+
+    /**
+     * A Sanctum's token ability string that indicates this token is allowed
+     * to set anonymization optiosn for the given LtiFakeUser.
+     */
+    public function getSelectAnonymizationAbility(int $ltiFakeUserId): string
+    {
+        return 'select:anonymization:' . $ltiFakeUserId;
     }
 
     public static function addUserIfNotExist(

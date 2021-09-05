@@ -34,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::namespace('LTI\Launch')->prefix('midway')->group(function() {
         Route::get('users/course_context/{courseContext}/tool/{tool}',
             'MidwayApiController@getLtiFakeUsers');
+        Route::post('config/anonymization/{fakeUser}',
+            'MidwayApiController@storeAnonymizationOption');
     });
 
 });
