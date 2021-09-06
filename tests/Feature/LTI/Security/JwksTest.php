@@ -35,12 +35,14 @@ class JwksTest extends TestCase
             'platform_id' => $myPlatform->id
         ]);
         $expectedJson['keys'][] = $newKey->public_key->all();
-        $resp = $this->get($baseUrl);
-        // was using assertExactJson before, but that checks for order as
-        // well which sometimes changes, causing failed tests that would pass
-        // again when rerun
+        $resp = $this->getJson($baseUrl);
+        // assertJson() cares about order, but we don't, so it was sometimes
+        // causing spurious failures that'd disappear when we rerun the test.
+        // assertEqualsCanonicalizing should put both arrays into the same
+        // order before checking the content and avoids this problem.
+        // Note that we have to convert the json response into an assoc array.
         $resp->assertJsonCount(2, 'keys');
-        $resp->assertJson($expectedJson);
+        $this->assertEqualsCanonicalizing($expectedJson, $resp->getData(true));
     }
 
     public function testToolJwks()
@@ -63,8 +65,11 @@ class JwksTest extends TestCase
             'tool_id' => $myTool->id
         ]);
         $expectedJson['keys'][] = $newKey->public_key->all();
-        $resp = $this->get($baseUrl);
-        $resp->assertExactJson($expectedJson);
+        $resp = $this->getJson($baseUrl);
+        // as with testPlatformJwks, we don't want the order to matter, so
+        // not using assertJson()
+        $resp->assertJsonCount(2, 'keys');
+        $this->assertEqualsCanonicalizing($expectedJson, $resp->getData(true));
     }
 }
 
