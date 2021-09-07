@@ -2,13 +2,11 @@
   <div class='mx-auto p-2'>
 
     <div class='flex flex-col'>
-      <form :action='action' :method='method' ref='form' v-if='!isMidwayOnly'>
-        <slot name='redirect-params'></slot>
-        <button type='submit' ref='continueButton'>
-          <ContinueIcon />
-          Continue to {{ toolName }}
-        </button>
-      </form>
+      <ContinuationForm :action='action' :tool-name='toolName'
+         :continuation-id-token='continuationIdToken'
+         :continuation-state='continuationState'
+         :is-midway-only='isMidwayOnly' />
+
       <h1 class='my-2'>
         {{ toolName }} Student Identities
       </h1>
@@ -27,20 +25,26 @@
 </template>
 
 <script>
-//import ContinueIcon from 'icons/ArrowTopRightThinCircleOutline'
-import ContinueIcon from 'icons/ArrowTopRightThick'
-import UserList from '../components/UserList'
+import ContinuationForm from '@midway/components/ContinuationForm'
+import UserList from '@midway/components/UserList'
 
 export default {
   name: "MidwayMain",
   components: {
-    ContinueIcon,
+    ContinuationForm,
     UserList
   },
   props: {
     action: {
       type: String,
       required: true
+    },
+    continuationIdToken: {
+      type: String,
+      required: true
+    },
+    continuationState: {
+      type: String
     },
     method: {
       type: String,
@@ -79,7 +83,6 @@ export default {
   methods: {
   },
   mounted() {
-    this.$refs.continueButton.focus();
   },
   created() {
     // Initialization needs to be in created() cause mounted() is too late.

@@ -17,7 +17,7 @@ mix
   .postCss('resources/css/app.css', 'public/css');
 
 if (mix.inProduction()) {
-  // generate a unique hash for filenames, prevent browsers are using old
+  // generate a unique hash for filenames, prevent browsers from using old
   // cached assets
   mix.version();
 }
@@ -37,7 +37,8 @@ mix.webpackConfig({
   resolve: {
     alias: {
       'icons': path.resolve(__dirname, 'node_modules/vue-material-design-icons'),
-      '@admin': path.resolve(__dirname, 'resources/js/admin')
+      '@admin': path.resolve(__dirname, 'resources/js/admin'),
+      '@midway': path.resolve(__dirname, 'resources/js/midway'),
     },
     extensions: [
       '.vue'
