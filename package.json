@@ -21,7 +21,7 @@
         "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
-        "axios": "^0.21.1",
+        "axios": "^0.21.2",
         "vue": "^2.6.12",
         "vue-good-table": "^2.21.2",
         "vue-material-design-icons": "^4.11.0",
