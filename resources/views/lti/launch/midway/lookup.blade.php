@@ -5,7 +5,7 @@
 @section('content')
   <instructor-main-view action='{{ $midwayRedirectUri }}'
                         continuation-id-token='{{ $id_token }}'
-                        continuation-state='{{ $state }}'
+                        continuation-state='{{ isset($state) ? $state : '' }}'
                         course-context-id='{{ $courseContextId }}'
                         :is-midway-only='@json($isMidwayOnly)'
                         platform-name='{{ $platformName }}'

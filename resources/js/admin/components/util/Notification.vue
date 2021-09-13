@@ -36,7 +36,7 @@
 
 <script>
 import CloseIcon from 'icons/CloseCircle'
-import ErrorIcon from 'icons/Alert'
+import ErrorIcon from 'icons/AlertOctagon'
 import InfoIcon from 'icons/InformationOutline'
 import SuccessIcon from 'icons/CheckCircle'
 import WarnIcon from 'icons/Alert'

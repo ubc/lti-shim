@@ -47,16 +47,6 @@ class LtiFakeUser extends Model
         return explode(FakeName::DELIMITER, $this->name)[1];
     }
 
-    public static function getByCourseContext(
-        int $courseContextId,
-        int $toolId
-    ): Collection {
-        return self::where('course_context_id', $courseContextId)
-                     ->where('tool_id', $toolId)
-                     ->get();
-
-    }
-
     public static function getByRealUser(
         int $courseContextId,
         int $toolId,

@@ -19,6 +19,8 @@ import store from './plugins/store/store'
 
 Vue.component('instructor-main-view',
   require('./views/InstructorMainView.vue').default)
+Vue.component('first-time-setup-view',
+  require('./views/FirstTimeSetupView.vue').default)
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

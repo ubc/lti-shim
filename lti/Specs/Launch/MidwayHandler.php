@@ -46,6 +46,14 @@ class MidwayHandler
             Param::MESSAGE_TYPE_DEEP_LINK_REQUEST) {
             return $this->getAutoSubmitResponse();
         }
+        // check if this is the fake identity's first launch, if so, we need to
+        // ask them to set anonymization options
+        $fakeUser = $this->session->lti_fake_user;
+        if ($fakeUser->enable_first_time_setup) {
+            return $this->getFirstTimeSetupResponse();
+        }
+
+        // if user is an instructor, they should go to the user lookup first
         $role = new RoleVocabulary();
         $canLookupUsers =
             $role->canLookupRealUsers($this->session->token[Param::ROLES_URI]);
@@ -57,6 +65,37 @@ class MidwayHandler
             return $this->getLookupResponse();
         }
         return $this->getAutoSubmitResponse();
+    }
+
+    /**
+     * User needs to go to first time setup in order to select anonymization
+     * options.
+     */
+    private function getFirstTimeSetupResponse(): Response
+    {
+        // generate a midway api access token that only allows them access
+        // to the fake user identity
+        $user = User::getMidwayApiUser();
+        $token = $user->createToken(Str::random(20), [
+            $user->getSelectAnonymizationAbility(
+                $this->session->lti_fake_user->id)
+        ]);
+
+        $response = [
+            Param::ID_TOKEN => $this->request->input(Param::ID_TOKEN),
+            Param::MIDWAY_REDIRECT_URI =>
+                            $this->request->input(Param::MIDWAY_REDIRECT_URI),
+            'fakeUserId' => $this->session->lti_fake_user->id,
+            'isMidwayOnly' => $this->session->is_midway_lookup_only,
+            'token' => $token->plainTextToken,
+            'toolName' => $this->session->tool->name,
+        ];
+        if ($this->request->has(Param::STATE)) {
+            $response[Param::STATE] = $this->request->input(Param::STATE);
+        }
+
+        return response()->view('lti/launch/midway/first_time_setup',
+                                $response);
     }
 
     /**
