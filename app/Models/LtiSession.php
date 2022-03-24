@@ -43,6 +43,17 @@ class LtiSession extends Model
     {
         return $this->belongsTo('App\Models\Deployment');
     }
+    public function lti_fake_user()
+    {
+        return $this->belongsTo(
+            'App\Models\LtiFakeUser',
+            'lti_real_user_id',
+            'lti_real_user_id',
+        )->where([
+            ['course_context_id', $this->course_context_id],
+            ['tool_id', $this->tool_id],
+        ]);
+    }
     public function lti_real_user()
     {
         return $this->belongsTo('App\Models\LtiRealUser');
