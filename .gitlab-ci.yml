@@ -2,5 +2,5 @@ include:
   - template: Auto-DevOps.gitlab-ci.yml
 
 .auto-deploy:
-  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.14.0"
+  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.43.0"
 
