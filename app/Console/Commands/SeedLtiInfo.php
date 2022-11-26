@@ -61,7 +61,7 @@ class SeedLtiInfo extends Command
         $platform->iss = config('lti.iss');
         $platform->auth_req_url = route('lti.launch.auth');
         $platform->jwks_url = route('lti.jwks.platform');
-        $platform->access_token_url = route('lti.token');
+        $platform->access_token_url = route('lti.security.token');
         $platform->save();
         // generate a new key
         $kid = date('c');
