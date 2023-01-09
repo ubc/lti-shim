@@ -21,7 +21,6 @@ docker-compose exec -u laradock workspace bash
   workspace$ composer install
   workspace$ artisan key:generate
   workspace$ artisan migrate:refresh --seed
-  workspace$ artisan passport:install
   workspace$ npm install
   workspace$ npm run dev
 ```
@@ -62,11 +61,6 @@ docker-compose exec -u laradock workspace bash
 Migrations can be rolled back in bulk (`artisan migrate:rollback`) or with the addition of the `--step=N` option for finer control, rolling back N number of migration files.
 
 The database can be completely blown away and rebuilt from scratch using `artisan migrate:refresh`.
-
-If you reset the database, you will also need to run Passport migrations in order for the API login to work again:
-```
-artisan passport:install
-```
 
 ##### Seeded Data
 

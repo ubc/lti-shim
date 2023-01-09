@@ -16,7 +16,7 @@ RUN composer dump-autoload --optimize
 
 
 # install & compile frontend JS/CSS
-FROM node:16-alpine AS node
+FROM node:18-alpine AS node
 WORKDIR /app
 # copy package.json first so docker knows it can cache the npm install step
 COPY package.json package-lock.json webpack.mix.js /app/
@@ -28,7 +28,7 @@ RUN npm run production
 
 
 # actual image we'll run in the end
-FROM php:7.4-apache
+FROM php:8.2-apache
 WORKDIR /var/www
 
 RUN apt-get update -yqq && \
