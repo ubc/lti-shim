@@ -3,7 +3,7 @@
 		<label for='password'>Password</label>
     <div class='flex gap-2'>
       <input id='password' name='password'
-        class='flex-grow'
+        class='grow'
         spellcheck='false'
         v-bind:type='passwordType' 
         v-bind:autocomplete='passwordAutocomplete' 

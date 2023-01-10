@@ -43,5 +43,9 @@ mix.webpackConfig({
     extensions: [
       '.vue'
     ]
+  },
+  stats: {
+    // shows warnings in child compilations
+    children: true
   }
 });

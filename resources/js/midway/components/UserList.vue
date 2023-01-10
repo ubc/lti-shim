@@ -27,7 +27,7 @@
             <SearchIcon title='Search' class='text-3xl' />
           </label>
           <input type="text" name="search" id="search" v-model='search'
-            class='flex-grow'
+            class='grow'
             :placeholder='searchPlaceholder' />
           <div class='flex-initial'>
             <button type='submit' class='btnSecondary'>Search</button>

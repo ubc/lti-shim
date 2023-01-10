@@ -30,7 +30,7 @@ export default {
     },
     css: {
       type: String,
-      default: 'btn btn-outline-danger'
+      default: 'btnDanger'
     }
   },
   data() { return {

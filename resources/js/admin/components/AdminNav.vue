@@ -17,7 +17,7 @@
     <router-link class='navItem' :to="{name: 'adminUser'}" v-if='isLoggedIn'>
       Users
     </router-link>
-    <router-link class='navItem mx-2 md:mx-0 md:mt-2' :to="{name: 'Account'}" v-if='isLoggedIn'>
+    <router-link class='navItem mx-2 md:mx-0 md:mt-2' :to="{name: 'account'}" v-if='isLoggedIn'>
       <AccountIcon class='text-xl md:text-lg' title='Edit Account Settings' />
       <span class='hidden md:inline'>Account</span>
     </router-link>

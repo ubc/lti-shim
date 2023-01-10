@@ -8,7 +8,7 @@
 
     <label for='newJwk'>JWK</label>
     <div class='flex justify-between gap-2 mb-4'>
-      <textarea id='newJwk' type='text' class='flex-grow'
+      <textarea id='newJwk' type='text' class='grow'
                 v-model='newJwk' />
       <div class='flex-initial'>
         <button class='btnPrimary' type='button' id='jwkAdd'

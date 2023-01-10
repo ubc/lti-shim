@@ -22,7 +22,7 @@ docker-compose exec -u laradock workspace bash
   workspace$ artisan key:generate
   workspace$ artisan migrate:refresh --seed
   workspace$ npm install
-  workspace$ npm run dev
+  workspace$ npm run development
 ```
 
 * The main app is accessible from http://localhost
@@ -76,7 +76,7 @@ Laravel has its own configuration built on top of webpack, which means some setu
 
 ```
 npm install
-npm run dev
+npm run development
 ```
 
 Changes to UI files requires us to recompile assets. In order to do this automatically, leave this command running:
