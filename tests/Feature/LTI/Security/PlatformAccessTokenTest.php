@@ -16,6 +16,7 @@ use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\Security\AccessToken;
 
 use UBC\LTI\Utils\LtiLog;
+use UBC\LTI\Utils\Param;
 
 use Tests\TestCase;
 
@@ -106,9 +107,7 @@ class PlatformAccessTokenTest extends TestCase
         $token = $resp->getOriginalContent()['access_token'];
         // Maybe we should also have a separate implementation for verifying the
         // access token
-        $this->assertNotEmpty(
-            $this->tokenHelper->verify($token, $this->tool, [$this->scope])
-        );
+        $this->tokenHelper->verify($token, $this->tool, [$this->scope]);
     }
 
     public function testInvalidGrantType()
@@ -168,7 +167,7 @@ class PlatformAccessTokenTest extends TestCase
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
             ->iat()
-            ->exp(time() - JwsUtil::TOKEN_LEEWAY + 1);
+            ->exp(time() - Param::TOKEN_LEEWAY + 1);
 
         $goodParams = $this->goodParams;
         $goodParams['client_assertion'] = $this->signJwtBuilder($builder);
@@ -180,7 +179,7 @@ class PlatformAccessTokenTest extends TestCase
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
             ->iat()
-            ->exp(time() - JwsUtil::TOKEN_LEEWAY - 1);
+            ->exp(time() - Param::TOKEN_LEEWAY - 1);
 
         $badParams = $this->goodParams;
         $badParams['client_assertion'] = $this->signJwtBuilder($builder);
@@ -194,7 +193,7 @@ class PlatformAccessTokenTest extends TestCase
         // just within the leeway
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
-            ->iat(time() + JwsUtil::TOKEN_LEEWAY - 1)
+            ->iat(time() + Param::TOKEN_LEEWAY - 1)
             ->exp(time() + 60);
 
         $goodParams = $this->goodParams;
@@ -206,7 +205,7 @@ class PlatformAccessTokenTest extends TestCase
         // just out of the leeway
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
-            ->iat(time() + JwsUtil::TOKEN_LEEWAY + 1)
+            ->iat(time() + Param::TOKEN_LEEWAY + 1)
             ->exp(time() + 60);
 
         $badParams = $this->goodParams;
@@ -221,7 +220,7 @@ class PlatformAccessTokenTest extends TestCase
         // just within validity
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
-            ->iat(time() - JwsUtil::TOKEN_OLD_AGE + 1)
+            ->iat(time() - Param::TOKEN_OLD_AGE + 1)
             ->exp(time() + 60);
 
         $badParams = $this->goodParams;
@@ -233,7 +232,7 @@ class PlatformAccessTokenTest extends TestCase
         // just out of validity
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
-            ->iat(time() - JwsUtil::TOKEN_OLD_AGE - 1)
+            ->iat(time() - Param::TOKEN_OLD_AGE - 1)
             ->exp(time() + 60);
 
         $badParams = $this->goodParams;
@@ -249,8 +248,8 @@ class PlatformAccessTokenTest extends TestCase
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
             ->iat(time())
-            ->exp(time() + JwsUtil::TOKEN_LEEWAY)
-            ->nbf(time() + JwsUtil::TOKEN_LEEWAY - 1);
+            ->exp(time() + Param::TOKEN_LEEWAY)
+            ->nbf(time() + Param::TOKEN_LEEWAY - 1);
 
         $goodParams = $this->goodParams;
         $goodParams['client_assertion'] = $this->signJwtBuilder($builder);
@@ -262,8 +261,8 @@ class PlatformAccessTokenTest extends TestCase
         $builder = $this->getRequestJwtBuilder();
         $builder = $builder
             ->iat(time())
-            ->exp(time() + JwsUtil::TOKEN_LEEWAY)
-            ->nbf(time() + JwsUtil::TOKEN_LEEWAY + 1);
+            ->exp(time() + Param::TOKEN_LEEWAY)
+            ->nbf(time() + Param::TOKEN_LEEWAY + 1);
 
         $badParams = $this->goodParams;
         $badParams['client_assertion'] = $this->signJwtBuilder($builder);

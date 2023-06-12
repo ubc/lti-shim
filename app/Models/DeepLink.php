@@ -46,8 +46,8 @@ class DeepLink extends Model
      */
     public static function decodeEncryptedId(string $token): self
     {
-        $jwt = EncryptedState::decrypt($token);
-        $sessionId = $jwt->claims->get('deepLinkId');
+        $state = EncryptedState::decrypt($token);
+        $sessionId = $state['deepLinkId'] ?? null;
         if (!$sessionId) {
             throw new LtiException('Missing Deep Link ID');
         }

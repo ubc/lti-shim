@@ -3,15 +3,7 @@ namespace UBC\LTI\Utils;
 
 use Illuminate\Support\Facades\Log;
 
-use Jose\Component\Core\JWK;
-use Jose\Easy\Build;
-use Jose\Easy\JWT;
-use Jose\Easy\Load;
-
 use League\Uri\Uri;
-
-use UBC\LTI\Utils\LtiException;
-use UBC\LTI\Utils\Param;
 
 /**
  * For repeated common operations using the League\Uri library.

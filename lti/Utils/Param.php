@@ -23,7 +23,7 @@ class Param
     public const NONE = 'none';
     // auth resp
     public const ID_TOKEN = 'id_token';
-    // id_token jwt
+    // jwt
     public const TYP = 'typ';
     public const JWT = 'JWT';
     public const ALG = 'alg';
@@ -35,11 +35,14 @@ class Param
     public const IAT = 'iat'; // timestamp, issued at
     public const AZP = 'azp';
     public const NBF = 'nbf'; // timestamp, not before
+    public const JTI = 'jti'; // JWT ID, for replay protection
     public const EXP_TIME = 3600; // time in seconds for token expiration window
     // encrypted jwt used for state & access tokens
+    public const ENC = 'enc';
     public const AT_JWT = 'at+JWT'; // typ value for access tokens
     public const RSA_OAEP_256 = 'RSA-OAEP-256';
     public const A256GCM = 'A256GCM';
+    public const ZIP = 'zip'; // compression field name
     public const ZIP_ALG = 'DEF'; // DEFLATE alg for zip compression
     // non-URI claims
     public const PICTURE = 'picture'; // avatar link
@@ -100,6 +103,11 @@ class Param
     public const TOKEN_TYPE_VALUE = 'bearer';
     public const EXPIRES_IN = 'expires_in';
     public const BEARER_PREFIX = 'Bearer ';
+    //   reject tokens that are older than this, in seconds
+    public const TOKEN_OLD_AGE = Param::EXP_TIME * 10;
+    //   to account for a bit of clock mismatch when verifying timestamps,
+    //   we allow a leeway in seconds
+    public const TOKEN_LEEWAY = 60;
     // launch presentation claim's parameters
     public const DOCUMENT_TARGET = 'document_target';
     public const HEIGHT = 'height';

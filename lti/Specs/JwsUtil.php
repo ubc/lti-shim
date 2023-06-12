@@ -20,12 +20,6 @@ use UBC\LTI\Utils\Param;
 // perform the verification. This class helps in such cases.
 class JwsUtil
 {
-    // reject tokens that are older than this, in seconds
-    public const TOKEN_OLD_AGE = Param::EXP_TIME * 10;
-    // to account for a bit of clock mismatch when verifying timestamps,
-    // we allow a leeway in seconds
-    public const TOKEN_LEEWAY = 60;
-
     private LtiLog $ltiLog;
     private JWS $jws;
     private array $claims;
@@ -153,7 +147,7 @@ class JwsUtil
         if (!(is_int($exp) || is_float($exp))) {
             throw new LtiException($ltiLog->msg('exp must be numeric'));
         }
-        if ($now > $exp + self::TOKEN_LEEWAY) {
+        if ($now > $exp + Param::TOKEN_LEEWAY) {
             throw new LtiException($ltiLog->msg('Expired JWT'));
         }
 
@@ -162,14 +156,14 @@ class JwsUtil
         if (!(is_int($iat) || is_float($iat))) {
             throw new LtiException($ltiLog->msg('iat must be numeric'));
         }
-        if ($iat > ($now + self::TOKEN_LEEWAY)) {
+        if ($iat > ($now + Param::TOKEN_LEEWAY)) {
             throw new LtiException($ltiLog->msg('Back to the future JWT'));
         }
 
         // Not valid if it's too old. We got an old token with a valid
         // (but excessively large) expiration window that we'd prefer not to
         // validate.
-        if (($now - $iat) > self::TOKEN_OLD_AGE) {
+        if (($now - $iat) > Param::TOKEN_OLD_AGE) {
             throw new LtiException($ltiLog->msg('JWT too old'));
         }
 
@@ -179,7 +173,7 @@ class JwsUtil
             if (!(is_int($nbf) || is_float($nbf))) {
                 throw new LtiException($ltiLog->msg('nbf must be numeric'));
             }
-            if ($nbf > ($now + self::TOKEN_LEEWAY)) {
+            if ($nbf > ($now + Param::TOKEN_LEEWAY)) {
                 throw new LtiException($ltiLog->msg('JWT not yet nbf'));
             }
         }

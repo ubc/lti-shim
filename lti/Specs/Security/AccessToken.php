@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\Log;
 
 use Jose\Easy\Build;
 use Jose\Easy\JWT;
-use Jose\Easy\Load;
 
 use App\Models\EncryptionKey;
 use App\Models\Platform;
 use App\Models\Tool;
 
+use UBC\LTI\Utils\JweUtil;
+use UBC\LTI\Utils\JwtChecker;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
@@ -39,6 +40,7 @@ class AccessToken
 
     // each scope must be mapped to an unique int as we're using it as a unique
     // id for that scope in access token cache
+    // TODO: Why aren't we initializing it here?
     public static array $VALID_SCOPES = [];
 
     private LtiLog $ltiLog;
@@ -55,31 +57,29 @@ class AccessToken
         }
     }
 
+    /**
+     * Shim's Platform Side issuing a token to a tool.
+     */
     public function create(Tool $tool, array $scopes): string
     {
         $this->checkScopes($scopes);
-        $time = time();
-        // IETF has a draft spec for JWT access tokens that we're using as guide
-        $jwe = Build::jwe() // We build a JWE
-            ->typ(Param::AT_JWT)
-            ->iss($tool->client_id)
-            ->exp($time + self::EXPIRY_TIME)
-            ->iat($time)
-            ->aud(config('lti.iss'))
-            ->sub($tool->client_id)
-            ->alg(Param::RSA_OAEP_256) // key encryption alg
-            ->enc(Param::A256GCM) // content encryption alg
-            ->zip(Param::ZIP_ALG) // compress the data, DEFLATE alg
-            ->crit(['alg', 'enc']); // mark some header parameters as critical
         // keep the size of the token down by shrinking the scope payload
         $shrinkedScopes = [];
         foreach ($scopes as $scope) {
             $shrinkedScopes[] = self::$VALID_SCOPES[$scope];
         }
-        $jwe->claim(Param::SCOPE, $shrinkedScopes);
-        // encrypt with the public key
-        $jwe = $jwe->encrypt(EncryptionKey::getNewestKey()->public_key);
-        return $jwe;
+        $time = time();
+        // IETF has a draft spec for JWT access tokens that we're using as guide
+        $payload = [
+            Param::TYP   => Param::AT_JWT,
+            Param::ISS   => $tool->client_id,
+            Param::EXP   => $time + self::EXPIRY_TIME,
+            Param::IAT   => $time,
+            Param::AUD   => config('lti.iss'),
+            Param::SUB   => $tool->client_id,
+            Param::SCOPE => $shrinkedScopes,
+        ];
+        return JweUtil::build($payload);
     }
 
     /**
@@ -100,16 +100,13 @@ class AccessToken
         string $token,
         Tool $requiredTool,
         array $requiredScopes
-    ): JWT {
-        $jwt;
+    ): void {
+        $payload;
         try {
-            $jwt = Load::jwe($token) // deserialize the token
-                ->algs([Param::RSA_OAEP_256]) // key encryption algo
-                ->encs([Param::A256GCM]) // content encryption algo
-                ->exp()
-                ->iat()
-                ->key(EncryptionKey::getNewestKey()->key) // private key decrypt
-                ->run();
+            $payload = JweUtil::decrypt($token);
+            $checker = new JwtChecker($payload);
+            // no need to check nonce with access token
+            $checker->checkTimestamps();
         }
         catch(\Exception $e) {
             Log::error("Unable to verify access token.");
@@ -117,12 +114,12 @@ class AccessToken
                     'Invalid access token: ' . $e->getMessage()), 0, $e);
         }
         // make sure it's the right tool
-        if ($requiredTool->client_id != $jwt->claims->iss()) {
+        if ($requiredTool->client_id != $payload[Param::ISS]) {
             throw new LtiException($this->ltiLog->msg(
                 "This access token is not allowed on this endpoint"));
         }
         // make sure at least one of the required scopes are present
-        $scopes = $jwt->claims->get(Param::SCOPE);
+        $scopes = $payload[Param::SCOPE];
         $hasScope = false;
         foreach ($requiredScopes as $requiredScope) {
             if (in_array(self::$VALID_SCOPES[$requiredScope], $scopes)) {
@@ -135,7 +132,6 @@ class AccessToken
                 "This access token does not have scopes required: " .
                 json_encode($requiredScopes)));
         }
-        return $jwt;
     }
 
     /**

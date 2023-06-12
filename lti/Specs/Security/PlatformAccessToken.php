@@ -83,7 +83,7 @@ class PlatformAccessToken
             // replay protection based on jti
             $jti = $jwt->claims->jti();
             Nonce::store($jti,
-                ($jwt->claims->exp() + JwsUtil::TOKEN_LEEWAY) - time());
+                ($jwt->claims->exp() + Param::TOKEN_LEEWAY) - time());
             if (Nonce::isValid($jti)) Nonce::used($jti);
             else throw new LtiException($this->ltiLog->msg('Replayed JTI'));
             // TODO: verify aud

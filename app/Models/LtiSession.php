@@ -27,7 +27,7 @@ class LtiSession extends Model
         $state = EncryptedState::decrypt(
             $request->input(Param::LTI_MESSAGE_HINT));
         $ltiSession = self::with(['tool', 'deployment'])->
-            find($state->claims->get('lti_session'));
+            find($state['lti_session']);
         if (!$ltiSession) {
             // TODO: actually expire sessions
             throw new LtiException('Invalid LTI session, is it expired?');
@@ -87,8 +87,8 @@ class LtiSession extends Model
      */
     public static function decodeEncryptedId(string $token): self
     {
-        $jwt = EncryptedState::decrypt($token);
-        $sessionId = $jwt->claims->get('ltiSessionId');
+        $state = EncryptedState::decrypt($token);
+        $sessionId = $state['ltiSessionId'];
         if (!$sessionId) {
             throw new LtiException('Missing LTI Session');
         }
