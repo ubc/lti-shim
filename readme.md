@@ -1,4 +1,19 @@
-## LTI Shim
+## LTI Shim Overview
+
+The LTI Shim acts like a Learning Tools Interoperability (LTI) 1.3 proxy with
+the goal of protecting student privacy. A Platform (such as Canvas) will add
+the LTI Shim as a Tool. A Tool, such as math homework system Webwork, adds the
+LTI Shim as a Platform. The LTI Shim can then be configured to connect these
+two Platform and Tool together.  LTI requests is first passed through a privacy
+filter that replaces real personal information with an anonymized identity (or
+vice versa in reverse), then forwarded to the target Platform or Tool.
+
+![LTI Shim Overview](doc/img/lti_shim_overview.png)
+
+The LTI Shim implements the LTI 1.3 spec and aims to be compatible with any LTI
+1.3 compliant implementations for both Platform and Tool. LTI service specs such as the LTI Advantage suite is implemented (NRPS, AGS, Deep Linking).
+
+More technical detail is available in the [Wiki](https://github.com/ubc/lti-shim/wiki).
 
 ## Development
 
@@ -25,7 +40,7 @@ docker-compose exec -u laradock workspace bash
   workspace$ npm run development
 ```
 
-* The main app is accessible from http://localhost
+* The main app is accessible from http://localhost:8300/#/
   * See routes/web.php for valid locations
   * App log is located in `storage/logs/`, they are named by date. Note that the containers seems to be on UTC though.
   * Development admin user login (added as part of seeded data):
