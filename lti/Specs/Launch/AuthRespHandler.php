@@ -5,8 +5,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-use Jose\Easy\Build;
-
 use App\Models\CourseContext;
 use App\Models\Deployment;
 use App\Models\LtiFakeUser;
@@ -138,12 +136,8 @@ class AuthRespHandler
         $key = Platform::getOwnPlatform()->getKey();
         $this->ltiLog->debug('id_token: key: '. $key->id .' kid: ' . $key->kid,
             $this->request, $this->session);
-        $authRespParams[Param::ID_TOKEN] = Build::jws()
-            ->typ(Param::JWT)
-            ->alg(Param::RS256)
-            ->header(Param::KID, $key->kid)
-            ->payload($payload)
-            ->sign($key->key);
+
+        $authRespParams[Param::ID_TOKEN] = JwsToken::build($payload, $key); 
 
         // tell midway the target tool endpoint to complete the launch
         $authRespParams[Param::MIDWAY_REDIRECT_URI] = $authRespUri;

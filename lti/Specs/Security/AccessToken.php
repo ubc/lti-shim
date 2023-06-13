@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-use Jose\Easy\Build;
-use Jose\Easy\JWT;
-
 use App\Models\EncryptionKey;
 use App\Models\Platform;
 use App\Models\Tool;
@@ -19,6 +16,7 @@ use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Specs\ParamChecker;
+use UBC\LTI\Specs\Security\JwsToken;
 use UBC\LTI\Specs\Security\Nonce;
 
 class AccessToken
@@ -238,18 +236,16 @@ class AccessToken
         $platformClient = $tool->getPlatformClient($platform->id);
         if (!$platformClient) throw new LtiException($this->ltiLog->msg(
                                                      'Unregistered client'));
-        return Build::jws()
-            ->typ(Param::JWT)
-            ->alg(Param::RS256)
-            ->iss($platformClient->client_id)
-            ->sub($platformClient->client_id)
+        $payload = [
+            Param::ISS => $platformClient->client_id,
+            Param::SUB => $platformClient->client_id,
             // the audience is often just the token endpoint url
-            ->aud($platform->access_token_url)
-            ->iat($time) // automatically set issued at time
-            ->exp($time + self::REQUEST_EXPIRY_TIME)
-            ->jti(Nonce::create(self::REQUEST_EXPIRY_TIME))
-            ->header(Param::KID, $key->kid)
-            ->sign($key->key);
+            Param::AUD => $platform->access_token_url,
+            Param::IAT => $time, // automatically set issued at time
+            Param::EXP => $time + self::REQUEST_EXPIRY_TIME,
+            Param::JTI => Nonce::create(self::REQUEST_EXPIRY_TIME),
+        ];
+        return JwsToken::build($payload, $key);
     }
 
     /**

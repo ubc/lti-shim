@@ -5,9 +5,9 @@ use Illuminate\Support\Facades\Log;
 
 use Jose\Component\Signature\JWS;
 use Jose\Component\Signature\Serializer\CompactSerializer;
-use Jose\Easy\JWT;
 
 use App\Models\AbstractLtiEntity;
+use App\Models\AbstractRsaKey;
 
 use UBC\LTI\Specs\Security\Nonce;
 use UBC\LTI\Utils\JwtChecker;
@@ -44,6 +44,11 @@ class JwsToken
         }
         $this->claims = json_decode($this->jws->getPayload(), true);
         $this->checker = new JwtChecker($this->claims);
+    }
+
+    public static function build(array $payload, AbstractRsaKey $key)
+    {
+        return JwsUtil::build($payload, $key);
     }
 
     // returns the given claim's value if it exists, throws an exception if it

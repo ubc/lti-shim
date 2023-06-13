@@ -26,7 +26,8 @@ class JwsUtil
         $jws = $builder->create()
                        ->withPayload(json_encode($payload))
                        ->addSignature($key->key, [Param::ALG => Param::RS256,
-                                                  Param::KID => $key->kid])
+                                                  Param::KID => $key->kid,
+                                                  Param::TYP => Param::JWT])
                        ->build();
         $serializer = new CompactSerializer();
         return $serializer->serialize($jws, 0);

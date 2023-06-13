@@ -5,8 +5,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-use Jose\Easy\Build;
-
 use App\Models\DeepLink;
 use App\Models\Tool;
 
@@ -80,12 +78,7 @@ class ReturnHandler
         $key = Tool::getOwnTool()->getKey();
 
         $params = [
-            Param::JWT => Build::jws()
-                               ->typ(Param::JWT)
-                               ->alg(Param::RS256)
-                               ->header(Param::KID, $key->kid)
-                               ->payload($payload)
-                               ->sign($key->key)
+            Param::JWT => JwsToken::build($payload, $key)
         ];
 
         $this->ltiLog->info('Tool Side, send deep link return: ' .

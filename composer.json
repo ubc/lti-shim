@@ -10,7 +10,6 @@
   "require": {
     "php": "^8.2",
     "doctrine/dbal": "^3.0",
-    "spatie/laravel-ignition": "^1.0",
     "fakerphp/faker": "^1.4",
     "guzzlehttp/guzzle": "^7.3.0",
     "laravel/fortify": "^1.7",
@@ -21,7 +20,7 @@
     "league/uri-components": "^2.2",
     "lmc/http-constants": "^1.2",
     "ramsey/uuid": "^4.1",
-    "web-token/jwt-easy": "^2.2",
+    "spatie/laravel-ignition": "^1.0",
     "web-token/jwt-encryption-algorithm-aesgcm": "^2.2",
     "web-token/jwt-encryption-algorithm-rsa": "^2.2",
     "web-token/jwt-key-mgmt": "^2.2",
@@ -31,7 +30,8 @@
     "roave/security-advisories": "dev-master",
     "nunomaduro/collision": "^6.1",
     "mockery/mockery": "^1.0",
-    "phpunit/phpunit": "^9.0"
+    "phpunit/phpunit": "^9.0",
+    "web-token/jwt-easy": "^2.2"
   },
   "config": {
     "platform": {
