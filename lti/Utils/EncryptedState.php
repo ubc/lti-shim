@@ -33,7 +33,8 @@ class EncryptedState
         try {
             $payload = JweUtil::decrypt($token);
             $checker = new JwtChecker($payload);
-            $checker->checkAll();
+            $checker->checkTimestamps();
+            $checker->checkJti();
             return $payload;
         }
         catch(\Exception $e) {

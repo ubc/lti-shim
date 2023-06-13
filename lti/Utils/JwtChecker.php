@@ -16,15 +16,6 @@ class JwtChecker
         $this->payload = $payload;
     }
 
-    public function checkAll(): void
-    {
-        // protect against expired token and such
-        $this->checkTimestamps();
-        // protect against replayed token, not always necessary such as when
-        // we're using as access token
-        $this->checkNonce();
-    }
-
     /**
      * Check to make sure that the nonce hasn't already been used.
      *
@@ -32,11 +23,17 @@ class JwtChecker
      */
     public function checkNonce(): void
     {
-        $nonce = $this->payload[Param::JTI] ?? null;
-        if (!empty($nonce) && Nonce::isValid($nonce))
-            Nonce::used($nonce);
-        else
-            throw new LtiException('Invalid nonce "' . $nonce . '"');
+        $this->checkNonceGeneric(Param::NONCE);
+    }
+
+    /**
+     * Check to make sure that the JWT ID (jti) hasn't already been used.
+     *
+     * @throw LtiException if nonce is invalid
+     */
+    public function checkJti(): void
+    {
+        $this->checkNonceGeneric(Param::JTI);
     }
 
     /**
@@ -86,4 +83,20 @@ class JwtChecker
             }
         }
     }
+
+    /**
+     * There's two fields that can contain values we should treat like nonces,
+     * so this is a generic implementation.
+     *
+     * @throw LtiException if nonce is invalid
+     */
+    private function checkNonceGeneric(string $nonceParam): void
+    {
+        $nonce = $this->payload[$nonceParam] ?? null;
+        if (!empty($nonce) && Nonce::isValid($nonce))
+            Nonce::used($nonce);
+        else
+            throw new LtiException('Invalid nonce "' . $nonce . '"');
+    }
+
 }
