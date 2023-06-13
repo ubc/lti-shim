@@ -4,16 +4,14 @@ namespace UBC\LTI\Specs\Security;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
-use Jose\Easy\Load;
-
 use App\Models\Tool;
 
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
-use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\AccessToken;
+use UBC\LTI\Specs\Security\JwsToken;
 use UBC\LTI\Specs\Security\Nonce;
 
 // Part of the LTI security spec. LTI services require authentication using
@@ -59,33 +57,22 @@ class PlatformAccessToken
         // we can't validate the JWT's signature if we don't know what tool
         // created it, so first to try get the tool's client_id
         $jwtString = $this->request->input(Param::CLIENT_ASSERTION);
-        $jwsUtil = new JwsUtil($jwtString, $this->ltiLog);
-        $kid = $jwsUtil->getKid();
+        $jwsToken = new JwsToken($jwtString, $this->ltiLog);
+        $kid = $jwsToken->getKid();
         $this->ltiLog->debug('Using kid: ' . $kid);
-        $clientId = $jwsUtil->getClaim(Param::SUB);
+        $clientId = $jwsToken->getClaim(Param::SUB);
         // now that we know the tool, we can verify the JWT
         $tool = Tool::firstWhere('client_id', $clientId);
         $this->ltiLog->debug('Found tool requesting access token', $tool);
-        $jwk = $tool->getKey($kid)->public_key;
-        $jwt = Load::jws($jwtString);
         // Note that we're not validating the iss because the spec is not clear
         // on what should be in it. The spec could be read two ways, since it's
         // not clear whether the access token request counts as an LTI message.
         // Either the iss needs to be the OAuth issuer (not an LTI message) or
         // it needs to be the OAuth client id (is an LTI message). I've seen it
         // implemented both ways.
-        $jwt = $jwt->algs([Param::RS256]) // The algorithms allowed to be used
-                   ->key($jwk); // Key used to verify the signature
         try {
-            // check signature
-            $jwt = $jwt->run();
-            JwsUtil::verifyTimestamps($jwt, $this->ltiLog);
-            // replay protection based on jti
-            $jti = $jwt->claims->jti();
-            Nonce::store($jti,
-                ($jwt->claims->exp() + Param::TOKEN_LEEWAY) - time());
-            if (Nonce::isValid($jti)) Nonce::used($jti);
-            else throw new LtiException($this->ltiLog->msg('Replayed JTI'));
+            $jwsToken->verifyAndDecode($tool);
+            $jwsToken->checkJti(true);
             // TODO: verify aud
         } catch(\Exception $e) { // invalid signature throws a bare Exception
             throw new LtiException($this->ltiLog->msg(

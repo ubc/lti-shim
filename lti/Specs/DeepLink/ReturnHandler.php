@@ -6,13 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 use Jose\Easy\Build;
-use Jose\Easy\JWT;
 
 use App\Models\DeepLink;
 use App\Models\Tool;
 
-use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\ParamChecker;
+use UBC\LTI\Specs\Security\JwsToken;
 use UBC\LTI\Specs\Security\Nonce;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
@@ -65,19 +64,18 @@ class ReturnHandler
             Param::DL_DATA_URI => $this->dl->state,
             // don't know what could be in there yet, so just going to pass it
             // through as is
-            Param::DL_CONTENT_ITEMS_URI =>
-                $jwt->claims->get(Param::DL_CONTENT_ITEMS_URI),
+            Param::DL_CONTENT_ITEMS_URI => $jwt[Param::DL_CONTENT_ITEMS_URI],
         ];
         // optional params
         if ($this->dl->state) $payload[Param::DL_DATA_URI] = $this->dl->state;
-        if ($jwt->claims->has(Param::DL_MSG))
-            $payload[Param::DL_MSG] = $jwt->claims->get(Param::DL_MSG);
-        if ($jwt->claims->has(Param::DL_LOG))
-            $payload[Param::DL_LOG] = $jwt->claims->get(Param::DL_LOG);
-        if ($jwt->claims->has(Param::DL_ERRORMSG))
-            $payload[Param::DL_ERRORMSG] = $jwt->claims->get(Param::DL_ERRORMSG);
-        if ($jwt->claims->has(Param::DL_ERRORLOG))
-            $payload[Param::DL_ERRORLOG] = $jwt->claims->get(Param::DL_ERRORLOG);
+        if (isset($jwt[Param::DL_MSG]))
+            $payload[Param::DL_MSG] = $jwt[Param::DL_MSG];
+        if (isset($jwt[Param::DL_LOG]))
+            $payload[Param::DL_LOG] = $jwt[Param::DL_LOG];
+        if (isset($jwt[Param::DL_ERRORMSG]))
+            $payload[Param::DL_ERRORMSG] = $jwt[Param::DL_ERRORMSG];
+        if (isset($jwt[Param::DL_ERRORLOG]))
+            $payload[Param::DL_ERRORLOG] = $jwt[Param::DL_ERRORLOG];
 
         $key = Tool::getOwnTool()->getKey();
 
@@ -106,7 +104,7 @@ class ReturnHandler
      * Return the decoded JWT from the deep link return.
      * We should've gotten a POST request with only 1 param named 'JWT'.
      */
-    public function receiveReturn(): JWT
+    public function receiveReturn(): array
     {
         $this->ltiLog->info('Platform Side, recv deep link return: ' .
             json_encode($this->request->input()), $this->request);
@@ -117,17 +115,15 @@ class ReturnHandler
         // JWT signature
         $tokenString = $this->request->input(Param::JWT);
         $this->ltiLog->debug('Deep Link return JWT: ' . $tokenString);
-        $jwsUtil = new JwsUtil($tokenString, $this->ltiLog);
+        $jwsToken = new JwsToken($tokenString, $this->ltiLog);
         // get the Deep Link entry
         $this->dl = DeepLink::decodeEncryptedId(
-                                        $jwsUtil->getClaim(Param::DL_DATA_URI));
+                                        $jwsToken->getClaim(Param::DL_DATA_URI));
         // verify the signature unpack into JWT object
-        $jwt = $jwsUtil->verifyAndDecode(
-            $this->dl->tool,
-            config('lti.iss'),
-            $this->dl->tool->client_id,
-            true
-        );
+        $jwt = $jwsToken->verifyAndDecode($this->dl->tool);
+        $jwsToken->checkIssAndAud($this->dl->tool->client_id,
+                                  config('lti.iss'));
+        $jwsToken->checkNonce(true);
 
         $this->checkClaims($jwt);
         $this->handleLoggingClaims($jwt);
@@ -139,9 +135,9 @@ class ReturnHandler
      * Make sure that the required claims are present and have the required
      * values (if any).
      */
-    private function checkClaims(JWT $jwt)
+    private function checkClaims(array $jwt)
     {
-        $checker = new ParamChecker($jwt->claims->all(), $this->ltiLog);
+        $checker = new ParamChecker($jwt, $this->ltiLog);
 
         $requiredValues = [
             Param::MESSAGE_TYPE_URI => Param::MESSAGE_TYPE_DEEP_LINK_RESPONSE,
@@ -151,7 +147,7 @@ class ReturnHandler
         ];
         $checker->requireValues($requiredValues);
 
-        if (!$jwt->claims->has(Param::DL_CONTENT_ITEMS_URI)) {
+        if (!isset($jwt[Param::DL_CONTENT_ITEMS_URI])) {
             throw new LtiException($this->ltiLog->msg(
                 'Deep Link response missing content items'));
         }
@@ -160,21 +156,19 @@ class ReturnHandler
     /**
      * There are claims specifically for logging, add them to the LTI log.
      */
-    private function handleLoggingClaims(JWT $jwt)
+    private function handleLoggingClaims(array $jwt)
     {
-        if ($jwt->claims->has(Param::DL_MSG)) {
-            $this->ltiLog->info('msg: ' . $jwt->claims->get(Param::DL_MSG));
+        if (isset($jwt[Param::DL_MSG])) {
+            $this->ltiLog->info('msg: ' . $jwt[Param::DL_MSG]);
         }
-        if ($jwt->claims->has(Param::DL_LOG)) {
-            $this->ltiLog->info('log: ' . $jwt->claims->get(Param::DL_LOG));
+        if (isset($jwt[Param::DL_LOG])) {
+            $this->ltiLog->info('log: ' . $jwt[Param::DL_LOG]);
         }
-        if ($jwt->claims->has(Param::DL_ERRORMSG)) {
-            $this->ltiLog->error('error msg: ' .
-                $jwt->claims->get(Param::DL_ERRORMSG));
+        if (isset($jwt[Param::DL_ERRORMSG])) {
+            $this->ltiLog->error('error msg: ' .  $jwt[Param::DL_ERRORMSG]);
         }
-        if ($jwt->claims->has(Param::DL_ERRORLOG)) {
-            $this->ltiLog->error('error log: ' .
-                $jwt->claims->get(Param::DL_ERRORLOG));
+        if (isset($jwt[Param::DL_ERRORLOG])) {
+            $this->ltiLog->error('error log: ' .  $jwt[Param::DL_ERRORLOG]);
         }
     }
 

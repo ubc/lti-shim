@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 use Jose\Easy\Build;
-use Jose\Easy\JWT;
-use Jose\Easy\Load;
 
 use App\Models\CourseContext;
 use App\Models\Deployment;
@@ -16,7 +14,6 @@ use App\Models\LtiRealUser;
 use App\Models\LtiSession;
 use App\Models\Platform;
 
-use UBC\LTI\Specs\JwsUtil;
 use UBC\LTI\Specs\Launch\Filters\AgsFilter;
 use UBC\LTI\Specs\Launch\Filters\CourseContextFilter;
 use UBC\LTI\Specs\Launch\Filters\DeepLinkFilter;
@@ -28,6 +25,7 @@ use UBC\LTI\Specs\Launch\Filters\PiazzaFilter;
 use UBC\LTI\Specs\Launch\Filters\UserFilter;
 use UBC\LTI\Specs\Launch\Filters\WhitelistFilter;
 use UBC\LTI\Specs\ParamChecker;
+use UBC\LTI\Specs\Security\JwsToken;
 use UBC\LTI\Utils\LtiException;
 use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
@@ -180,13 +178,14 @@ class AuthRespHandler
         $this->checker->requireParams($requiredParams);
 
         // Verify the id_token JWT's signature and unpack it into a JWT object
-        $jwsUtil = new JwsUtil($this->request->input(Param::ID_TOKEN),
+        $jwsToken = new JwsToken($this->request->input(Param::ID_TOKEN),
                                $this->ltiLog);
-        $jwt = $jwsUtil->verifyAndDecode(
-            $this->session->platform_client->platform,
-            $this->session->platform_client->client_id,
-            $this->session->platform_client->platform->iss
-        );
+        $jwt = $jwsToken->verifyAndDecode(
+            $this->session->platform_client->platform);
+        $jwsToken->checkIssAndAud(
+            $this->session->platform_client->platform->iss,
+            $this->session->platform_client->client_id);
+        $jwsToken->checkNonce();
 
         $this->checkTokenParams($jwt);
 
@@ -210,10 +209,10 @@ class AuthRespHandler
      * Make sure that the id_token comes with all the required parameters
      * according to spec.
      */
-    private function checkTokenParams(JWT $jwt)
+    private function checkTokenParams(array $jwt)
     {
         // check if message type is supported
-        $messageType = $jwt->claims->get(Param::MESSAGE_TYPE_URI);
+        $messageType = $jwt[Param::MESSAGE_TYPE_URI] ?? null;
         if (!in_array($messageType, Param::MESSAGE_TYPES)) {
             throw new LtiException($this->ltiLog->msg(
                 'Unsupported Message Type: ' . $messageType,
@@ -224,7 +223,7 @@ class AuthRespHandler
             $this->isDeepLink = true;
 
         // check for required params in token
-        $checker = new ParamChecker($jwt->claims->all(), $this->ltiLog);
+        $checker = new ParamChecker($jwt, $this->ltiLog);
 
         $requiredValues = [ Param::VERSION_URI => Param::VERSION_130 ];
         // if oidc login contains lti_deployment_id, we need to check that it
@@ -249,7 +248,7 @@ class AuthRespHandler
         $checker->requireParams($requiredParams);
 
         // verify that the target_link_uri points to the shim
-        $target = $jwt->claims->get(Param::TARGET_LINK_URI_URI);
+        $target = $jwt[Param::TARGET_LINK_URI_URI] ?? null;
         if (!UriUtil::isSameSite(config('lti.iss'), $target))
             throw new LtiException($this->ltiLog->msg(
                 "target_link_uri is some other site: $target", $this->request));
@@ -281,15 +280,15 @@ class AuthRespHandler
      * Updating session is needed since the filters need access to the id_token
      * claims.
      */
-    private function updateSession(JWT $jwt)
+    private function updateSession(array $jwt)
     {
         $platformId = $this->session->platform_client->platform_id;
-        $user = LtiRealUser::getFromLaunch($platformId, $jwt->claims->all());
+        $user = LtiRealUser::getFromLaunch($platformId, $jwt);
         $deployment = Deployment::firstOrCreate([
-            'lti_deployment_id' => $jwt->claims->get(Param::DEPLOYMENT_ID_URI),
+            'lti_deployment_id' => $jwt[Param::DEPLOYMENT_ID_URI] ?? null,
             'platform_id'       => $platformId
         ]);
-        $courseId = CourseContextFilter::getContextId($jwt->claims->all());
+        $courseId = CourseContextFilter::getContextId($jwt);
         $courseContext = CourseContext::createOrGet(
             $deployment->id,
             $this->session->tool_id,
@@ -299,7 +298,7 @@ class AuthRespHandler
         $this->session->course_context_id = $courseContext->id;
         $this->session->deployment_id = $deployment->id;
         $this->session->lti_real_user_id = $user->id;
-        $this->session->token = $jwt->claims->all(); // replace previous data
+        $this->session->token = $jwt; // replace previous data
         $this->session->save();
     }
 }
