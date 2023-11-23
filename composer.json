@@ -21,6 +21,7 @@
     "lmc/http-constants": "^1.2",
     "ramsey/uuid": "^4.1",
     "spatie/laravel-ignition": "^1.0",
+    "web-token/jwt-checker": "^2.2",
     "web-token/jwt-encryption-algorithm-aesgcm": "^2.2",
     "web-token/jwt-encryption-algorithm-rsa": "^2.2",
     "web-token/jwt-key-mgmt": "^2.2",
