@@ -1,6 +1,8 @@
 <?php
 namespace UBC\LTI\Utils;
 
+use Illuminate\Support\Facades\Log;
+
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Checker\HeaderCheckerManager;
 use Jose\Component\Checker\AlgorithmChecker;

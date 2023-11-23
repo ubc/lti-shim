@@ -35,6 +35,7 @@ class ToolController extends Controller
             'target_link_uri' => ['required', 'string'],
             'jwks_url' => ['string', 'url', 'nullable'],
             'keys' => ['array'],
+            'keys.*.tool_id' => ['integer'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
             'enable_midway_lookup' => ['required', 'boolean'],
@@ -73,8 +74,12 @@ class ToolController extends Controller
             'target_link_uri' => ['required', 'string'],
             'jwks_url' => ['string', 'url', 'nullable'],
             'keys' => ['array'],
+            'keys.*.id' => ['integer'],
+            'keys.*.tool_id' => ['integer'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
+            'keys.*.created_at' => ['string'],
+            'keys.*.updated_at' => ['string'],
             'enable_midway_lookup' => ['required', 'boolean'],
         ]);
         $tool->updateWithRelations($info);
