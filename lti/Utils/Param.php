@@ -206,6 +206,8 @@ class Param
     public const DATA = 'data';
     // dl response
     public const DL_CONTENT_ITEMS_URI = 'https://purl.imsglobal.org/spec/lti-dl/claim/content_items';
+    public const TYPE = 'type';
+    public const DL_CONTENT_TYPE_LTI_RESOURCE_LINK = 'ltiResourceLink';
     public const DL_DATA_URI = 'https://purl.imsglobal.org/spec/lti-dl/claim/data';
     // message we can show to the user on return to platform
     public const DL_MSG = 'https://purl.imsglobal.org/spec/lti-dl/claim/msg';

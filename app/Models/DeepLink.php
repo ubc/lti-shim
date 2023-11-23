@@ -29,7 +29,7 @@ class DeepLink extends Model
 
     public function getShimReturnUrlAttribute()
     {
-        return route('lti.launch.deepLinkReturn', ['deepLink' => $this->id]);
+        return route('lti.launch.dl.return', ['deepLink' => $this->id]);
     }
 
     /**

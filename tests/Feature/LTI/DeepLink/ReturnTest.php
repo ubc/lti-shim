@@ -17,6 +17,7 @@ use Tests\Feature\LTI\LtiBasicTestCase;
 use Database\Seeders\BasicTestDatabaseSeeder;
 
 use App\Models\DeepLink;
+use App\Models\DeepLinkContentItem;
 
 use UBC\LTI\Specs\Security\Nonce;
 
@@ -294,5 +295,45 @@ class ReturnTest extends LtiBasicTestCase
 
         $resp = $this->post($this->returnUrl, $params);
         $resp->assertStatus(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testContentItemFilter()
+    {
+        $claims = $this->baseClaims;
+        // TODO test multiple content items, test passthrough non-lti content item
+        $originalContentItem = [
+            'type' => 'ltiResourceLink',
+            'title' => 'Some Assigment',
+            'text' => 'Please do assignment',
+            'url' => 'https://sometool.example.com/deeplink'
+        ];
+        $claims[self::CLAIM_CONTENT_ITEMS_URI] = [$originalContentItem];
+        $params = ['JWT' => $this->createToken(self::NONCE, $claims)];
+
+        // no deep link content items should exist at this point
+        $this->assertNull(DeepLinkContentItem::first());
+
+        $resp = $this->post($this->returnUrl, $params);
+        $resp->assertStatus(Response::HTTP_OK);
+
+        $jwt = $this->verifyAndGetJwt($resp['params']['JWT']);
+        $this->assertNotEmpty($jwt->claims->get(self::CLAIM_CONTENT_ITEMS_URI));
+        $contentItem = $jwt->claims->get(self::CLAIM_CONTENT_ITEMS_URI)[0];
+        $this->assertEquals($originalContentItem['type'],
+                            $contentItem['type']);
+        $this->assertEquals($originalContentItem['title'],
+                            $contentItem['title']);
+        $this->assertEquals($originalContentItem['text'],
+                            $contentItem['text']);
+        $this->assertNotEquals($originalContentItem['url'],
+                            $contentItem['url']);
+        // check that the content item database entry was created properly
+        $dlContentItem = DeepLinkContentItem::first();
+        $this->assertNotEmpty($dlContentItem);
+        $this->assertEquals($dlContentItem->tool_id, $this->dl->tool_id);
+        $this->assertEquals($dlContentItem->deployment_id,
+                            $this->dl->deployment_id);
+        $this->assertEquals($dlContentItem->shim_launch_url,
+                            $contentItem['url']);
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use App\Models\DeepLink;
 use App\Models\Tool;
 
+use UBC\LTI\Specs\DeepLink\Filters\ContentItemFilter;
 use UBC\LTI\Specs\ParamChecker;
 use UBC\LTI\Specs\Security\JwsToken;
 use UBC\LTI\Specs\Security\Nonce;
@@ -36,6 +37,9 @@ class ReturnHandler
         $this->request = $request;
         $this->ltiLog = new LtiLog('Launch Deep Link (Return)');
         $this->checker = new ParamChecker($request->input(), $this->ltiLog);
+        $this->filters = [
+            new ContentItemFilter($this->ltiLog)
+        ];
     }
 
     /**
@@ -60,8 +64,6 @@ class ReturnHandler
                                  $this->dl->deployment->lti_deployment_id,
             Param::NONCE => Nonce::create(),
             Param::DL_DATA_URI => $this->dl->state,
-            // don't know what could be in there yet, so just going to pass it
-            // through as is
             Param::DL_CONTENT_ITEMS_URI => $jwt[Param::DL_CONTENT_ITEMS_URI],
         ];
         // optional params
@@ -75,8 +77,14 @@ class ReturnHandler
         if (isset($jwt[Param::DL_ERRORLOG]))
             $payload[Param::DL_ERRORLOG] = $jwt[Param::DL_ERRORLOG];
 
-        $key = Tool::getOwnTool()->getKey();
+        // filter payload
+        $this->ltiLog->debug('Pre-filter JWT: ' . json_encode($payload),
+            $this->request, $this->dl);
+        $payload = $this->applyFilters($payload);
+        $this->ltiLog->debug('Post-filter JWT: ' . json_encode($payload),
+            $this->request, $this->dl);
 
+        $key = Tool::getOwnTool()->getKey();
         $params = [
             Param::JWT => JwsToken::build($payload, $key)
         ];
@@ -94,7 +102,8 @@ class ReturnHandler
     }
 
     /**
-     * Return the decoded JWT from the deep link return.
+     * Return the decoded JWT from the deep link return. This is sent from the
+     * platform to the tool, where the shim is acting as the tool.
      * We should've gotten a POST request with only 1 param named 'JWT'.
      */
     public function receiveReturn(): array
@@ -122,6 +131,18 @@ class ReturnHandler
         $this->handleLoggingClaims($jwt);
 
         return $jwt;
+    }
+
+    /**
+     * Apply each filter to our id_token payload
+     */
+    private function applyFilters(array $params): array
+    {
+        $this->ltiLog->debug("Applying Filters", $this->request, $this->dl);
+        foreach ($this->filters as $filter) {
+            $params = $filter->filter($params, $this->dl);
+        }
+        return $params;
     }
 
     /**
