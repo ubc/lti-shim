@@ -138,8 +138,9 @@ class LtiFakeUser extends Model
         string $sub,
         string $name
     ): string {
-        return Uuid::uuid5($sub, $name)->toString() . '@' .
-            config('lti.fake_email_domain');
+        $uuid = Uuid::uuid5($sub, $name)->toString();
+        $uuid = str_replace('-', '', $uuid);
+        return $uuid . '@' . config('lti.fake_email_domain');
     }
 
     private static function faker()

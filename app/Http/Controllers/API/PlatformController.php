@@ -37,6 +37,7 @@ class PlatformController extends Controller
             'jwks_url' => ['string', 'url', 'nullable'],
             'access_token_url' => ['string', 'url', 'nullable'],
             'keys' => ['array'],
+            'keys.*.platform_id' => ['integer'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
         ]);
@@ -74,8 +75,12 @@ class PlatformController extends Controller
             'jwks_url' => ['string', 'url', 'nullable'],
             'access_token_url' => ['string', 'url', 'nullable'],
             'keys' => ['array'],
+            'keys.*.id' => ['integer'],
+            'keys.*.platform_id' => ['integer'],
             'keys.*.kid' => ['required', 'string', 'max:1024'],
             'keys.*.key' => ['required'],
+            'keys.*.created_at' => ['string'],
+            'keys.*.updated_at' => ['string'],
         ]);
         $platform->updateWithRelations($info);
         return $platform;

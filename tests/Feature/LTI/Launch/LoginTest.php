@@ -105,6 +105,7 @@ class LoginTest extends LtiBasicTestCase
         }
         // check that returned view has params to send login to target tool
         $resp->assertViewIs('lti.launch.auto_submit_form');
+        $resp->assertViewHas('formUrl', $this->tool->oidc_login_url);
         $resp->assertViewHas('params.iss', config('lti.iss'));
         $resp->assertViewHas('params.target_link_uri',
                              $this->tool->target_link_uri);

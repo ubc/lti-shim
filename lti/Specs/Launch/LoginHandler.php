@@ -15,6 +15,7 @@ use UBC\LTI\Utils\LtiLog;
 use UBC\LTI\Utils\Param;
 use UBC\LTI\Utils\UriUtil;
 
+use App\Models\DeepLinkContentItem;
 use App\Models\LtiSession;
 use App\Models\Platform;
 use App\Models\Tool;
@@ -33,6 +34,7 @@ class LoginHandler
     private LtiSession $session;
     private Request $request;
     private ParamChecker $checker;
+    private ?DeepLinkContentItem $contentItem = null;
 
     public function __construct(Request $request, string $streamId)
     {
@@ -59,14 +61,17 @@ class LoginHandler
             // present, so it's better for us to send it
             Param::CLIENT_ID => $this->session->tool->client_id
         ];
-        return response()->view(
+        $this->ltiLog->info('After generating login params', $this->request);
+        $ret = response()->view(
             'lti/launch/auto_submit_form',
             [
                 'title' => 'OIDC Login',
-                'formUrl' => $this->session->tool->oidc_login_url,
+                'formUrl' => $this->getLaunchUrl(),
                 'params' => $loginParams
             ]
         );
+        $this->ltiLog->info('After generating response', $this->request);
+        return $ret;
     }
 
     /**
@@ -89,6 +94,14 @@ class LoginHandler
         if (!Platform::hasIss($this->request->input(Param::ISS)))
             throw new LtiException($this->ltiLog->msg("Unknown platform iss.",
                 $this->request));
+        // check to see if this is a deep link content item launch
+        if ($this->request->route('deepLinkContentItemId')) {
+            $contentItem = DeepLinkContentItem::find(
+                $this->request->route('deepLinkContentItemId'));
+            if (!$contentItem)
+                throw new LtiException($this->ltiLog->msg('Invalid content item.'));
+            $this->contentItem = $contentItem;
+        }
         // recommended security check from OIDC. Not currently necessary for the
         // shim, since we don't actually use the value, but here just in case.
         $target = $this->request->input(Param::TARGET_LINK_URI);
@@ -180,6 +193,15 @@ class LoginHandler
         if ($targetLinkUri->getPath() == $midwayLookupUri->getPath())
             return true;
         return false;
+    }
+
+    private function getLaunchUrl(): string
+    {
+        $url = $this->session->tool->oidc_login_url;
+        if ($this->contentItem) {
+            $url = $this->contentItem->url;
+        }
+        return $url;
     }
 
 }

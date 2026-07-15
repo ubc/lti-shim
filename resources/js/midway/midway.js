@@ -17,6 +17,15 @@ import './plugins/vue-good-table/vue-good-table'
 // vuex
 import store from './plugins/store/store'
 
+// we'll use axios here to establish csrf protection first
+import axios from 'axios'
+axios.get('/sanctum/csrf-cookie')
+  .then(response => {})
+  .catch(response => {
+    console.log('Failed to establish CSRF protection');
+    return Promise.reject(response)
+  })
+
 Vue.component('instructor-main-view',
   require('./views/InstructorMainView.vue').default)
 Vue.component('first-time-setup-view',

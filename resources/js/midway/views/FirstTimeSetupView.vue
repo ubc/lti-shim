@@ -4,17 +4,30 @@
       Select Your Anonymization Option for {{ toolName }}
     </h1>
     <p class='mb-4'>
-    {{ toolName }} is hosted outside of Canada and would like access to your
-    student data from Canvas. To protect your privacy, we have generated a fake
-    identity for this data sharing. Note that this fake identity will not
-    affect your instructor's ability to grade and identify you, as they are
-    able to map fake identities to real identities.
+    {{ toolName }} would like access to your student data from Canvas. To
+    protect your privacy, we have generated a fake identity for this data
+    sharing. Note that this fake identity will not affect your instructor's
+    ability to grade and identify you, as they are able to map fake identities
+    to real identities.
     </p>
     <p>
     If you wish, you can choose to share your real identity with {{ toolName
     }}.  <span class='textWarning'>Warning, this is irreversible!</span> You
     cannot go back to an anonymized identity.
     </p>
+
+    <div class='flex flex-row gap-4 justify-center'>
+      <div class='flex flex-col'>
+        <div><strong>Fake Identity</strong></div>
+        <div>{{ fakeUser.name }}</div>
+        <div>{{ fakeUser.email }}</div>
+      </div>
+      <div class='flex flex-col'>
+        <div><strong>Real Identity</strong></div>
+        <div>{{ fakeUser.lti_real_user.name }}</div>
+        <div>{{ fakeUser.lti_real_user.email }}</div>
+      </div>
+    </div>
 
     <form @submit.prevent='confirmAnonymizationOption' class='m-8'>
       <label class='anonymizationRadio'
@@ -98,8 +111,8 @@ export default {
     continuationState: {
       type: String
     },
-    fakeUserId: {
-      type: Number,
+    fakeUser: {
+      type: Object,
       required: true
     },
     isMidwayOnly: {
@@ -125,7 +138,7 @@ export default {
     confirmAnonymizationOption() {
       this.isWaiting = true
       this.errorMsg = ''
-      let url = '/api/midway/config/anonymization/' + this.fakeUserId
+      let url = '/api/midway/config/anonymization/' + this.fakeUser.id
       axios.post(url, {'is_anonymized': this.isAnonymized})
         .then(response => {
           this.isWaiting = false

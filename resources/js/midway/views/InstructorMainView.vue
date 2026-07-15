@@ -27,6 +27,7 @@
 <script>
 import ContinuationForm from '@midway/components/ContinuationForm'
 import UserList from '@midway/components/UserList'
+import axios from 'axios'
 
 export default {
   name: "MidwayMain",
@@ -45,13 +46,6 @@ export default {
     },
     continuationState: {
       type: String
-    },
-    method: {
-      type: String,
-      required: true,
-      validator(value) {
-        return ['post', 'get'].indexOf(value) !== -1
-      }
     },
     courseContextId: {
       type: String,

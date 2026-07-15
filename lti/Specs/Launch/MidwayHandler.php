@@ -85,7 +85,7 @@ class MidwayHandler
             Param::ID_TOKEN => $this->request->input(Param::ID_TOKEN),
             Param::MIDWAY_REDIRECT_URI =>
                             $this->request->input(Param::MIDWAY_REDIRECT_URI),
-            'fakeUserId' => $this->session->lti_fake_user->id,
+            'fakeUser' => $this->session->lti_fake_user,
             'isMidwayOnly' => $this->session->is_midway_lookup_only,
             'token' => $token->plainTextToken,
             'toolName' => $this->session->tool->name,

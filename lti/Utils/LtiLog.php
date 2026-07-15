@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Ags;
 use App\Models\AgsLineitem;
 use App\Models\CourseContext;
+use App\Models\DeepLink;
 use App\Models\LtiFakeUser;
 use App\Models\LtiRealUser;
 use App\Models\LtiSession;
@@ -162,6 +163,9 @@ class LtiLog
             }
             elseif ($obj instanceof Tool) {
                 $components[] = 'Tool: ' . $obj->id . ' ' . $obj->name;
+            }
+            elseif ($obj instanceof DeepLink) {
+                $components[] = 'DeepLink: ' . $obj->id;
             }
             elseif ($obj instanceof ReturnUrl) {
                 $components[] = 'ReturnUrl: ' . $obj->id;
